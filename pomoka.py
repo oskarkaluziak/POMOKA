@@ -1,16 +1,19 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, \
-    QVBoxLayout, QFileDialog, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, QVBoxLayout, QFileDialog, QComboBox
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtCore import Qt
-import pandas as pd  # Aby wczytać plik CSV
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import pandas as pd
+import sys
+import random
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Pomoka(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.interfejs()
 
-    #cały interfejs apki
-    def interfejs(self):
+    def interfejs(self): # interfejs apki
         # Labely
         self.label1 = QLabel("<b>Przeczytaj koniecznie dokładną instrukcję używania programu!<b>", self)
         self.label2 = QLabel("<b>Wiek pacjenta:<b>", self)
@@ -63,16 +66,14 @@ class Pomoka(QWidget):
         self.setWindowTitle("POMOKA")
         self.show()
 
-    #funkcja do opcji z wgraniem pliku
-    def wgrajPlik(self):
+    def wgrajPlik(self):  # funkcja do opcji z wgraniem pliku
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self, "Wybierz plik CSV", "", "CSV Files (*.csv);;All Files (*)", options=options)
         if fileName:
             self.filePathEdt.setText(fileName)
             self.wczytajPlikCSV(fileName)
 
-    #funkcja do wczytania csv / TODO
-    def wczytajPlikCSV(self, fileName):
+    def wczytajPlikCSV(self, fileName): # funkcja do wczytania csv / TODO
         try:
             df = pd.read_csv(fileName)
             # Przykładowa akcja: wyświetlenie liczby wierszy i kolumn
@@ -80,37 +81,33 @@ class Pomoka(QWidget):
         except Exception as e:
             QMessageBox.warning(self, "Błąd", f"Nie można wczytać pliku CSV: {str(e)}")
 
-    #wybor testow / TODO Perek
-    def pokazOpcjeTestow(self):
-        # Utwórz pole wyboru testów
+    def pokazOpcjeTestow(self): #wybor testow / TODO Perek
         self.testComboBox = QComboBox(self)
+
         self.testComboBox.addItem("Kolmogorov-Smirnov test")
         self.testComboBox.addItem("Repeated Measures ANOVA")
         self.testComboBox.addItem("Log-rank test")
 
         self.ukladV.addWidget(self.testComboBox)
-        self.testBtn.setEnabled(False)  # Dezaktywuj przycisk po dodaniu pól
+        self.testBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
-    #wybor preferencji, na spokojnie, imo nie ruszamy na razie ale bedzie TODO
-    def pokazpreferencje(self):
-        # Utwórz pole wyboru testów
+    def pokazpreferencje(self): # TODO
         self.testComboBox = QComboBox(self)
         self.testComboBox.addItem("Pacjenci chorzy na cukrzyce")
         self.testComboBox.addItem("Pacjenci bez cukrzycy")
 
         self.ukladV.addWidget(self.testComboBox)
-        self.preferencjeBtn.setEnabled(False)  # Dezaktywuj przycisk po dodaniu pól
+        self.preferencjeBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
-    # funkcja zmieniajaca tło w aplikacji i dostosowująca je zawsze do rozmiaru okienka
-    def paintEvent(self, event):
+    def paintEvent(self, event): # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
         pixmap = QPixmap("zdjecie_cw.jpeg")
         painter.drawPixmap(self.rect(), pixmap)
 
-    def koniec(self):
+    def koniec(self): # zamykanie aplikacji poprzez przycisk
         self.close()
 
-    def closeEvent(self, event):
+    def closeEvent(self, event): # zapytanie przed zamknieciem aplikacji
         odp = QMessageBox.question(
             self, 'Komunikat',
             "Czy na pewno chcesz zamknąć?",
@@ -121,17 +118,42 @@ class Pomoka(QWidget):
         else:
             event.ignore()
 
-    def keyPressEvent(self, e):
+    def keyPressEvent(self, e): # ESC na klawiaturze - tez zamyka program
         if e.key() == Qt.Key_Escape:
             self.close()
+    def dzialanie(self):  # algorytm do robienia krzywych z danych chorych TODO mikolaj
+        #QMessageBox.information(self, "Akcja", "Tutaj dodaj kod do wykonywania krzywej dla chorych")
+        for i in reversed(range(self.ukladV.count())):
+            widget = self.ukladV.itemAt(i).widget()
+            if widget is not None:
+                self.ukladV.removeWidget(widget)
+                widget.deleteLater()
 
-    #algorytm do robienia krzywych z danych chorych TODO mikolaj
-    def dzialanie(self):
-        QMessageBox.information(self, "Akcja", "Tutaj dodaj kod do wykonywania krzywej dla chorych")
+            # Tworzenie losowych danych
+        x = np.linspace(0, 10, 100)
+        y = np.sin(x)
+
+        # Tworzenie wykresu
+        fig, ax = plt.subplots()
+        ax.plot(x, y)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_title('Losowy wykres')
+
+        # Osadzanie wykresu w aplikacji
+        self.canvas = FigureCanvas(fig)
+
+        # Utwórz pusty widget, który będzie zajmował miejsce na dnie okna
+        bottom_widget = QWidget(self)
+        bottom_layout = QVBoxLayout(bottom_widget)
+        bottom_layout.addWidget(self.canvas)
+        self.ukladV.addWidget(bottom_widget, 1, Qt.AlignBottom)  # Rozszerzanie do pełnej szerokości, wyrównanie na dole
+
+        # Aktualizacja widoku
+        self.canvas.draw()
+
 
 if __name__ == '__main__':
-    import sys
-
     app = QApplication(sys.argv)
     okno = Pomoka()
     sys.exit(app.exec_())
