@@ -14,12 +14,11 @@ class Pomoka(QWidget):
         self.interfejs()
 
     def interfejs(self): # interfejs apki
-        # Labely
+
         self.label1 = QLabel("<b>Przeczytaj koniecznie dokładną instrukcję używania programu!<b>", self)
         self.label2 = QLabel("<b>Wiek pacjenta:<b>", self)
         self.label3 = QLabel("<b>Wynik testu:<b>", self)
 
-        # 1-liniowe pola edycyjne
         self.filePathEdt = QLineEdit()  # Pole do wyświetlania ścieżki pliku
         self.wiek = QLineEdit()
         self.wynikEdt = QLineEdit()
@@ -27,18 +26,15 @@ class Pomoka(QWidget):
         self.wynikEdt.setReadOnly(True)
         self.wynikEdt.setToolTip('Wpisz <b>liczby</b> i wybierz działanie...')
 
-        # Przyciski
         wgrajBtn = QPushButton("&Wgraj", self)
         self.testBtn = QPushButton("&Wybierz test", self)
         self.preferencjeBtn = QPushButton("&Wybierz preferencje", self)
         wykonajBtn = QPushButton("Wykonaj test", self)
         koniecBtn = QPushButton("&Zamknij aplikację POMOKA", self)
 
-        # Układy
         self.ukladV = QVBoxLayout()
         self.ukladH = QHBoxLayout()
 
-        # Dodanie elementów do układów
         self.ukladV.addWidget(self.label1)
         self.ukladV.addWidget(self.label2)
         self.ukladV.addWidget(self.wiek)
@@ -53,7 +49,6 @@ class Pomoka(QWidget):
         self.ukladV.addLayout(self.ukladH)
         self.ukladV.addWidget(koniecBtn)
 
-        # Ustawienie układu
         self.setLayout(self.ukladV)
 
         koniecBtn.clicked.connect(self.koniec)
@@ -122,34 +117,25 @@ class Pomoka(QWidget):
         if e.key() == Qt.Key_Escape:
             self.close()
     def dzialanie(self):  # algorytm do robienia krzywych z danych chorych TODO mikolaj
-        #QMessageBox.information(self, "Akcja", "Tutaj dodaj kod do wykonywania krzywej dla chorych")
+
+        #usuwa poprzedni wykres o ile jakiś wyświetla apka
         for i in reversed(range(self.ukladV.count())):
             widget = self.ukladV.itemAt(i).widget()
-            if widget is not None:
-                self.ukladV.removeWidget(widget)
-                widget.deleteLater()
-
-            # Tworzenie losowych danych
+            if isinstance(widget, FigureCanvas):
+                widget.setParent(None)
+        # to losowy wykres
         x = np.linspace(0, 10, 100)
         y = np.sin(x)
-
-        # Tworzenie wykresu
         fig, ax = plt.subplots()
         ax.plot(x, y)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_title('Losowy wykres')
 
-        # Osadzanie wykresu w aplikacji
+        #to musi zostać
         self.canvas = FigureCanvas(fig)
-
-        # Utwórz pusty widget, który będzie zajmował miejsce na dnie okna
-        bottom_widget = QWidget(self)
-        bottom_layout = QVBoxLayout(bottom_widget)
-        bottom_layout.addWidget(self.canvas)
-        self.ukladV.addWidget(bottom_widget, 1, Qt.AlignBottom)  # Rozszerzanie do pełnej szerokości, wyrównanie na dole
-
-        # Aktualizacja widoku
+        self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
+        self.resize(self.width(), self.height() + 400)
         self.canvas.draw()
 
 
