@@ -116,13 +116,21 @@ class Pomoka(QWidget):
     def keyPressEvent(self, e): # ESC na klawiaturze - tez zamyka program
         if e.key() == Qt.Key_Escape:
             self.close()
-    def dzialanie(self):  # algorytm do robienia krzywych z danych chorych TODO mikolaj
+    def dzialanie(self):  # algorytm do robienia krzywych z danych chorych TODO
 
         #usuwa poprzedni wykres o ile jakiś wyświetla apka
         for i in reversed(range(self.ukladV.count())):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
+
+        #budowa wykresu z GUS TODO Grzegorz
+        #
+        #budowa wykresu z danych chorych TODO
+        #
+        #nałożenie wykresów na jeden wykres TODO
+        #
+
         # to losowy wykres
         x = np.linspace(0, 10, 100)
         y = np.sin(x)
