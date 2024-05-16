@@ -96,7 +96,7 @@ class Pomoka(QWidget):
 
     def paintEvent(self, event): # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
-        pixmap = QPixmap("zdjecie_cw.jpeg")
+        pixmap = QPixmap("POMOKA.png")
         painter.drawPixmap(self.rect(), pixmap)
 
     def shutdown(self): # zamykanie aplikacji poprzez przycisk
