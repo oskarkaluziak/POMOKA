@@ -123,6 +123,7 @@ class Pomoka(QWidget):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
+                self.resize(self.width(), self.height() - 400)
 
         #budowa wykresu z GUS TODO Grzegorz
         #
