@@ -11,64 +11,64 @@ import matplotlib.pyplot as plt
 class Pomoka(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.interfejs()
+        self.interface()
 
-    def interfejs(self): # interfejs apki
+    def interface(self): # interface apki
 
-        self.label1 = QLabel("<b>Przeczytaj koniecznie dokładną instrukcję używania programu!<b>", self)
-        self.label2 = QLabel("<b>Wiek pacjenta:<b>", self)
-        self.label3 = QLabel("<b>Wynik testu:<b>", self)
+        self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
+        self.label2 = QLabel("", self)
+        self.label3 = QLabel("<b>Insert patient's age<b>", self)
+        self.label4 = QLabel("<b>Results of the selected statistical test<b>", self)
 
-        self.filePathEdt = QLineEdit()  # Pole do wyświetlania ścieżki pliku
-        self.wiek = QLineEdit()
-        self.wynikEdt = QLineEdit()
+        self.filePathEdt = QLineEdit()
+        self.age = QLineEdit()
+        self.resultEdt = QLineEdit()
+        self.resultEdt.setReadOnly(True)
 
-        self.wynikEdt.setReadOnly(True)
-        self.wynikEdt.setToolTip('Wpisz <b>liczby</b> i wybierz działanie...')
-
-        wgrajBtn = QPushButton("&Wgraj", self)
-        self.testBtn = QPushButton("&Wybierz test", self)
-        self.preferencjeBtn = QPushButton("&Wybierz preferencje", self)
-        wykonajBtn = QPushButton("Wykonaj test", self)
-        koniecBtn = QPushButton("&Zamknij aplikację POMOKA", self)
+        uploadBtn = QPushButton("&Upload csv", self)
+        self.testsBtn = QPushButton("&Select statistical test", self)
+        self.preferencesBtn = QPushButton("&Select preferences", self)
+        executeBtn = QPushButton("&Execute", self)
+        shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
         self.ukladV = QVBoxLayout()
         self.ukladH = QHBoxLayout()
 
         self.ukladV.addWidget(self.label1)
         self.ukladV.addWidget(self.label2)
-        self.ukladV.addWidget(self.wiek)
         self.ukladV.addWidget(self.label3)
-        self.ukladV.addWidget(self.wynikEdt)
+        self.ukladV.addWidget(self.age)
+        self.ukladV.addWidget(self.label4)
+        self.ukladV.addWidget(self.resultEdt)
 
-        self.ukladH.addWidget(wgrajBtn)
-        self.ukladH.addWidget(self.testBtn)
-        self.ukladH.addWidget(self.preferencjeBtn)
-        self.ukladH.addWidget(wykonajBtn)
+        self.ukladH.addWidget(uploadBtn)
+        self.ukladH.addWidget(self.testsBtn)
+        self.ukladH.addWidget(self.preferencesBtn)
+        self.ukladH.addWidget(executeBtn)
 
         self.ukladV.addLayout(self.ukladH)
-        self.ukladV.addWidget(koniecBtn)
+        self.ukladV.addWidget(shutdownBtn)
 
         self.setLayout(self.ukladV)
 
-        koniecBtn.clicked.connect(self.koniec)
-        wgrajBtn.clicked.connect(self.wgrajPlik)
-        self.testBtn.clicked.connect(self.pokazOpcjeTestow)
-        self.preferencjeBtn.clicked.connect(self.pokazpreferencje)
-        wykonajBtn.clicked.connect(self.dzialanie)
+        shutdownBtn.clicked.connect(self.shutdown)
+        uploadBtn.clicked.connect(self.uploadCSV)
+        self.testsBtn.clicked.connect(self.CBtests)
+        self.preferencesBtn.clicked.connect(self.CBpreferences)
+        executeBtn.clicked.connect(self.algorithm)
 
         self.setGeometry(20, 20, 400, 200)
         self.setWindowTitle("POMOKA")
         self.show()
 
-    def wgrajPlik(self):  # funkcja do opcji z wgraniem pliku
+    def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self, "Wybierz plik CSV", "", "CSV Files (*.csv);;All Files (*)", options=options)
         if fileName:
             self.filePathEdt.setText(fileName)
-            self.wczytajPlikCSV(fileName)
+            self.readCSV(fileName)
 
-    def wczytajPlikCSV(self, fileName): # funkcja do wczytania csv / TODO
+    def readCSV(self, fileName): # funkcja do wczytania csv / TODO
         try:
             df = pd.read_csv(fileName)
             # Przykładowa akcja: wyświetlenie liczby wierszy i kolumn
@@ -76,36 +76,36 @@ class Pomoka(QWidget):
         except Exception as e:
             QMessageBox.warning(self, "Błąd", f"Nie można wczytać pliku CSV: {str(e)}")
 
-    def pokazOpcjeTestow(self): #wybor testow / TODO Perek
-        self.testComboBox = QComboBox(self)
+    def CBtests(self): #wybor testow / TODO Perek
+        self.testsComboBox = QComboBox(self)
 
-        self.testComboBox.addItem("Kolmogorov-Smirnov test")
-        self.testComboBox.addItem("Repeated Measures ANOVA")
-        self.testComboBox.addItem("Log-rank test")
+        self.testsComboBox.addItem("Kolmogorov-Smirnov test")
+        self.testsComboBox.addItem("Repeated Measures ANOVA")
+        self.testsComboBox.addItem("Log-rank test")
 
-        self.ukladV.addWidget(self.testComboBox)
-        self.testBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
+        self.ukladV.addWidget(self.testsComboBox)
+        self.testsBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
-    def pokazpreferencje(self): # TODO
-        self.testComboBox = QComboBox(self)
-        self.testComboBox.addItem("Pacjenci chorzy na cukrzyce")
-        self.testComboBox.addItem("Pacjenci bez cukrzycy")
+    def CBpreferences(self): # TODO
+        self.testsComboBox = QComboBox(self)
+        self.testsComboBox.addItem("Patients with diabetes")
+        self.testsComboBox.addItem("Patients without diabetes")
 
-        self.ukladV.addWidget(self.testComboBox)
-        self.preferencjeBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
+        self.ukladV.addWidget(self.testsComboBox)
+        self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
     def paintEvent(self, event): # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
         pixmap = QPixmap("zdjecie_cw.jpeg")
         painter.drawPixmap(self.rect(), pixmap)
 
-    def koniec(self): # zamykanie aplikacji poprzez przycisk
+    def shutdown(self): # zamykanie aplikacji poprzez przycisk
         self.close()
 
     def closeEvent(self, event): # zapytanie przed zamknieciem aplikacji
         odp = QMessageBox.question(
             self, 'Komunikat',
-            "Czy na pewno chcesz zamknąć?",
+            "Are you sure you want to close?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
         if odp == QMessageBox.Yes:
@@ -116,7 +116,31 @@ class Pomoka(QWidget):
     def keyPressEvent(self, e): # ESC na klawiaturze - tez zamyka program
         if e.key() == Qt.Key_Escape:
             self.close()
-    def dzialanie(self):  # algorytm do robienia krzywych z danych chorych TODO
+
+    def gus(self): #TODO
+        QMessageBox.information(self, "kiedys bedzie")
+        #
+
+    def ill(self): #TODO
+        QMessageBox.information(self, "kiedys bedzie")
+        #
+
+    def charts_overlay(self): #TODO
+        QMessageBox.information(self, "kiedys bedzie")
+        #
+    def run_kolmogorov_smirnov(self): #TODO
+        #
+        QMessageBox.information(self, "Test Kolmogorov-Smirnov", "Wykonano test Kolmogorov-Smirnov")
+
+    def run_repeated_measures_anova(self): #TODO
+        #
+        QMessageBox.information(self, "Repeated Measures ANOVA", "Wykonano test Repeated Measures ANOVA")
+
+    def run_log_rank_test(self): #TODO
+        #
+        QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank")
+
+    def algorithm(self):  # algorytm do robienia krzywych z danych chorych TODO
 
         #usuwa poprzedni wykres o ile jakiś wyświetla apka
         for i in reversed(range(self.ukladV.count())):
@@ -125,12 +149,20 @@ class Pomoka(QWidget):
                 widget.setParent(None)
                 self.resize(self.width(), self.height() - 400)
 
-        #budowa wykresu z GUS TODO Grzegorz
-        #
-        #budowa wykresu z danych chorych TODO
-        #
-        #nałożenie wykresów na jeden wykres TODO
-        #
+        if not hasattr(self, 'testsComboBox') or self.testsComboBox.currentIndex() == -1:
+            QMessageBox.warning(self, "Warning", "Please select a statistical test.")
+            return
+        selected_test = self.testsComboBox.currentText()
+        if selected_test == "Kolmogorov-Smirnov test":
+            self.run_kolmogorov_smirnov()
+        elif selected_test == "Repeated Measures ANOVA":
+            self.run_repeated_measures_anova()
+        elif selected_test == "Log-rank test":
+            self.run_log_rank_test()
+
+        # self.gus()
+        # self.ill()
+        # self.charts_overlay()
 
         # to losowy wykres
         x = np.linspace(0, 10, 100)
@@ -139,9 +171,9 @@ class Pomoka(QWidget):
         ax.plot(x, y)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
-        ax.set_title('Losowy wykres')
+        ax.set_title('coś tam losowego')
 
-        #to musi zostać
+        # to musi zostać
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.resize(self.width(), self.height() + 400)
