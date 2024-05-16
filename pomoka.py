@@ -125,6 +125,7 @@ class Pomoka(QWidget):
         if e.key() == Qt.Key_Escape:
             self.close()
 
+    #algorytm do robienia krzywych z danych chorych TODO mikolaj
     def dzialanie(self):
         QMessageBox.information(self, "Akcja", "Tutaj dodaj kod do wykonywania krzywej dla chorych")
 
