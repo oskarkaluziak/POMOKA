@@ -9,6 +9,7 @@ class Pomoka(QWidget):
         super().__init__(parent)
         self.interfejs()
 
+    #cały interfejs apki
     def interfejs(self):
         # Labely
         self.label1 = QLabel("<b>Przeczytaj koniecznie dokładną instrukcję używania programu!<b>", self)
@@ -62,6 +63,7 @@ class Pomoka(QWidget):
         self.setWindowTitle("POMOKA")
         self.show()
 
+    #funkcja do opcji z wgraniem pliku
     def wgrajPlik(self):
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self, "Wybierz plik CSV", "", "CSV Files (*.csv);;All Files (*)", options=options)
@@ -69,6 +71,7 @@ class Pomoka(QWidget):
             self.filePathEdt.setText(fileName)
             self.wczytajPlikCSV(fileName)
 
+    #funkcja do wczytania csv / TODO
     def wczytajPlikCSV(self, fileName):
         try:
             df = pd.read_csv(fileName)
@@ -77,6 +80,7 @@ class Pomoka(QWidget):
         except Exception as e:
             QMessageBox.warning(self, "Błąd", f"Nie można wczytać pliku CSV: {str(e)}")
 
+    #wybor testow / TODO Perek
     def pokazOpcjeTestow(self):
         # Utwórz pole wyboru testów
         self.testComboBox = QComboBox(self)
@@ -87,6 +91,7 @@ class Pomoka(QWidget):
         self.ukladV.addWidget(self.testComboBox)
         self.testBtn.setEnabled(False)  # Dezaktywuj przycisk po dodaniu pól
 
+    #wybor preferencji, na spokojnie, imo nie ruszamy na razie ale bedzie TODO
     def pokazpreferencje(self):
         # Utwórz pole wyboru testów
         self.testComboBox = QComboBox(self)
@@ -96,9 +101,10 @@ class Pomoka(QWidget):
         self.ukladV.addWidget(self.testComboBox)
         self.preferencjeBtn.setEnabled(False)  # Dezaktywuj przycisk po dodaniu pól
 
+    # funkcja zmieniajaca tło w aplikacji i dostosowująca je zawsze do rozmiaru okienka
     def paintEvent(self, event):
         painter = QPainter(self)
-        pixmap = QPixmap("cw.jpeg")
+        pixmap = QPixmap("zdjecie_cw.jpeg")
         painter.drawPixmap(self.rect(), pixmap)
 
     def koniec(self):
