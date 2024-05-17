@@ -4,7 +4,6 @@ from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import pandas as pd
 import sys
-import random
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -16,7 +15,7 @@ class Pomoka(QWidget):
     def interface(self): # interface apki
 
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
-        self.label2 = QLabel("", self)
+        #self.label2 = QLabel("", self)
         self.label3 = QLabel("<b>Insert patient's age:<b>", self)
         self.label4 = QLabel("<b>Results:<b>", self)
 
@@ -35,7 +34,7 @@ class Pomoka(QWidget):
         self.ukladH = QHBoxLayout()
 
         self.ukladV.addWidget(self.label1)
-        self.ukladV.addWidget(self.label2)
+        #self.ukladV.addWidget(self.label2)
         self.ukladV.addWidget(self.label3)
         self.ukladV.addWidget(self.age)
         self.ukladV.addWidget(self.label4)
@@ -57,7 +56,7 @@ class Pomoka(QWidget):
         self.preferencesBtn.clicked.connect(self.CBpreferences)
         executeBtn.clicked.connect(self.algorithm)
 
-        self.setGeometry(20, 20, 400, 200)
+        self.setGeometry(20, 20, 400, 300)
         self.setWindowTitle("POMOKA")
         self.show()
 
@@ -188,7 +187,7 @@ class Pomoka(QWidget):
         # to musi zostać
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
-        self.resize(self.width(), self.height() + 400)
+        self.resize(self.width() + 400, self.height() + 400)
         self.canvas.draw()
 
 
