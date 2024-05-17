@@ -17,17 +17,17 @@ class Pomoka(QWidget):
 
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
         self.label2 = QLabel("", self)
-        self.label3 = QLabel("<b>Insert patient's age<b>", self)
-        self.label4 = QLabel("<b>Results of the selected statistical test<b>", self)
+        self.label3 = QLabel("<b>Insert patient's age:<b>", self)
+        self.label4 = QLabel("<b>Results:<b>", self)
 
         self.filePathEdt = QLineEdit()
         self.age = QLineEdit()
         self.resultEdt = QLineEdit()
         self.resultEdt.setReadOnly(True)
 
-        uploadBtn = QPushButton("&Upload csv", self)
-        self.testsBtn = QPushButton("&Select statistical test", self)
-        self.preferencesBtn = QPushButton("&Select preferences", self)
+        uploadBtn = QPushButton("&Upload data", self)
+        self.testsBtn = QPushButton("&Select test", self)
+        self.preferencesBtn = QPushButton("&Preferences", self)
         executeBtn = QPushButton("&Execute", self)
         shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
@@ -63,19 +63,31 @@ class Pomoka(QWidget):
 
     def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
         options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(self, "Wybierz plik CSV", "", "CSV Files (*.csv);;All Files (*)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(
+            self,
+            "Wybierz plik CSV lub XLSX",
+            "",
+            "CSV i Excel Files (*.csv *.xlsx);;CSV Files (*.csv);;Excel Files (*.xlsx);;All Files (*)",
+            options=options
+        )
         if fileName:
             self.filePathEdt.setText(fileName)
             self.readCSV(fileName)
 
-    def readCSV(self, fileName): # funkcja do wczytania csv / TODO
+    def readCSV(self, fileName): # funkcja do wczytania csv/xlsx / TODO
         try:
-            df = pd.read_csv(fileName)
-            # Przykładowa akcja: wyświetlenie liczby wierszy i kolumn
-            QMessageBox.information(self, "Plik CSV wczytany", f"Liczba wierszy: {df.shape[0]}\nLiczba kolumn: {df.shape[1]}")
-        except Exception as e:
-            QMessageBox.warning(self, "Błąd", f"Nie można wczytać pliku CSV: {str(e)}")
+            if fileName.endswith('.csv'):
+                df = pd.read_csv(fileName)
+            elif fileName.endswith('.xlsx'):
+                df = pd.read_excel(fileName)
+            else:
+                raise ValueError("Unsupported file format")
 
+            # Przykładowa akcja: wyświetlenie liczby wierszy i kolumn
+            QMessageBox.information(self, "Plik wczytany",
+                                    f"Liczba wierszy: {df.shape[0]}\nLiczba kolumn: {df.shape[1]}")
+        except Exception as e:
+            QMessageBox.warning(self, "Błąd", f"Nie można wczytać pliku: {str(e)}")
     def CBtests(self): #wybor testow / TODO Perek
         self.testsComboBox = QComboBox(self)
 
