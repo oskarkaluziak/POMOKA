@@ -192,8 +192,11 @@ class Pomoka(QWidget):
             self.startExecution()
 
     def startExecution(self):
-        if not hasattr(self, 'testsList') or self.testsList.currentIndex() == -1:
+        if not hasattr(self, 'testsList') or not self.testsList.selectedItems():
             QMessageBox.warning(self, "Warning", "Please select a statistical test.")
+            return
+        if not hasattr(self, 'preferencesList') or not self.preferencesList.selectedItems():
+            QMessageBox.warning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
             return
 
         self.testsBtn.setEnabled(False)
