@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, \
     QVBoxLayout, QFileDialog, QComboBox, QAbstractItemView, QListWidget
-from PyQt5.QtGui import QPixmap, QPainter
+from PyQt5.QtGui import QPixmap, QPainter, QIcon
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import pandas as pd
@@ -59,6 +59,7 @@ class Pomoka(QWidget):
         self.resize(400, 230)
         self.center()
         self.setWindowTitle("POMOKA")
+        self.setWindowIcon(QIcon('icon.png'))
         self.show()
 
     def center(self):
@@ -112,7 +113,7 @@ class Pomoka(QWidget):
         self.testsList.addItem("Kolmogorov-Smirnov test")
         self.testsList.addItem("Repeated Measures ANOVA")
         self.testsList.addItem("Log-rank test")
-        self.testsList.setFixedSize(300, 100)
+        self.testsList.setFixedSize(300, 75)
 
         default_item = self.testsList.findItems("Log-rank test", Qt.MatchExactly)[0]
         default_index = self.testsList.indexFromItem(default_item).row()
@@ -130,7 +131,7 @@ class Pomoka(QWidget):
         self.preferencesList.addItem("Female")
         self.preferencesList.addItem("Patients with diabetes")
         self.preferencesList.addItem("Patients without diabetes")
-        self.preferencesList.setFixedSize(300, 100)
+        self.preferencesList.setFixedSize(300, 75)
 
         default_item = self.preferencesList.findItems("No preferences", Qt.MatchExactly)[0]
         default_index = self.preferencesList.indexFromItem(default_item).row()
@@ -227,8 +228,8 @@ class Pomoka(QWidget):
         y = np.sin(x)
         fig, ax = plt.subplots()
         ax.plot(x, y)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
+        ax.set_xlabel('Ilość lat przeżywalności')
+        ax.set_ylabel('Ilość pacjentów')
         ax.set_title('coś tam losowego')
 
         self.canvas = FigureCanvas(fig)
