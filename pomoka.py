@@ -56,10 +56,28 @@ class Pomoka(QWidget):
         self.preferencesBtn.clicked.connect(self.CBpreferences)
         executeBtn.clicked.connect(self.algorithm)
 
-        self.setGeometry(20, 20, 400, 300)
+        self.resize(400, 200)
+        self.center()
         self.setWindowTitle("POMOKA")
         self.show()
 
+    def center(self):
+        # Pobranie wymiarów ekranu
+        screen = QApplication.desktop().screenGeometry()
+        screen_width = screen.width()
+        screen_height = screen.height()
+
+        # Pobranie wymiarów okna
+        window_size = self.geometry()
+        window_width = window_size.width()
+        window_height = window_size.height()
+
+        # Obliczenie pozycji X i Y
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        # Ustawienie geometrii okna
+        self.setGeometry(x, y, window_width, window_height)
     def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(
@@ -98,11 +116,11 @@ class Pomoka(QWidget):
         self.testsBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
     def CBpreferences(self): # TODO
-        self.testsComboBox = QComboBox(self)
-        self.testsComboBox.addItem("Patients with diabetes")
-        self.testsComboBox.addItem("Patients without diabetes")
+        self.preferencesComboBox = QComboBox(self)
+        self.preferencesComboBox.addItem("Patients with diabetes")
+        self.preferencesComboBox.addItem("Patients without diabetes")
 
-        self.ukladV.addWidget(self.testsComboBox)
+        self.ukladV.addWidget(self.preferencesComboBox)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
     def paintEvent(self, event): # funkcja zmieniajaca tło w aplikacji + autosize
@@ -158,7 +176,8 @@ class Pomoka(QWidget):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
-                self.resize(self.width(), self.height() - 400)
+                self.resize(self.width() - 400, self.height() - 400)
+                self.center()
 
         if not hasattr(self, 'testsComboBox') or self.testsComboBox.currentIndex() == -1:
             QMessageBox.warning(self, "Warning", "Please select a statistical test.")
@@ -189,6 +208,7 @@ class Pomoka(QWidget):
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.resize(self.width() + 400, self.height() + 400)
         self.canvas.draw()
+        self.center()
 
 
 if __name__ == '__main__':
