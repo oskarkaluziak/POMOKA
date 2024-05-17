@@ -106,13 +106,19 @@ class Pomoka(QWidget):
         except Exception as e:
             QMessageBox.warning(self, "Błąd", f"Nie można wczytać pliku: {str(e)}")
     def CBtests(self): #wybor testow / TODO Perek
-        self.testsComboBox = QComboBox(self)
+        self.testsList = QListWidget(self)
+        self.testsList.setSelectionMode(QAbstractItemView.MultiSelection)
 
-        self.testsComboBox.addItem("Kolmogorov-Smirnov test")
-        self.testsComboBox.addItem("Repeated Measures ANOVA")
-        self.testsComboBox.addItem("Log-rank test")
+        self.testsList.addItem("Kolmogorov-Smirnov test")
+        self.testsList.addItem("Repeated Measures ANOVA")
+        self.testsList.addItem("Log-rank test")
+        self.testsList.setFixedSize(300, 100)
 
-        self.ukladV.addWidget(self.testsComboBox)
+        default_item = self.testsList.findItems("Log-rank test", Qt.MatchExactly)[0]
+        default_index = self.testsList.indexFromItem(default_item).row()
+        self.testsList.setCurrentRow(default_index)
+
+        self.ukladV.addWidget(self.testsList)
         self.testsBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
     def CBpreferences(self): # TODO
@@ -120,8 +126,15 @@ class Pomoka(QWidget):
         self.preferencesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
         self.preferencesList.addItem("No preferences")
+        self.preferencesList.addItem("Men")
+        self.preferencesList.addItem("Female")
         self.preferencesList.addItem("Patients with diabetes")
         self.preferencesList.addItem("Patients without diabetes")
+        self.preferencesList.setFixedSize(300, 100)
+
+        default_item = self.preferencesList.findItems("No preferences", Qt.MatchExactly)[0]
+        default_index = self.preferencesList.indexFromItem(default_item).row()
+        self.preferencesList.setCurrentRow(default_index)
 
         self.ukladV.addWidget(self.preferencesList)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
@@ -179,7 +192,7 @@ class Pomoka(QWidget):
             self.startExecution()
 
     def startExecution(self):
-        if not hasattr(self, 'testsComboBox') or self.testsComboBox.currentIndex() == -1:
+        if not hasattr(self, 'testsList') or self.testsList.currentIndex() == -1:
             QMessageBox.warning(self, "Warning", "Please select a statistical test.")
             return
 
@@ -187,14 +200,14 @@ class Pomoka(QWidget):
         self.preferencesBtn.setEnabled(False)
         self.age.setEnabled(False)
         self.uploadBtn.setEnabled(False)
-        if hasattr(self, 'testsComboBox') and self.testsComboBox.isVisible():
-            self.testsComboBox.setEnabled(False)
+        if hasattr(self, 'testsList') and self.testsList.isVisible():
+            self.testsList.setEnabled(False)
         if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
             self.preferencesList.setEnabled(False)
         self.executeBtn.setText("Break")
         self.isExecuting = True
 
-        selected_test = self.testsComboBox.currentText()
+        selected_test = self.testsList.currentItem()
         if selected_test == "Kolmogorov-Smirnov test":
             self.run_kolmogorov_smirnov()
         elif selected_test == "Repeated Measures ANOVA":
@@ -217,7 +230,7 @@ class Pomoka(QWidget):
 
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
-        self.resize(self.width() + 400, self.height() + 400)
+        self.resize(self.width() + 300, self.height() + 400)
         self.canvas.draw()
         self.center()
 
@@ -226,13 +239,13 @@ class Pomoka(QWidget):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
-                self.resize(self.width() - 400, self.height() - 400)
+                self.resize(self.width() - 300, self.height() - 400)
                 self.center()
 
         self.executeBtn.setText("Execute")
         self.isExecuting = False
-        if hasattr(self, 'testsComboBox') and self.testsComboBox.isVisible():
-            self.testsComboBox.setEnabled(True)
+        if hasattr(self, 'testsList') and self.testsList.isVisible():
+            self.testsList.setEnabled(True)
         else:
             self.testsBtn.setEnabled(True)
         if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
