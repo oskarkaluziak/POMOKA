@@ -11,39 +11,38 @@ class Pomoka(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.interface()
+        self.isExecuting = False
 
     def interface(self): # interface apki
 
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
-        #self.label2 = QLabel("", self)
-        self.label3 = QLabel("<b>Insert patient's age:<b>", self)
-        self.label4 = QLabel("<b>Results:<b>", self)
+        self.label2 = QLabel("<b>Insert patient's age:<b>", self)
+        self.label3 = QLabel("<b>Results:<b>", self)
 
         self.filePathEdt = QLineEdit()
         self.age = QLineEdit()
         self.resultEdt = QLineEdit()
         self.resultEdt.setReadOnly(True)
 
-        uploadBtn = QPushButton("&Upload data", self)
+        self.uploadBtn = QPushButton("&Upload data", self)
         self.testsBtn = QPushButton("&Select test", self)
         self.preferencesBtn = QPushButton("&Preferences", self)
-        executeBtn = QPushButton("&Execute", self)
+        self.executeBtn = QPushButton("&Execute", self)
         shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
         self.ukladV = QVBoxLayout()
         self.ukladH = QHBoxLayout()
 
         self.ukladV.addWidget(self.label1)
-        #self.ukladV.addWidget(self.label2)
-        self.ukladV.addWidget(self.label3)
+        self.ukladV.addWidget(self.label2)
         self.ukladV.addWidget(self.age)
-        self.ukladV.addWidget(self.label4)
+        self.ukladV.addWidget(self.label3)
         self.ukladV.addWidget(self.resultEdt)
 
-        self.ukladH.addWidget(uploadBtn)
+        self.ukladH.addWidget(self.uploadBtn)
         self.ukladH.addWidget(self.testsBtn)
         self.ukladH.addWidget(self.preferencesBtn)
-        self.ukladH.addWidget(executeBtn)
+        self.ukladH.addWidget(self.executeBtn)
 
         self.ukladV.addLayout(self.ukladH)
         self.ukladV.addWidget(shutdownBtn)
@@ -51,12 +50,12 @@ class Pomoka(QWidget):
         self.setLayout(self.ukladV)
 
         shutdownBtn.clicked.connect(self.shutdown)
-        uploadBtn.clicked.connect(self.uploadCSV)
+        self.uploadBtn.clicked.connect(self.uploadCSV)
         self.testsBtn.clicked.connect(self.CBtests)
         self.preferencesBtn.clicked.connect(self.CBpreferences)
-        executeBtn.clicked.connect(self.algorithm)
+        self.executeBtn.clicked.connect(self.toggleExecution)
 
-        self.resize(400, 200)
+        self.resize(400, 230)
         self.center()
         self.setWindowTitle("POMOKA")
         self.show()
@@ -169,19 +168,24 @@ class Pomoka(QWidget):
         #
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank")
 
-    def algorithm(self):  # algorytm do robienia krzywych z danych chorych TODO
+    def toggleExecution(self):
+        if self.isExecuting:
+            self.breakExecution()
+        else:
+            self.startExecution()
 
-        #usuwa poprzedni wykres o ile jakiś wyświetla apka
-        for i in reversed(range(self.ukladV.count())):
-            widget = self.ukladV.itemAt(i).widget()
-            if isinstance(widget, FigureCanvas):
-                widget.setParent(None)
-                self.resize(self.width() - 400, self.height() - 400)
-                self.center()
-
+    def startExecution(self):
         if not hasattr(self, 'testsComboBox') or self.testsComboBox.currentIndex() == -1:
             QMessageBox.warning(self, "Warning", "Please select a statistical test.")
             return
+
+        self.testsBtn.setEnabled(False)
+        self.preferencesBtn.setEnabled(False)
+        self.age.setEnabled(False)
+        self.uploadBtn.setEnabled(False)
+        self.executeBtn.setText("Break")
+        self.isExecuting = True
+
         selected_test = self.testsComboBox.currentText()
         if selected_test == "Kolmogorov-Smirnov test":
             self.run_kolmogorov_smirnov()
@@ -194,7 +198,7 @@ class Pomoka(QWidget):
         # self.ill()
         # self.charts_overlay()
 
-        # to losowy wykres
+        #losowy wykres do testow
         x = np.linspace(0, 10, 100)
         y = np.sin(x)
         fig, ax = plt.subplots()
@@ -203,13 +207,26 @@ class Pomoka(QWidget):
         ax.set_ylabel('Y')
         ax.set_title('coś tam losowego')
 
-        # to musi zostać
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.resize(self.width() + 400, self.height() + 400)
         self.canvas.draw()
         self.center()
 
+    def breakExecution(self):
+        for i in reversed(range(self.ukladV.count())):
+            widget = self.ukladV.itemAt(i).widget()
+            if isinstance(widget, FigureCanvas):
+                widget.setParent(None)
+                self.resize(self.width() - 400, self.height() - 400)
+                self.center()
+
+        self.executeBtn.setText("Execute")
+        self.isExecuting = False
+        self.testsBtn.setEnabled(True)
+        self.preferencesBtn.setEnabled(True)
+        self.age.setEnabled(True)
+        self.uploadBtn.setEnabled(True)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
