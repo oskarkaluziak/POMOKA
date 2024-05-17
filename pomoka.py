@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, QVBoxLayout, QFileDialog, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, \
+    QVBoxLayout, QFileDialog, QComboBox, QAbstractItemView, QListWidget
 from PyQt5.QtGui import QPixmap, QPainter
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -115,11 +116,14 @@ class Pomoka(QWidget):
         self.testsBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
     def CBpreferences(self): # TODO
-        self.preferencesComboBox = QComboBox(self)
-        self.preferencesComboBox.addItem("Patients with diabetes")
-        self.preferencesComboBox.addItem("Patients without diabetes")
+        self.preferencesList = QListWidget(self)
+        self.preferencesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
-        self.ukladV.addWidget(self.preferencesComboBox)
+        self.preferencesList.addItem("No preferences")
+        self.preferencesList.addItem("Patients with diabetes")
+        self.preferencesList.addItem("Patients without diabetes")
+
+        self.ukladV.addWidget(self.preferencesList)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
     def paintEvent(self, event): # funkcja zmieniajaca tło w aplikacji + autosize
@@ -151,7 +155,7 @@ class Pomoka(QWidget):
 
     def ill(self): #TODO
         QMessageBox.information(self, "kiedys bedzie")
-        #
+        #selected_items = self.preferencesList.selectedItems() #pobieranie preferencji
 
     def charts_overlay(self): #TODO
         QMessageBox.information(self, "kiedys bedzie")
@@ -185,8 +189,8 @@ class Pomoka(QWidget):
         self.uploadBtn.setEnabled(False)
         if hasattr(self, 'testsComboBox') and self.testsComboBox.isVisible():
             self.testsComboBox.setEnabled(False)
-        if hasattr(self, 'preferencesComboBox') and self.preferencesComboBox.isVisible():
-            self.preferencesComboBox.setEnabled(False)
+        if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
+            self.preferencesList.setEnabled(False)
         self.executeBtn.setText("Break")
         self.isExecuting = True
 
@@ -231,10 +235,10 @@ class Pomoka(QWidget):
             self.testsBtn.setEnabled(True)
         else:
             self.testsComboBox.setEnabled(True)
-        if not hasattr(self, 'preferencesComboBox') and self.preferencesComboBox.isVisible():
+        if not hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
             self.preferencesBtn.setEnabled(True)
         else:
-            self.preferencesComboBox.setEnabled(True)
+            self.preferencesList.setEnabled(True)
         self.age.setEnabled(True)
         self.uploadBtn.setEnabled(True)
 
