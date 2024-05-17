@@ -231,14 +231,14 @@ class Pomoka(QWidget):
 
         self.executeBtn.setText("Execute")
         self.isExecuting = False
-        if not hasattr(self, 'testsComboBox') and self.testsComboBox.isVisible():
-            self.testsBtn.setEnabled(True)
-        else:
+        if hasattr(self, 'testsComboBox') and self.testsComboBox.isVisible():
             self.testsComboBox.setEnabled(True)
-        if not hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
-            self.preferencesBtn.setEnabled(True)
         else:
+            self.testsBtn.setEnabled(True)
+        if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
             self.preferencesList.setEnabled(True)
+        else:
+            self.preferencesBtn.setEnabled(True)
         self.age.setEnabled(True)
         self.uploadBtn.setEnabled(True)
 
