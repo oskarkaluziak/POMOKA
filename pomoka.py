@@ -183,6 +183,10 @@ class Pomoka(QWidget):
         self.preferencesBtn.setEnabled(False)
         self.age.setEnabled(False)
         self.uploadBtn.setEnabled(False)
+        if hasattr(self, 'testsComboBox') and self.testsComboBox.isVisible():
+            self.testsComboBox.setEnabled(False)
+        if hasattr(self, 'preferencesComboBox') and self.preferencesComboBox.isVisible():
+            self.preferencesComboBox.setEnabled(False)
         self.executeBtn.setText("Break")
         self.isExecuting = True
 
@@ -223,8 +227,14 @@ class Pomoka(QWidget):
 
         self.executeBtn.setText("Execute")
         self.isExecuting = False
-        self.testsBtn.setEnabled(True)
-        self.preferencesBtn.setEnabled(True)
+        if not hasattr(self, 'testsComboBox') and self.testsComboBox.isVisible():
+            self.testsBtn.setEnabled(True)
+        else:
+            self.testsComboBox.setEnabled(True)
+        if not hasattr(self, 'preferencesComboBox') and self.preferencesComboBox.isVisible():
+            self.preferencesBtn.setEnabled(True)
+        else:
+            self.preferencesComboBox.setEnabled(True)
         self.age.setEnabled(True)
         self.uploadBtn.setEnabled(True)
 
