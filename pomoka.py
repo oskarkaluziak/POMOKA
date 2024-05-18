@@ -250,6 +250,7 @@ class Pomoka(QWidget):
         # self.ill()
         # self.charts_overlay()
 
+
         # losowy wykres do testow
         x = np.linspace(0, 10, 100)
         y = np.sin(x)
