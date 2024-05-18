@@ -17,11 +17,9 @@ class Pomoka(QWidget):
 
     def interface(self):  # interface apki
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
-        self.label2 = QLabel("<b>Insert patient's age:<b>", self)
-        self.label3 = QLabel("<b>Results:<b>", self)
+        self.label2 = QLabel("<b>Results:<b>", self)
 
         self.filePathEdt = QLineEdit()
-        self.age = QLineEdit()
         self.resultEdt = QLineEdit()
         self.resultEdt.setReadOnly(True)
 
@@ -37,15 +35,13 @@ class Pomoka(QWidget):
 
         self.ukladV.addWidget(self.label1)
         self.ukladV.addWidget(self.label2)
-        self.ukladV.addWidget(self.age)
-        self.ukladV.addWidget(self.label3)
         self.ukladV.addWidget(self.resultEdt)
 
-        self.ukladH.addWidget(self.uploadBtn)
+        self.ukladV.addWidget(self.uploadBtn)
         self.ukladH.addWidget(self.testsBtn)
         self.ukladH.addWidget(self.preferencesBtn)
         self.ukladH.addWidget(self.setRangeBtn)
-        self.ukladH.addWidget(self.executeBtn)
+        self.ukladV.addWidget(self.executeBtn)
 
         self.ukladV.addLayout(self.ukladH)
         self.ukladV.addWidget(shutdownBtn)
@@ -60,6 +56,7 @@ class Pomoka(QWidget):
         self.executeBtn.clicked.connect(self.toggleExecution)
 
         self.preferencesBtn.setEnabled(False)
+        self.setRangeBtn.setEnabled(False)
 
         self.resize(400, 230)
         self.center()
@@ -120,7 +117,9 @@ class Pomoka(QWidget):
                 self.preferencesList.clear()
                 self.preferencesList.setParent(None)
                 self.preferencesList.deleteLater()
+                self.toggleSetRangeBtn()
                 self.adjustSize()
+
 
             self.preferencesBtn.setEnabled(True)
         except Exception as e:
@@ -147,7 +146,6 @@ class Pomoka(QWidget):
         self.preferencesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
         self.preferencesList.addItem("no preferences")
-
         if hasattr(self, 'df'):
             columns = self.df.columns
             for column in columns:
@@ -157,7 +155,7 @@ class Pomoka(QWidget):
 
         self.ukladV.addWidget(self.preferencesList)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
-
+        self.setRangeBtn.setEnabled(True)
     def setRanges(self):  # wybor zakresu przez uzytkownika
         selected_columns = [item.text() for item in self.preferencesList.selectedItems()]
 
@@ -230,8 +228,8 @@ class Pomoka(QWidget):
             return
 
         self.testsBtn.setEnabled(False)
+        self.setRangeBtn.setEnabled(False)
         self.preferencesBtn.setEnabled(False)
-        self.age.setEnabled(False)
         self.uploadBtn.setEnabled(False)
         if hasattr(self, 'testsList') and self.testsList.isVisible():
             self.testsList.setEnabled(False)
@@ -283,10 +281,16 @@ class Pomoka(QWidget):
             self.testsBtn.setEnabled(True)
         if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
             self.preferencesList.setEnabled(True)
+            self.setRangeBtn.setEnabled(True)
         else:
             self.preferencesBtn.setEnabled(True)
-        self.age.setEnabled(True)
         self.uploadBtn.setEnabled(True)
+
+    def toggleSetRangeBtn(self):
+        if self.preferencesList.isVisible():
+            self.setRangeBtn.setEnabled(True)
+        else:
+            self.setRangeBtn.setEnabled(False)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
