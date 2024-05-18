@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, \
-    QVBoxLayout, QFileDialog, QComboBox, QAbstractItemView, QListWidget, QInputDialog
+    QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog
 from PyQt5.QtGui import QPixmap, QPainter, QIcon
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -13,6 +13,7 @@ class Pomoka(QWidget):
         super().__init__(parent)
         self.interface()
         self.isExecuting = False
+        self.column_ranges = {}
 
     def interface(self):  # interface apki
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
@@ -27,6 +28,7 @@ class Pomoka(QWidget):
         self.uploadBtn = QPushButton("&Upload data", self)
         self.testsBtn = QPushButton("&Select test", self)
         self.preferencesBtn = QPushButton("&Preferences", self)
+        self.setRangeBtn = QPushButton("&Set Range", self)  # Button to set range for selected preferences
         self.executeBtn = QPushButton("&Execute", self)
         shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
@@ -42,6 +44,7 @@ class Pomoka(QWidget):
         self.ukladH.addWidget(self.uploadBtn)
         self.ukladH.addWidget(self.testsBtn)
         self.ukladH.addWidget(self.preferencesBtn)
+        self.ukladH.addWidget(self.setRangeBtn)
         self.ukladH.addWidget(self.executeBtn)
 
         self.ukladV.addLayout(self.ukladH)
@@ -53,9 +56,9 @@ class Pomoka(QWidget):
         self.uploadBtn.clicked.connect(self.uploadCSV)
         self.testsBtn.clicked.connect(self.CBtests)
         self.preferencesBtn.clicked.connect(self.CBpreferences)
+        self.setRangeBtn.clicked.connect(self.setRanges)
         self.executeBtn.clicked.connect(self.toggleExecution)
 
-        # Initially disable the preferences button
         self.preferencesBtn.setEnabled(False)
 
         self.resize(400, 230)
@@ -65,21 +68,21 @@ class Pomoka(QWidget):
         self.show()
 
     def center(self):
-        # Pobranie wymiarów ekranu
+        # pobranie wymiarów ekranu
         screen = QApplication.desktop().screenGeometry()
         screen_width = screen.width()
         screen_height = screen.height()
 
-        # Pobranie wymiarów okna
+        # pobranie wymiarów okna
         window_size = self.geometry()
         window_width = window_size.width()
         window_height = window_size.height()
 
-        # Obliczenie pozycji X i Y
+        # obliczenie pozycji X i Y
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
 
-        # Ustawienie geometrii okna
+        # ustawienie geometrii okna
         self.setGeometry(x, y, window_width, window_height)
 
     def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
@@ -143,7 +146,7 @@ class Pomoka(QWidget):
         self.preferencesList = QListWidget(self)
         self.preferencesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
-        self.preferencesList.addItem("no preferences")  # Add "no preferences" option
+        self.preferencesList.addItem("no preferences")
 
         if hasattr(self, 'df'):
             columns = self.df.columns
@@ -154,6 +157,22 @@ class Pomoka(QWidget):
 
         self.ukladV.addWidget(self.preferencesList)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
+
+    def setRanges(self):  # wybor zakresu przez uzytkownika
+        selected_columns = [item.text() for item in self.preferencesList.selectedItems()]
+
+        for column in selected_columns:
+            if column == "no preferences":
+                continue
+
+            values = self.df[column].unique().tolist()
+            values = [str(value) for value in values]
+
+            value_range, ok = QInputDialog.getText(self, f"Select range for {column}",
+                                                   f"Enter the range for column {column} (minimum value-maximum value):")
+            if ok:
+                lower, upper = map(int, value_range.split('-'))
+                self.column_ranges[column] = (lower, upper)
 
     def paintEvent(self, event):  # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
