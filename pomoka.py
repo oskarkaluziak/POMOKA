@@ -110,8 +110,8 @@ class Pomoka(QWidget):
                 raise ValueError("Unsupported file format")
 
             self.df = df
-            QMessageBox.information(self, "Plik wczytany",
-                                    f"Liczba wierszy: {df.shape[0]}\nLiczba kolumn: {df.shape[1]}")
+            QMessageBox.information(self, "File loaded",
+                                    f"Number of rows: {df.shape[0]}\nNumber of columns: {df.shape[1]}")
 
             if hasattr(self, 'preferencesList'):
                 self.preferencesList.clear()
