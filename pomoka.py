@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, \
-    QVBoxLayout, QFileDialog, QComboBox, QAbstractItemView, QListWidget
+    QVBoxLayout, QFileDialog, QComboBox, QAbstractItemView, QListWidget, QInputDialog
 from PyQt5.QtGui import QPixmap, QPainter, QIcon
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -14,8 +14,7 @@ class Pomoka(QWidget):
         self.interface()
         self.isExecuting = False
 
-    def interface(self): # interface apki
-
+    def interface(self):  # interface apki
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
         self.label2 = QLabel("<b>Insert patient's age:<b>", self)
         self.label3 = QLabel("<b>Results:<b>", self)
@@ -56,6 +55,9 @@ class Pomoka(QWidget):
         self.preferencesBtn.clicked.connect(self.CBpreferences)
         self.executeBtn.clicked.connect(self.toggleExecution)
 
+        # Initially disable the preferences button
+        self.preferencesBtn.setEnabled(False)
+
         self.resize(400, 230)
         self.center()
         self.setWindowTitle("POMOKA")
@@ -79,6 +81,7 @@ class Pomoka(QWidget):
 
         # Ustawienie geometrii okna
         self.setGeometry(x, y, window_width, window_height)
+
     def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(
@@ -90,23 +93,37 @@ class Pomoka(QWidget):
         )
         if fileName:
             self.filePathEdt.setText(fileName)
-            self.readCSV(fileName)
+            self.askHeaderRow(fileName)
 
-    def readCSV(self, fileName): # funkcja do wczytania csv/xlsx / TODO
+    def askHeaderRow(self, fileName):
+        row, ok = QInputDialog.getInt(self, "Header Row", "Enter the row number containing column headers:", 1, 1, 100, 1)
+        if ok:
+            self.readCSV(fileName, row)
+
+    def readCSV(self, fileName, headerRow):  # funkcja do wczytania csv/xlsx / TODO
         try:
             if fileName.endswith('.csv'):
-                df = pd.read_csv(fileName)
+                df = pd.read_csv(fileName, header=headerRow-1)
             elif fileName.endswith('.xlsx'):
-                df = pd.read_excel(fileName)
+                df = pd.read_excel(fileName, header=headerRow-1)
             else:
                 raise ValueError("Unsupported file format")
 
-            # Przykładowa akcja: wyświetlenie liczby wierszy i kolumn
+            self.df = df
             QMessageBox.information(self, "Plik wczytany",
                                     f"Liczba wierszy: {df.shape[0]}\nLiczba kolumn: {df.shape[1]}")
+
+            if hasattr(self, 'preferencesList'):
+                self.preferencesList.clear()
+                self.preferencesList.setParent(None)
+                self.preferencesList.deleteLater()
+                self.adjustSize()
+
+            self.preferencesBtn.setEnabled(True)
         except Exception as e:
             QMessageBox.warning(self, "Błąd", f"Nie można wczytać pliku: {str(e)}")
-    def CBtests(self): #wybor testow / TODO Perek
+
+    def CBtests(self):  # wybor testow / TODO Perek
         self.testsList = QListWidget(self)
         self.testsList.setSelectionMode(QAbstractItemView.MultiSelection)
 
@@ -122,33 +139,31 @@ class Pomoka(QWidget):
         self.ukladV.addWidget(self.testsList)
         self.testsBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
-    def CBpreferences(self): # TODO
+    def CBpreferences(self):  # TODO
         self.preferencesList = QListWidget(self)
         self.preferencesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
-        self.preferencesList.addItem("No preferences")
-        self.preferencesList.addItem("Men")
-        self.preferencesList.addItem("Female")
-        self.preferencesList.addItem("Patients with diabetes")
-        self.preferencesList.addItem("Patients without diabetes")
-        self.preferencesList.setFixedSize(300, 75)
+        self.preferencesList.addItem("no preferences")  # Add "no preferences" option
 
-        default_item = self.preferencesList.findItems("No preferences", Qt.MatchExactly)[0]
-        default_index = self.preferencesList.indexFromItem(default_item).row()
-        self.preferencesList.setCurrentRow(default_index)
+        if hasattr(self, 'df'):
+            columns = self.df.columns
+            for column in columns:
+                self.preferencesList.addItem(column)
+
+        self.preferencesList.setFixedSize(300, 75)
 
         self.ukladV.addWidget(self.preferencesList)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
-    def paintEvent(self, event): # funkcja zmieniajaca tło w aplikacji + autosize
+    def paintEvent(self, event):  # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
         pixmap = QPixmap("POMOKA.png")
         painter.drawPixmap(self.rect(), pixmap)
 
-    def shutdown(self): # zamykanie aplikacji poprzez przycisk
+    def shutdown(self):  # zamykanie aplikacji poprzez przycisk
         self.close()
 
-    def closeEvent(self, event): # zapytanie przed zamknieciem aplikacji
+    def closeEvent(self, event):  # zapytanie przed zamknieciem aplikacji
         odp = QMessageBox.question(
             self, 'Komunikat',
             "Are you sure you want to close?",
@@ -159,31 +174,26 @@ class Pomoka(QWidget):
         else:
             event.ignore()
 
-    def keyPressEvent(self, e): # ESC na klawiaturze - tez zamyka program
+    def keyPressEvent(self, e):  # ESC na klawiaturze - tez zamyka program
         if e.key() == Qt.Key_Escape:
             self.close()
 
-    def gus(self): #TODO
+    def gus(self):  # TODO
         QMessageBox.information(self, "kiedys bedzie")
-        #
 
-    def ill(self): #TODO
+    def ill(self):  # TODO
         QMessageBox.information(self, "kiedys bedzie")
-        #selected_items = self.preferencesList.selectedItems() #pobieranie preferencji
 
-    def charts_overlay(self): #TODO
+    def charts_overlay(self):  # TODO
         QMessageBox.information(self, "kiedys bedzie")
-        #
-    def run_kolmogorov_smirnov(self): #TODO
-        #
+
+    def run_kolmogorov_smirnov(self):  # TODO
         QMessageBox.information(self, "Test Kolmogorov-Smirnov", "Wykonano test Kolmogorov-Smirnov")
 
-    def run_repeated_measures_anova(self): #TODO
-        #
+    def run_repeated_measures_anova(self):  # TODO
         QMessageBox.information(self, "Repeated Measures ANOVA", "Wykonano test Repeated Measures ANOVA")
 
-    def run_log_rank_test(self): #TODO
-        #
+    def run_log_rank_test(self):  # TODO
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank")
 
     def toggleExecution(self):
@@ -211,7 +221,7 @@ class Pomoka(QWidget):
         self.executeBtn.setText("Break")
         self.isExecuting = True
 
-        selected_test = self.testsList.currentItem()
+        selected_test = self.testsList.currentItem().text()
         if selected_test == "Kolmogorov-Smirnov test":
             self.run_kolmogorov_smirnov()
         elif selected_test == "Repeated Measures ANOVA":
@@ -223,14 +233,14 @@ class Pomoka(QWidget):
         # self.ill()
         # self.charts_overlay()
 
-        #losowy wykres do testow
+        # losowy wykres do testow
         x = np.linspace(0, 10, 100)
         y = np.sin(x)
         fig, ax = plt.subplots()
         ax.plot(x, y)
         ax.set_xlabel('Ilość lat przeżywalności')
         ax.set_ylabel('Ilość pacjentów')
-        ax.set_title('coś tam losowego')
+        ax.set_title('pacjenci w wieku: 80')
 
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
