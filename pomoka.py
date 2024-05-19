@@ -274,6 +274,7 @@ class Pomoka(QWidget):
                 self.run_peto_peto_wilcoxon()
 
         # self.gus()
+
         # self.ill()
         # self.charts_overlay()
 
