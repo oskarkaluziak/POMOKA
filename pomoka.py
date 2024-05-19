@@ -88,23 +88,24 @@ class Pomoka(QWidget):
             self,
             "Wybierz plik CSV lub XLSX",
             "",
-            "CSV i Excel Files (*.csv *.xlsx);;CSV Files (*.csv);;Excel Files (*.xlsx);;All Files (*)",
+            "CSV i Excel Files (*.csv *.xlsx *.xls);;CSV Files (*.csv);;Excel Files (*.xlsx *.xls);;All Files (*)",
             options=options
         )
         if fileName:
             self.filePathEdt.setText(fileName)
             self.askHeaderRow(fileName)
 
+
     def askHeaderRow(self, fileName):
         row, ok = QInputDialog.getInt(self, "Header Row", "Enter the row number containing column headers:", 1, 1, 100, 1)
         if ok:
             self.readCSV(fileName, row)
 
-    def readCSV(self, fileName, headerRow):  # funkcja do wczytania csv/xlsx / TODO
+    def readCSV(self, fileName, headerRow):  # funkcja do wczytania csv/xlsx/xls / TODO
         try:
             if fileName.endswith('.csv'):
                 df = pd.read_csv(fileName, header=headerRow-1)
-            elif fileName.endswith('.xlsx'):
+            elif fileName.endswith('.xlsx') or fileName.endswith('.xls'):
                 df = pd.read_excel(fileName, header=headerRow-1)
             else:
                 raise ValueError("Unsupported file format")
@@ -112,6 +113,7 @@ class Pomoka(QWidget):
             self.df = df
             QMessageBox.information(self, "File loaded",
                                     f"Number of rows: {df.shape[0]}\nNumber of columns: {df.shape[1]}")
+
 
             if hasattr(self, 'preferencesList'):
                 self.preferencesList.clear()
@@ -129,9 +131,11 @@ class Pomoka(QWidget):
         self.testsList = QListWidget(self)
         self.testsList.setSelectionMode(QAbstractItemView.MultiSelection)
 
-        self.testsList.addItem("Kolmogorov-Smirnov test")
-        self.testsList.addItem("Repeated Measures ANOVA")
+        self.testsList.addItem("Gehan-Wilcoxon test")
+        self.testsList.addItem("Cox-Mantel test")
+        self.testsList.addItem("F Cox test")
         self.testsList.addItem("Log-rank test")
+        self.testsList.addItem("Peto-Peto-Wilcoxon test")
         self.testsList.setFixedSize(300, 75)
 
         default_item = self.testsList.findItems("Log-rank test", Qt.MatchExactly)[0]
@@ -200,18 +204,25 @@ class Pomoka(QWidget):
 
     def ill(self):  # TODO
         QMessageBox.information(self, "kiedys bedzie")
+        #    def printColumnRanges(self):
 
     def charts_overlay(self):  # TODO
         QMessageBox.information(self, "kiedys bedzie")
 
-    def run_kolmogorov_smirnov(self):  # TODO
-        QMessageBox.information(self, "Test Kolmogorov-Smirnov", "Wykonano test Kolmogorov-Smirnov")
+    def run_gehan_wilcoxon(self):  # TODO
+        QMessageBox.information(self, "Gehan-Wilcoxon test", "Wykonano test Gehan-Wilcoxon")
 
-    def run_repeated_measures_anova(self):  # TODO
-        QMessageBox.information(self, "Repeated Measures ANOVA", "Wykonano test Repeated Measures ANOVA")
+    def run_cox_mantel(self):  # TODO
+        QMessageBox.information(self, "Cox-Mantel test", "Wykonano test Cox-Mantel")
 
-    def run_log_rank_test(self):  # TODO
+    def run_f_cox(self):  # TODO
+        QMessageBox.information(self, "F Cox test", "Wykonano test F Cox")
+
+    def run_log_rank(self):  # TODO
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank")
+
+    def run_peto_peto_wilcoxon(self):  # TODO
+        QMessageBox.information(self, "Peto-Peto-Wilcoxon test", "Wykonano test Peto-Peto-Wilcoxon")
 
     def toggleExecution(self):
         if self.isExecuting:
@@ -231,7 +242,6 @@ class Pomoka(QWidget):
             if item.isSelected() and item.text() != "no preferences" and item.text() not in self.column_ranges:
                 QMessageBox.warning(self, "Warning", f"Please set range for {item.text()} before executing.")
                 return
-
         self.testsBtn.setEnabled(False)
         self.setRangeBtn.setEnabled(False)
         self.preferencesBtn.setEnabled(False)
@@ -244,12 +254,16 @@ class Pomoka(QWidget):
         self.isExecuting = True
 
         selected_test = self.testsList.currentItem().text()
-        if selected_test == "Kolmogorov-Smirnov test":
-            self.run_kolmogorov_smirnov()
-        elif selected_test == "Repeated Measures ANOVA":
-            self.run_repeated_measures_anova()
+        if selected_test == "Gehan-Wilcoxon test":
+            self.run_gehan_wilcoxon()
+        elif selected_test == "Cox-Mantel test":
+            self.run_cox_mantel()
+        elif selected_test == "F Cox test":
+            self.run_f_cox()
         elif selected_test == "Log-rank test":
-            self.run_log_rank_test()
+            self.run_log_rank()
+        elif selected_test == "Peto-Peto-Wilcoxon test":
+            self.run_peto_peto_wilcoxon()
 
         # self.gus()
         # self.ill()
