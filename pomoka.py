@@ -237,6 +237,7 @@ class Pomoka(QWidget):
         if not hasattr(self, 'preferencesList') or not self.preferencesList.selectedItems():
             QMessageBox.warning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
             return
+
         for index in range(self.preferencesList.count()):
             item = self.preferencesList.item(index)
             if item.isSelected() and item.text() != "no preferences" and item.text() not in self.column_ranges:
