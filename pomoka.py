@@ -8,6 +8,12 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+#TODO - mozliwe ustawienie setrange dla słów
+#TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
+#TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
+#TODO - po ponownym wgraniu xlsx, bez wyboru preferencji, przycisk Execute - crashuje apke
+
+
 class Pomoka(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -101,7 +107,7 @@ class Pomoka(QWidget):
         if ok:
             self.readCSV(fileName, row)
 
-    def readCSV(self, fileName, headerRow):  # funkcja do wczytania csv/xlsx/xls / TODO
+    def readCSV(self, fileName, headerRow):  # funkcja do wczytania csv/xlsx/xls
         try:
             if fileName.endswith('.csv'):
                 df = pd.read_csv(fileName, header=headerRow-1)
@@ -125,7 +131,7 @@ class Pomoka(QWidget):
 
             self.preferencesBtn.setEnabled(True)
         except Exception as e:
-            QMessageBox.warning(self, "Błąd", f"Nie można wczytać pliku: {str(e)}")
+            QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
 
     def CBtests(self):  # wybor testow / TODO Perek
         self.testsList = QListWidget(self)
@@ -254,17 +260,18 @@ class Pomoka(QWidget):
         self.executeBtn.setText("Break")
         self.isExecuting = True
 
-        selected_test = self.testsList.currentItem().text()
-        if selected_test == "Gehan-Wilcoxon test":
-            self.run_gehan_wilcoxon()
-        elif selected_test == "Cox-Mantel test":
-            self.run_cox_mantel()
-        elif selected_test == "F Cox test":
-            self.run_f_cox()
-        elif selected_test == "Log-rank test":
-            self.run_log_rank()
-        elif selected_test == "Peto-Peto-Wilcoxon test":
-            self.run_peto_peto_wilcoxon()
+        selected_tests = [item.text() for item in self.testsList.selectedItems()]
+        for test in selected_tests:
+            if test == "Gehan-Wilcoxon test":
+                self.run_gehan_wilcoxon()
+            elif test == "Cox-Mantel test":
+                self.run_cox_mantel()
+            elif test == "F Cox test":
+                self.run_f_cox()
+            elif test == "Log-rank test":
+                self.run_log_rank()
+            elif test == "Peto-Peto-Wilcoxon test":
+                self.run_peto_peto_wilcoxon()
 
         # self.gus()
         # self.ill()
