@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from lifelines import KaplanMeierFitter
+import os
 
 #TODO - mozliwe ustawienie setrange dla słów
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
@@ -210,30 +211,51 @@ class Pomoka(QWidget):
         QMessageBox.information(self, "kiedys bedzie")
 
     def ill(self):  # TODO
-        T = self.df['time']  # TODO zmienic to na wybieranie przez uzytkownika
-        E = self.df['event']
+        if not hasattr(self, 'df'):
+            QMessageBox.warning(self, "Error", "Data is not loaded.")
+            return
+
+        # Retrieve the selected preferences and their ranges
+        selected_preferences = [item.text() for item in self.preferencesList.selectedItems() if
+                                item.text() != "no preferences"]
+
+        if not selected_preferences:
+            QMessageBox.warning(self, "Error", "No preferences selected.")
+            return
+
+        df_filtered = self.df.copy()
+
+        # Apply the range filters
+        for column, (lower, upper) in self.column_ranges.items():
+            df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
+
+        if df_filtered.empty:
+            QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
+            return
+
+        T = df_filtered['time'] #TODO uztkownik wybiera kolumne
+        E = df_filtered['event'] #TODO uztkownik wybiera kolumne
 
         kmf = KaplanMeierFitter()
-        kmf.fit(T, E)
 
-        # Create a matplotlib figure and axis
         fig, ax = plt.subplots()
+
+        # Fit the Kaplan-Meier model on the entire filtered dataset
+        kmf.fit(T, event_observed=E)
         kmf.plot_survival_function(ax=ax)
+
         ax.set_title('Kaplan-Meier Survival Function')
         ax.set_xlabel('Time')
         ax.set_ylabel('Survival Probability')
 
-        # If canvas already exists, remove it
         if hasattr(self, 'canvas') and self.canvas:
             self.canvas.setParent(None)
 
-        # Create FigureCanvas and add it to the layout
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.canvas.draw()
         self.resize(self.width() + 300, self.height() + 400)
         self.center()
-
 
     def charts_overlay(self):  # TODO
         QMessageBox.information(self, "kiedys bedzie")
