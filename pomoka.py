@@ -7,6 +7,7 @@ import pandas as pd
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from lifelines import KaplanMeierFitter
 
 #TODO - mozliwe ustawienie setrange dla słów
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
@@ -209,8 +210,30 @@ class Pomoka(QWidget):
         QMessageBox.information(self, "kiedys bedzie")
 
     def ill(self):  # TODO
-        QMessageBox.information(self, "kiedys bedzie")
-        #    def printColumnRanges(self):
+        T = self.df['time']  # TODO zmienic to na wybieranie przez uzytkownika
+        E = self.df['event']
+
+        kmf = KaplanMeierFitter()
+        kmf.fit(T, E)
+
+        # Create a matplotlib figure and axis
+        fig, ax = plt.subplots()
+        kmf.plot_survival_function(ax=ax)
+        ax.set_title('Kaplan-Meier Survival Function')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Survival Probability')
+
+        # If canvas already exists, remove it
+        if hasattr(self, 'canvas') and self.canvas:
+            self.canvas.setParent(None)
+
+        # Create FigureCanvas and add it to the layout
+        self.canvas = FigureCanvas(fig)
+        self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
+        self.canvas.draw()
+        self.resize(self.width() + 300, self.height() + 400)
+        self.center()
+
 
     def charts_overlay(self):  # TODO
         QMessageBox.information(self, "kiedys bedzie")
@@ -274,25 +297,8 @@ class Pomoka(QWidget):
                 self.run_peto_peto_wilcoxon()
 
         # self.gus()
-
-        # self.ill()
+        self.ill()
         # self.charts_overlay()
-
-
-        # losowy wykres do testow
-        x = np.linspace(0, 10, 100)
-        y = np.sin(x)
-        fig, ax = plt.subplots()
-        ax.plot(x, y)
-        ax.set_xlabel('Ilość lat przeżywalności')
-        ax.set_ylabel('Ilość pacjentów')
-        ax.set_title('pacjenci w wieku: 80')
-
-        self.canvas = FigureCanvas(fig)
-        self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
-        self.resize(self.width() + 300, self.height() + 400)
-        self.canvas.draw()
-        self.center()
 
     def breakExecution(self):
         for i in reversed(range(self.ukladV.count())):
