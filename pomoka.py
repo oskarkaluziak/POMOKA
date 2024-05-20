@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lifelines import KaplanMeierFitter
 import os
+from plot_gus import prepare_data, save_data_to_excel
 
 #TODO - mozliwe ustawienie setrange dla słów
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
@@ -208,7 +209,15 @@ class Pomoka(QWidget):
             self.close()
 
     def gus(self):  # TODO
-        QMessageBox.information(self, "kiedys bedzie")
+        # QMessageBox.information(self, "kiedys bedzie")
+        # Przygotowanie danych
+        file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
+        file_path_men = 'dane_mezczyzni.xlsx'
+        file_path_women = 'dane_kobiety.xlsx'
+        #tab_m, tab_k = prepare_data(file_path)
+
+        # Zapisanie danych do osobnych plików Excel
+        #save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k)
 
     def ill(self):  # TODO
         if not hasattr(self, 'df'):
@@ -318,7 +327,7 @@ class Pomoka(QWidget):
             elif test == "Peto-Peto-Wilcoxon test":
                 self.run_peto_peto_wilcoxon()
 
-        # self.gus()
+        self.gus()
         self.ill()
         # self.charts_overlay()
 
