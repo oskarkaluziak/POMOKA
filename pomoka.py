@@ -67,7 +67,7 @@ class Pomoka(QWidget):
         self.preferencesBtn.setEnabled(False)
         self.setRangeBtn.setEnabled(False)
 
-        self.resize(400, 230)
+        self.resize(400, 270)
         self.center()
         self.setWindowTitle("POMOKA")
         self.setWindowIcon(QIcon('icon.png'))
@@ -187,7 +187,7 @@ class Pomoka(QWidget):
 
     def paintEvent(self, event):  # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
-        pixmap = QPixmap("POMOKA.png")
+        pixmap = QPixmap("POMOKA3.png")
         painter.drawPixmap(self.rect(), pixmap)
 
     def shutdown(self):  # zamykanie aplikacji poprzez przycisk
