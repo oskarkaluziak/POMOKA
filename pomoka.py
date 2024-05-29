@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lifelines import KaplanMeierFitter
 import os
-from plot_gus import prepare_data, save_data_to_excel
+from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
 #TODO - mozliwe ustawienie setrange dla słów
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
@@ -210,14 +210,30 @@ class Pomoka(QWidget):
 
     def gus(self):  # TODO
         # QMessageBox.information(self, "kiedys bedzie")
-        # Przygotowanie danych
+        # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
+        sex = 1  #
+        year = 1960
+        # te dwie plus sex generuje wykres dla zakresu rocznikow
+        year_start = 1980
+        year_end = 1990
+        opcja = 1 #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
         file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
         file_path_men = 'dane_mezczyzni.xlsx'
         file_path_women = 'dane_kobiety.xlsx'
-        #tab_m, tab_k = prepare_data(file_path)
+        # tworzenie plikow jesli nie istnieja (w przyszlosci przyda sie do aktualizacji danych)
+        if not os.path.exists(file_path_men) or not os.path.exists(file_path_women):
+            tab_m, tab_k = prepare_data(file_path)
+            save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k)
 
-        # Zapisanie danych do osobnych plików Excel
-        #save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k)
+        if opcja == 1:
+            gus_chart = lineChartOne(sex, year)
+            #gus_chart.show() #mozna zobaczyc zo wyszlo
+        if opcja == 2:
+            gus_chart = lineChartRange(sex, year_start, year_end)
+            #gus_chart.show() #mozna zobaczyc zo wyszlo
+
+
+
 
     def ill(self):  # TODO
         if not hasattr(self, 'df'):
