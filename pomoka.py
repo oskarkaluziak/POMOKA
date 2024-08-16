@@ -307,8 +307,8 @@ class Pomoka(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
-        T = df_filtered['time'] #TODO uztkownik wybiera kolumne
-        E = df_filtered['event'] #TODO uztkownik wybiera kolumne
+        T = df_filtered['time'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
+        E = df_filtered['event'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
 
         kmf = KaplanMeierFitter()
 
