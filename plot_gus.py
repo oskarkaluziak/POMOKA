@@ -151,10 +151,12 @@ def save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k):
 # save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k)
 
 def lineChartOne(sex, year):
-    if sex == 1:
+    if sex == 0:
         path = 'dane_mezczyzni.xlsx'
-    if sex == 2:
+    if sex == 1:
         path = 'dane_kobiety.xlsx'
+    if sex == 2:
+        path = 'dane_kobiety.xlsx' ##TODO do zrobienia dane_ogolne.xlsx w to miejsce
 
     data = pd.read_excel(path)
     row = data[data.iloc[:, 0] == year]
@@ -169,7 +171,7 @@ def lineChartOne(sex, year):
     # Plot the line chart
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(row_data.index, row_data.values, marker='o')
-    ax.set_title(f"Survival curve for {'Men' if sex == 1 else 'Women'}, year  {year}")
+    ax.set_title(f"Survival curve for {'Women' if sex == 1 else 'Men' if sex == 0 else 'Everyone'}, year  {year}")
     ax.set_xlabel("Years")
     ax.set_ylabel("Percentage")
     ax.grid(True)
@@ -180,10 +182,12 @@ def lineChartOne(sex, year):
 # test = lineChartOne(1, 1960)
 # test.show()
 def lineChartRange(sex, start, end):
-    if sex == 1:
+    if sex == 0:
         path = 'dane_mezczyzni.xlsx'
-    if sex == 2:
+    if sex == 1:
         path = 'dane_kobiety.xlsx'
+    if sex == 2:
+        path = 'dane_kobiety.xlsx' ##TODO do zrobienia dane_ogolne.xlsx w to miejsce
 
     data = pd.read_excel(path)
 
@@ -198,7 +202,7 @@ def lineChartRange(sex, start, end):
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(avg_data.index, avg_data.values, marker='o')
-    ax.set_title(f"Average survival curve for {'Men' if sex == 1 else 'Women'}, years {start}-{end}")
+    ax.set_title(f"Average survival curve for {'Women' if sex == 1 else 'Men' if sex == 0 else 'Everyone'}, years {start}-{end}")
     ax.set_xlabel("Years")
     ax.set_ylabel("Percentage")
     ax.grid(True)

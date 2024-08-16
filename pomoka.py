@@ -15,7 +15,7 @@ from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRa
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
 #TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
 #TODO - po ponownym wgraniu xlsx, bez wyboru preferencji, przycisk Execute - crashuje apke
-
+#TODO - preferences wywala caly program, gdy jako glowny wiersz wybierzemy taki zawierujacy liczby, a nie nazwy pokroju "age"
 
 class Pomoka(QWidget):
     def __init__(self, parent=None):
@@ -185,6 +185,50 @@ class Pomoka(QWidget):
                 lower, upper = map(int, value_range.split('-'))
                 self.column_ranges[column] = (lower, upper)
 
+                # sprawdzanie wybranej płci, jak nie uzytkownik nie wybierze to bierze obydwie do wykresu
+                if column.lower() == 'sex' or column.lower() == 'Sex' or column.lower() == 'SEX' or column.lower() == 'Plec' or column.lower() == 'plec' or column.lower() == 'PLEC' or column.lower() == 'Płeć' or column.lower() == 'płeć' or column.lower() == 'PŁEĆ':
+                    if lower == upper:
+                        if lower == 1 or lower == 'M' or lower == 'm':
+                            self.selected_sex = 0 ##0=dane_mezczyzn
+                        if lower == 0 or lower == 'K' or lower == 'k' or lower == 'W' or lower == 'w':
+                            self.selected_sex = 1 ##1=dane_kobiet
+                    else:
+                        self.selected_sex = 2
+                if column.lower() == 'Female' or column.lower() == 'female' or column.lower() == 'FEMALE' or column.lower() == 'Kobieta' or column.lower() == 'kobieta' or column.lower() == 'KOBIETA':
+                    if lower == upper:
+                        if lower == 1:
+                            self.selected_sex = 1
+                        if lower == 0:
+                            self.selected_sex = 0
+                    else:
+                        self.selected_sex = 2
+                if column.lower() == 'Male' or column.lower() == 'male' or column.lower() == 'MALE' or column.lower() == 'Mezczyzna' or column.lower() == 'mezczyzna' or column.lower() == 'MEZCZYZNA' or column.lower() == 'Mężczyzna' or column.lower() == 'mężczyzna' or column.lower() == 'MĘŻCZYZNA':
+                    if lower == upper:
+                        if lower == 1:
+                            self.selected_sex = 0
+                        if lower == 0:
+                            self.selected_sex = 1
+                    else:
+                        self.selected_sex = 2
+                else:
+                    self.selected_sex = 2
+
+                # sprawdzanie wybranego wieku, jak nie uzytkownik nie wybierze to bierze średni
+                if column.lower() == 'Age' or column.lower() == 'age' or column.lower() == 'AGE' or column.lower() == 'Wiek' or column.lower() == 'wiek' or column.lower() == 'WIEK':
+                    if lower == upper:
+                        self.selected_age = lower
+                        self.selected_option = 1
+                    if lower > upper:
+                        self.selected_age_start = upper
+                        self.selected_age_end = lower
+                        self.selected_option = 2
+                    if upper > lower:
+                        self.selected_age_start = lower
+                        self.selected_age_end = upper
+                        self.selected_option = 2
+
+
+
     def paintEvent(self, event):  # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
         pixmap = QPixmap("POMOKA3.png")
@@ -211,12 +255,14 @@ class Pomoka(QWidget):
     def gus(self):  # TODO
         # QMessageBox.information(self, "kiedys bedzie")
         # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
-        sex = 1  #
-        year = 1960
+        sex = self.selected_sex
+
+        #self.selected_age = wiek pacjenta
+        #self.selected_age_start = wiek pacjenta dolny zakres
+        #self.selected_age_end = wiek pacjenta gorny zakres
+        # zakres 65-70 to wtedy start = 1952, a end = 1957, a wiec z tego powodu jest to na odwrot
         # te dwie plus sex generuje wykres dla zakresu rocznikow
-        year_start = 1980
-        year_end = 1990
-        opcja = 1 #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
+        opcja = self.selected_option #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
         file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
         file_path_men = 'dane_mezczyzni.xlsx'
         file_path_women = 'dane_kobiety.xlsx'
@@ -226,11 +272,14 @@ class Pomoka(QWidget):
             save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k)
 
         if opcja == 1:
+            year = (2022 - self.selected_age)
             gus_chart = lineChartOne(sex, year)
-            #gus_chart.show() #mozna zobaczyc zo wyszlo
+            gus_chart.show() #mozna zobaczyc zo wyszlo
         if opcja == 2:
+            year_start = (2022 - self.selected_age_end)
+            year_end = (2022 - self.selected_age_start)
             gus_chart = lineChartRange(sex, year_start, year_end)
-            #gus_chart.show() #mozna zobaczyc zo wyszlo
+            gus_chart.show() #mozna zobaczyc zo wyszlo
 
 
 
