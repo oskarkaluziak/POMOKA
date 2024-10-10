@@ -11,6 +11,7 @@ from statsmodels.stats import weightstats as stests
 from PyQt5.QtWidgets import QMessageBox, QLineEdit
 import matplotlib.pyplot as plt
 from lifelines import KaplanMeierFitter
+from lifelines.statistics import logrank_test
 import os
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
@@ -256,14 +257,16 @@ class Pomoka(QWidget):
             self.close()
 
     def gus(self, ax, last_time_km):  # TODO
-        # QMessageBox.information(self, "kiedys bedzie")
         # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
         sex = self.selected_sex
 
+        #BACKLOG jak działa:
         #self.selected_age = wiek pacjenta
         #self.selected_age_start = wiek pacjenta dolny zakres
         #self.selected_age_end = wiek pacjenta gorny zakres
-        # zakres 65-70 to wtedy start = 1952, a end = 1957, a wiec z tego powodu jest to na odwrot
+        #zakres 65-70 to wtedy start = 1952, a end = 1957, a wiec z tego powodu jest to na odwrot
+
+
         # te dwie plus sex generuje wykres dla zakresu rocznikow
         opcja = self.selected_option #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
         file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
@@ -277,14 +280,14 @@ class Pomoka(QWidget):
         if opcja == 1:
             year = (2022 - self.selected_age)
             gus_chart = lineChartOne(sex, year)
-            # Pobranie osi z figury wykresu z GUS
+            # pobranie osi z figury wykresu z GUS
             gus_ax = gus_chart.axes[0]
 
-            # Pobranie danych z osi wykresu GUS
+            # pobranie danych z osi wykresu GUS
             x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
             y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
 
-            # Przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
+            # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
             y_data_probability = y_data / 100
 
             #przycinanie osi X do dlugosci kmf
@@ -292,7 +295,7 @@ class Pomoka(QWidget):
             x_data_trimmed = x_data[valid_indices]
             y_data_probability_trimmed = y_data_probability[valid_indices]
 
-            # Dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
+            # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year}',
                     linestyle='-', color='orange')
             ax.legend()
@@ -303,20 +306,21 @@ class Pomoka(QWidget):
             gus_chart = lineChartRange(sex, year_start, year_end)
             gus_ax = gus_chart.axes[0]
 
-            # Pobranie danych z osi wykresu GUS
+            # pobranie danych z osi wykresu GUS
             x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
             y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
 
-            # Przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
+            # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
             y_data_probability = y_data / 100
+
 
             # przycinanie osi X do dlugosci kmf
             valid_indices = x_data <= last_time_km
-            x_data_trimmed = x_data[valid_indices]
-            y_data_probability_trimmed = y_data_probability[valid_indices]
+            self.x_data_trimmed = x_data[valid_indices]
+            self.y_data_probability_trimmed = y_data_probability[valid_indices]
 
-            # Dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
-            ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'GUS {year_start}-{year_end}',
+            #dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'GUS {year_start}-{year_end}',
                     linestyle='-', color='orange')
             ax.legend()
 
@@ -325,7 +329,7 @@ class Pomoka(QWidget):
             QMessageBox.warning(self, "Error", "Data is not loaded.")
             return
 
-        # Retrieve the selected preferences and their ranges
+        # wymagaj wybranie zakresu preferencji
         selected_preferences = [item.text() for item in self.preferencesList.selectedItems() if
                                 item.text() != "no preferences"]
 
@@ -335,7 +339,7 @@ class Pomoka(QWidget):
 
         df_filtered = self.df.copy()
 
-        # Apply the range filters
+        # filtrowanie po wszystkich kolumnach wedlug set range lower/upper
         for column, (lower, upper) in self.column_ranges.items():
             df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
 
@@ -343,15 +347,14 @@ class Pomoka(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
-        T_ill = df_filtered['time'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
-        E_ill = df_filtered['event'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
+        self.T_ill = df_filtered['time'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
+        self.E_ill = df_filtered['event'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
 
         kmf_ill = KaplanMeierFitter()
 
         fig, ax = plt.subplots(figsize=(10, 6))
 
-        # Fit the Kaplan-Meier model on the entire filtered dataset
-        kmf_ill.fit(T_ill, event_observed=E_ill)
+        kmf_ill.fit(self.T_ill, event_observed=self.E_ill)
         last_time_km = kmf_ill.survival_function_.index[-1]
         kmf_ill.plot_survival_function(ax=ax, label='ILL')
 
@@ -388,8 +391,8 @@ class Pomoka(QWidget):
         QMessageBox.information(self, "F Cox test", "Wykonano test F Cox, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_log_rank(self):  # TODO
-        result = "in progress"
-        self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result}, p-wartość = {result}")
+        result = logrank_test(self.T_ill, self.x_data_trimmed, event_observed_A=self.E_ill, event_observed_B=self.y_data_probability_trimmed)
+        self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_peto_peto_wilcoxon(self):  # TODO
