@@ -292,6 +292,7 @@ class Pomoka(QWidget):
             # Dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year}',
                     linestyle='-', color='orange')
+            ax.legend()
 
         if opcja == 2:
             year_start = (2022 - self.selected_age_end)
@@ -312,8 +313,9 @@ class Pomoka(QWidget):
             y_data_probability_trimmed = y_data_probability[valid_indices]
 
             # Dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
-            ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year_start}-{year_end}',
+            ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'GUS {year_start}-{year_end}',
                     linestyle='-', color='orange')
+            ax.legend()
 
     def ill(self):  # TODO
         if not hasattr(self, 'df'):
@@ -348,12 +350,12 @@ class Pomoka(QWidget):
         # Fit the Kaplan-Meier model on the entire filtered dataset
         kmf_ill.fit(T_ill, event_observed=E_ill)
         last_time_km = kmf_ill.survival_function_.index[-1]
-        kmf_ill.plot_survival_function(ax=ax, label='data of ill people')
+        kmf_ill.plot_survival_function(ax=ax, label='ILL')
 
         ax.set_title('Chart')
         ax.set_xlabel('Time')
         ax.set_ylabel('Survival Probability')
-        #ax.legend()
+
         plt.grid(True)
 
         self.gus(ax, last_time_km)
