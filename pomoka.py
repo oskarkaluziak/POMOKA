@@ -390,7 +390,7 @@ class Pomoka(QWidget):
         self.resultEdt.setText(f"F Cox test: F-statystyka = {result}, p-wartość = {result}")
         QMessageBox.information(self, "F Cox test", "Wykonano test F Cox, kliknij OK aby przejść do wyniku kolejnego testu")
 
-    def run_log_rank(self):  # TODO
+    def run_log_rank(self):
         result = logrank_test(self.T_ill, self.x_data_trimmed, event_observed_A=self.E_ill, event_observed_B=self.y_data_probability_trimmed)
         self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank, kliknij OK aby przejść do wyniku kolejnego testu")
