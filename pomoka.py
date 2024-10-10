@@ -18,7 +18,7 @@ from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRa
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
 #TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
 #TODO - po ponownym wgraniu xlsx, bez wyboru preferencji, przycisk Execute - crashuje apke
-#TODO - preferences wywala caly program, gdy jako glowny wiersz wybierzemy taki zawierujacy liczby, a nie nazwy pokroju "age"
+#TODO - preferences w-ywala caly program, gdy jako glowny wiersz wybierzemy taki zawierujacy liczby, a nie nazwy pokroju "age"
 
 class Pomoka(QWidget):
     def __init__(self, parent=None):
