@@ -6,6 +6,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import pandas as pd
 import sys
 import numpy as np
+from scipy import stats
+from statsmodels.stats import weightstats as stests
+from PyQt5.QtWidgets import QMessageBox, QLineEdit
 import matplotlib.pyplot as plt
 from lifelines import KaplanMeierFitter
 import os
@@ -369,23 +372,31 @@ class Pomoka(QWidget):
         self.resize(self.width() + 300, self.height() + 400)
         self.center()
 
-    def charts_overlay(self):  # TODO
-        QMessageBox.information(self, "kiedys bedzie")
-
     def run_gehan_wilcoxon(self):  # TODO
-        QMessageBox.information(self, "Gehan-Wilcoxon test", "Wykonano test Gehan-Wilcoxon")
+        result = "in progress"
+        self.resultEdt.setText(f"Gehan-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
+        QMessageBox.information(self, "Gehan-Wilcoxon test", "Wykonano test Gehan-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_cox_mantel(self):  # TODO
-        QMessageBox.information(self, "Cox-Mantel test", "Wykonano test Cox-Mantel")
+        result = "in progress"
+        self.resultEdt.setText(f"Cox-Mantel test: Chi2 = {result}, p-wartość = {result}")
+        QMessageBox.information(self, "Cox-Mantel test", "Wykonano test Cox-Mantel, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_f_cox(self):  # TODO
-        QMessageBox.information(self, "F Cox test", "Wykonano test F Cox")
+        result = "in progress"
+        self.resultEdt.setText(f"F Cox test: F-statystyka = {result}, p-wartość = {result}")
+        QMessageBox.information(self, "F Cox test", "Wykonano test F Cox, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_log_rank(self):  # TODO
-        QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank")
+        result = "in progress"
+        self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result}, p-wartość = {result}")
+        QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_peto_peto_wilcoxon(self):  # TODO
-        QMessageBox.information(self, "Peto-Peto-Wilcoxon test", "Wykonano test Peto-Peto-Wilcoxon")
+        result = "in progress"
+        self.resultEdt.setText(
+            f"Peto-Peto-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
+        QMessageBox.information(self, "Peto-Peto-Wilcoxon test", "Wykonano test Peto-Peto-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def toggleExecution(self):
         if self.isExecuting:
@@ -417,6 +428,8 @@ class Pomoka(QWidget):
         self.executeBtn.setText("Break")
         self.isExecuting = True
 
+        self.ill()
+
         selected_tests = [item.text() for item in self.testsList.selectedItems()]
         for test in selected_tests:
             if test == "Gehan-Wilcoxon test":
@@ -430,8 +443,7 @@ class Pomoka(QWidget):
             elif test == "Peto-Peto-Wilcoxon test":
                 self.run_peto_peto_wilcoxon()
 
-        self.ill()
-        # self.charts_overlay()
+
 
     def breakExecution(self):
         for i in reversed(range(self.ukladV.count())):
