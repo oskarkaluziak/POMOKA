@@ -168,6 +168,7 @@ def lineChartOne(sex, year):
     row_data = row.iloc[0, 1:].dropna()
 
     row_data = pd.concat([pd.Series([100]), row_data]).reset_index(drop=True)
+
     # Plot the line chart
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(row_data.index, row_data.values, marker='o')

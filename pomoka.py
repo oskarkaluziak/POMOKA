@@ -252,7 +252,7 @@ class Pomoka(QWidget):
         if e.key() == Qt.Key_Escape:
             self.close()
 
-    def gus(self):  # TODO
+    def gus(self, ax, last_time_km):  # TODO
         # QMessageBox.information(self, "kiedys bedzie")
         # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
         sex = self.selected_sex
@@ -274,15 +274,46 @@ class Pomoka(QWidget):
         if opcja == 1:
             year = (2022 - self.selected_age)
             gus_chart = lineChartOne(sex, year)
-            gus_chart.show() #mozna zobaczyc zo wyszlo
+            # Pobranie osi z figury wykresu z GUS
+            gus_ax = gus_chart.axes[0]
+
+            # Pobranie danych z osi wykresu GUS
+            x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
+            y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
+
+            # Przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
+            y_data_probability = y_data / 100
+
+            #przycinanie osi X do dlugosci kmf
+            valid_indices = x_data <= last_time_km
+            x_data_trimmed = x_data[valid_indices]
+            y_data_probability_trimmed = y_data_probability[valid_indices]
+
+            # Dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
+            ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year}',
+                    linestyle='-', color='orange')
+
         if opcja == 2:
             year_start = (2022 - self.selected_age_end)
             year_end = (2022 - self.selected_age_start)
             gus_chart = lineChartRange(sex, year_start, year_end)
-            gus_chart.show() #mozna zobaczyc zo wyszlo
+            gus_ax = gus_chart.axes[0]
 
+            # Pobranie danych z osi wykresu GUS
+            x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
+            y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
 
+            # Przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
+            y_data_probability = y_data / 100
 
+            # przycinanie osi X do dlugosci kmf
+            valid_indices = x_data <= last_time_km
+            x_data_trimmed = x_data[valid_indices]
+            y_data_probability_trimmed = y_data_probability[valid_indices]
+
+            # Dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
+            ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year_start}-{year_end}',
+                    linestyle='-', color='orange')
 
     def ill(self):  # TODO
         if not hasattr(self, 'df'):
@@ -307,20 +338,25 @@ class Pomoka(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
-        T = df_filtered['time'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
-        E = df_filtered['event'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
+        T_ill = df_filtered['time'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
+        E_ill = df_filtered['event'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
 
-        kmf = KaplanMeierFitter()
+        kmf_ill = KaplanMeierFitter()
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(10, 6))
 
         # Fit the Kaplan-Meier model on the entire filtered dataset
-        kmf.fit(T, event_observed=E)
-        kmf.plot_survival_function(ax=ax)
+        kmf_ill.fit(T_ill, event_observed=E_ill)
+        last_time_km = kmf_ill.survival_function_.index[-1]
+        kmf_ill.plot_survival_function(ax=ax, label='data of ill people')
 
-        ax.set_title('Kaplan-Meier Survival Function')
+        ax.set_title('Chart')
         ax.set_xlabel('Time')
         ax.set_ylabel('Survival Probability')
+        #ax.legend()
+        plt.grid(True)
+
+        self.gus(ax, last_time_km)
 
         if hasattr(self, 'canvas') and self.canvas:
             self.canvas.setParent(None)
@@ -392,7 +428,6 @@ class Pomoka(QWidget):
             elif test == "Peto-Peto-Wilcoxon test":
                 self.run_peto_peto_wilcoxon()
 
-        self.gus()
         self.ill()
         # self.charts_overlay()
 
