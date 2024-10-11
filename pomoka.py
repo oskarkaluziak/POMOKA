@@ -13,6 +13,7 @@ from lifelines import KaplanMeierFitter
 from lifelines.statistics import logrank_test
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
+#TODO - dorobienie reszty testów statystycznych (konieczne chyba przerobienie danych pierw)
 #TODO - time/event uztkownik wybiera kolumne, aktualnie dziala tylko na danych na templatce naszej
 #TODO - mozliwe ustawienie setrange dla słów
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
