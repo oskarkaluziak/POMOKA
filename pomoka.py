@@ -11,15 +11,16 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import logrank_test
-from plot_gus import prepare_data, save_data_to2_excel, lineChartOne, lineChartRange
-
+from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
 #TODO - mozliwe ustawienie setrange dla słów
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
 #TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
 #TODO - po ponownym wgraniu xlsx, bez wyboru preferencji, przycisk Execute - crashuje apke
 #TODO - preferences wywala caly program, gdy jako glowny wiersz z kolumnami xlsx wybierzemy taki zawierujacy liczby, a nie nazwy pokroju "age"
-
+#TODO - globalny test programu, znalezienie większości sposobów na wywalenie programu
+#TODO - algorytm przerabiający każdą kombinacje i dążący do wskazywania istotnych korelacji z śmiertelnością ludzi na jej podstawie
+#TODO - algorytm budujący model śmiertelności np. Model Lee Cartera
 class Pomoka(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
