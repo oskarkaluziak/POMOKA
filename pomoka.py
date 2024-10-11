@@ -1,24 +1,24 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, \
-    QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog
+from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
+                             QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
 from PyQt5.QtGui import QPixmap, QPainter, QIcon
 from PyQt5.QtCore import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+import os
 import pandas as pd
 import sys
-import numpy as np
-from scipy import stats
-from statsmodels.stats import weightstats as stests
 import matplotlib.pyplot as plt
-from lifelines import KaplanMeierFitter, CoxPHFitter
-from lifelines.statistics import logrank_test, multivariate_logrank_test
-import os
-from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from lifelines import KaplanMeierFitter
+from lifelines.statistics import logrank_test
+from plot_gus import prepare_data, save_data_to2_excel, lineChartOne, lineChartRange
+
 
 #TODO - mozliwe ustawienie setrange dla słów
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
 #TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
 #TODO - po ponownym wgraniu xlsx, bez wyboru preferencji, przycisk Execute - crashuje apke
-#TODO - preferences wywala caly program, gdy jako glowny wiersz wybierzemy taki zawierujacy liczby, a nie nazwy pokroju "age"
+#TODO - preferences wywala caly program, gdy jako glowny wiersz z kolumnami xlsx wybierzemy taki zawierujacy liczby, a nie nazwy pokroju "age"
 
 class Pomoka(QWidget):
     def __init__(self, parent=None):
@@ -38,7 +38,7 @@ class Pomoka(QWidget):
         self.uploadBtn = QPushButton("&Upload data", self)
         self.testsBtn = QPushButton("&Select test", self)
         self.preferencesBtn = QPushButton("&Preferences", self)
-        self.setRangeBtn = QPushButton("&Set Range", self)  # Button to set range for selected preferences
+        self.setRangeBtn = QPushButton("&Set Range", self)
         self.executeBtn = QPushButton("&Execute", self)
         shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
@@ -126,14 +126,12 @@ class Pomoka(QWidget):
             QMessageBox.information(self, "File loaded",
                                     f"Number of rows: {df.shape[0]}\nNumber of columns: {df.shape[1]}")
 
-
             if hasattr(self, 'preferencesList'):
                 self.preferencesList.clear()
                 self.preferencesList.setParent(None)
                 self.preferencesList.deleteLater()
                 self.toggleSetRangeBtn()
                 self.adjustSize()
-
 
             self.preferencesBtn.setEnabled(True)
         except Exception as e:
@@ -157,7 +155,7 @@ class Pomoka(QWidget):
         self.ukladV.addWidget(self.testsList)
         self.testsBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
 
-    def CBpreferences(self):  # TODO
+    def CBpreferences(self):
         self.preferencesList = QListWidget(self)
         self.preferencesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
@@ -172,7 +170,7 @@ class Pomoka(QWidget):
         self.ukladV.addWidget(self.preferencesList)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
         self.setRangeBtn.setEnabled(True)
-    def setRanges(self):  # wybor zakresu przez uzytkownika
+    def setRanges(self):
         selected_columns = [item.text() for item in self.preferencesList.selectedItems()]
 
         for column in selected_columns:
@@ -229,8 +227,6 @@ class Pomoka(QWidget):
                         self.selected_age_start = lower
                         self.selected_age_end = upper
                         self.selected_option = 2
-
-
 
     def paintEvent(self, event):  # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
@@ -317,7 +313,6 @@ class Pomoka(QWidget):
             # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
             y_data_probability = y_data / 100
 
-
             # przycinanie osi X do dlugosci kmf
             valid_indices = x_data <= last_time_km
             self.x_data_trimmed = x_data[valid_indices]
@@ -351,8 +346,8 @@ class Pomoka(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
-        self.T_ill = df_filtered['time'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
-        self.E_ill = df_filtered['event'] #TODO uztkownik wybiera kolumne, dziala tylko na przykladzie naszego xlsx
+        self.T_ill = df_filtered['time'] #TODO uztkownik wybiera kolumne, aktualnie dziala tylko na danych na templatce naszej
+        self.E_ill = df_filtered['event'] #TODO uztkownik wybiera kolumne, aktualnie dziala tylko na danych na templatce naszej
 
         kmf_ill = KaplanMeierFitter()
 
@@ -401,8 +396,7 @@ class Pomoka(QWidget):
 
     def run_peto_peto_wilcoxon(self):  # TODO
         result = "in progress"
-        self.resultEdt.setText(
-            f"Peto-Peto-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
+        self.resultEdt.setText(f"Peto-Peto-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
         QMessageBox.information(self, "Peto-Peto-Wilcoxon test", "Wykonano test Peto-Peto-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def toggleExecution(self):
