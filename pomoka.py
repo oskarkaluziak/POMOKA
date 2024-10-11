@@ -14,7 +14,6 @@ from lifelines.statistics import logrank_test
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
 #TODO - dorobienie reszty testów statystycznych (konieczne chyba przerobienie danych pierw)
-#TODO - time/event uztkownik wybiera kolumne, aktualnie dziala tylko na danych na templatce naszej
 #TODO - mozliwe ustawienie setrange dla słów
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
 #TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
@@ -349,8 +348,32 @@ class Pomoka(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
-        self.T_ill = df_filtered['time'] #TODO uztkownik wybiera kolumne, aktualnie dziala tylko na danych na templatce naszej
-        self.E_ill = df_filtered['event'] #TODO uztkownik wybiera kolumne, aktualnie dziala tylko na danych na templatce naszej
+        # sprawdzamy, czy kolumny 'time' i 'event' istnieją
+        if 'time' in df_filtered.columns:
+            self.T_ill = df_filtered['time']
+        else:
+            # jeśli nie znajdzie 'time', prosi użytkownika o wybór kolumny
+            column_names = df_filtered.columns.tolist()
+            selected_column, ok = QInputDialog.getItem(self, "Select column for 'time'",
+                                                       "Available columns:", column_names, 0, False)
+            if ok and selected_column:
+                self.T_ill = df_filtered[selected_column]
+            else:
+                QMessageBox.warning(self, "Error", "No column selected for 'time'.")
+                return
+
+        if 'event' in df_filtered.columns:
+            self.E_ill = df_filtered['event']
+        else:
+            # jeśli nie znajdzie 'event', poproś użytkownika o wybór kolumny
+            column_names = df_filtered.columns.tolist()
+            selected_column, ok = QInputDialog.getItem(self, "Select column for 'event'",
+                                                       "Available columns:", column_names, 0, False)
+            if ok and selected_column:
+                self.E_ill = df_filtered[selected_column]
+            else:
+                QMessageBox.warning(self, "Error", "No column selected for 'event'.")
+                return
 
         kmf_ill = KaplanMeierFitter()
 
