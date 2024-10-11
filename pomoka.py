@@ -8,10 +8,9 @@ import sys
 import numpy as np
 from scipy import stats
 from statsmodels.stats import weightstats as stests
-from PyQt5.QtWidgets import QMessageBox, QLineEdit
 import matplotlib.pyplot as plt
-from lifelines import KaplanMeierFitter
-from lifelines.statistics import logrank_test
+from lifelines import KaplanMeierFitter, CoxPHFitter
+from lifelines.statistics import logrank_test, multivariate_logrank_test
 import os
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
@@ -294,6 +293,11 @@ class Pomoka(QWidget):
             valid_indices = x_data <= last_time_km
             x_data_trimmed = x_data[valid_indices]
             y_data_probability_trimmed = y_data_probability[valid_indices]
+
+            #idk czemu ale musi byc tak, tak jak w opcji 2 z jakiegos powodu tu nie dziala
+            self.x_data_trimmed = x_data_trimmed
+            self.y_data_probability_trimmed = y_data_probability_trimmed
+
 
             # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year}',
