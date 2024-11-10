@@ -12,9 +12,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import logrank_test
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
+from datetime import datetime
 
 #TODO - dorobienie reszty testów statystycznych (konieczne chyba przerobienie danych pierw)
-#TODO - mozliwe ustawienie setrange dla słów
+#TODO - mozliwe ustawienie setrange dla słów 0-1; yes,no,optimal,...
 #TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
 #TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
 #TODO - po ponownym wgraniu xlsx, bez wyboru preferencji, przycisk Execute - crashuje apke
@@ -139,7 +140,7 @@ class Pomoka(QWidget):
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
 
-    def CBtests(self):  # wybor testow / TODO Perek
+    def CBtests(self):  # wybor testow
         self.testsList = QListWidget(self)
         self.testsList.setSelectionMode(QAbstractItemView.MultiSelection)
 
@@ -232,7 +233,7 @@ class Pomoka(QWidget):
 
     def paintEvent(self, event):  # funkcja zmieniajaca tło w aplikacji + autosize
         painter = QPainter(self)
-        pixmap = QPixmap("POMOKA3.png")
+        pixmap = QPixmap("POMOKA1.png")
         painter.drawPixmap(self.rect(), pixmap)
 
     def shutdown(self):  # zamykanie aplikacji poprzez przycisk
@@ -324,7 +325,6 @@ class Pomoka(QWidget):
             ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'GUS {year_start}-{year_end}',
                     linestyle='-', color='orange')
             ax.legend()
-
     def ill(self):  # TODO
         if not hasattr(self, 'df'):
             QMessageBox.warning(self, "Error", "Data is not loaded.")
@@ -397,6 +397,14 @@ class Pomoka(QWidget):
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.canvas.draw()
+
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
+        self.output_dir = os.path.join("plots", timestamp)
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+        self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"))
+
         self.resize(self.width() + 300, self.height() + 400)
         self.center()
 
@@ -418,6 +426,8 @@ class Pomoka(QWidget):
     def run_log_rank(self):
         result = logrank_test(self.T_ill, self.x_data_trimmed, event_observed_A=self.E_ill, event_observed_B=self.y_data_probability_trimmed)
         self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
+        text = (f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
+        self.time(text)
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_peto_peto_wilcoxon(self):  # TODO
@@ -425,6 +435,10 @@ class Pomoka(QWidget):
         self.resultEdt.setText(f"Peto-Peto-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
         QMessageBox.information(self, "Peto-Peto-Wilcoxon test", "Wykonano test Peto-Peto-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
+    def time(self, text):
+        filename = os.path.join(self.output_dir, f"test_result.txt")
+        with open(filename, "w") as file:
+            file.write(text)
     def toggleExecution(self):
         if self.isExecuting:
             self.breakExecution()
