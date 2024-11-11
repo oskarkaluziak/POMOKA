@@ -16,9 +16,9 @@ from datetime import datetime
 
 #TODO - dorobienie reszty testów statystycznych (konieczne chyba przerobienie danych pierw)
 #TODO - mozliwe ustawienie setrange dla słów 0-1; yes,no,optimal,...
-#TODO - dodać zapis wyniku i wykresu (wygenerowanie raportu) do pliku
 #TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
 #TODO - po ponownym wgraniu xlsx, bez wyboru preferencji, przycisk Execute - crashuje apke
+#TODO - modyfikacja raportu, żeby byl jako pdf i może był opisywany wniosek przez AI?
 #TODO - preferences wywala caly program, gdy jako glowny wiersz z kolumnami xlsx wybierzemy taki zawierujacy liczby, a nie nazwy pokroju "age"
 #TODO - globalny test programu, znalezienie większości sposobów na wywalenie programu
 #TODO - algorytm przerabiający każdą kombinacje i dążący do wskazywania istotnych korelacji z śmiertelnością ludzi na jej podstawie
@@ -348,6 +348,8 @@ class Pomoka(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
+        self.filtered_patient_count = len(df_filtered) #liczba pacjentow wzietych pod uwage do pliku
+        print (f"pacjentów wziętych pod uwage: {self.filtered_patient_count}")
         # sprawdzamy, czy kolumny 'time' i 'event' istnieją
         if 'time' in df_filtered.columns:
             self.T_ill = df_filtered['time']
@@ -439,6 +441,7 @@ class Pomoka(QWidget):
         filename = os.path.join(self.output_dir, f"test_result.txt")
         with open(filename, "w") as file:
             file.write(text)
+            file.write(f"for the ill curve was used {self.filtered_patient_count} patients")
     def toggleExecution(self):
         if self.isExecuting:
             self.breakExecution()
