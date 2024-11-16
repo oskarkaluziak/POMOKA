@@ -14,6 +14,7 @@ from lifelines.statistics import logrank_test
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 from datetime import datetime
 
+
 #TODO - dorobienie reszty testów statystycznych (konieczne chyba przerobienie danych pierw)
 #TODO - mozliwe ustawienie setrange dla słów 0-1; yes,no,optimal,...
 #TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
@@ -173,6 +174,7 @@ class Pomoka(QWidget):
         self.ukladV.addWidget(self.preferencesList)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
         self.setRangeBtn.setEnabled(True)
+
     def setRanges(self):
         selected_columns = [item.text() for item in self.preferencesList.selectedItems()]
 
@@ -441,7 +443,8 @@ class Pomoka(QWidget):
         filename = os.path.join(self.output_dir, f"test_result.txt")
         with open(filename, "w") as file:
             file.write(text)
-            file.write(f"for the ill curve was used {self.filtered_patient_count} patients")
+            file.write(f"\nfor the ill curve was used {self.filtered_patient_count} patients")
+
     def toggleExecution(self):
         if self.isExecuting:
             self.breakExecution()
@@ -449,11 +452,22 @@ class Pomoka(QWidget):
             self.startExecution()
 
     def startExecution(self):
-        if not hasattr(self, 'testsList') or not self.testsList.selectedItems():
+        if not hasattr(self, 'testsList') or self.testsList is None or not self.testsList.selectedItems():
             QMessageBox.warning(self, "Warning", "Please select a statistical test.")
             return
-        if not hasattr(self, 'preferencesList') or not self.preferencesList.selectedItems():
-            QMessageBox.warning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
+
+            # Sprawdź, czy preferencesList istnieje i jest poprawnym widgetem
+        if not hasattr(self, 'preferencesList') or self.preferencesList is None:
+            QMessageBox.warning(self, "Warning", "Preferences list is missing or invalid.")
+            return
+
+            # Próbuj odczytać selectedItems() tylko, jeśli preferencesList nie zostało usunięte
+        try:
+            if not self.preferencesList.selectedItems():
+                QMessageBox.warning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
+                return
+        except RuntimeError:
+            QMessageBox.warning(self, "Warning", "Preferences list has been deleted.")
             return
 
         for index in range(self.preferencesList.count()):
