@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import logrank_test
+from lifelines.statistics import multivariate_logrank_test
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 from datetime import datetime
 
@@ -413,8 +414,26 @@ class Pomoka(QWidget):
         self.center()
 
     def run_gehan_wilcoxon(self):  # TODO
-        result = "in progress"
-        self.resultEdt.setText(f"Gehan-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
+        print(f"T_ill type: {type(self.T_ill)}, value: {self.T_ill}")
+        print(f"x_data_trimmed type: {type(self.x_data_trimmed)}, value: {self.x_data_trimmed}")
+        print(f"y_data_trimmed type: {type(self.y_data_probability_trimmed)}, value: {self.y_data_probability_trimmed}")
+        print(f"E_ill type: {type(self.E_ill)}, value: {self.E_ill}")
+
+        time = list(self.T_ill) + list(self.x_data_trimmed)
+        event = list(self.E_ill) + list(self.y_data_probability_trimmed)
+        group = ['ill'] * len(self.T_ill) + ['gus'] * len(self.x_data_trimmed)
+
+        data = pd.DataFrame({
+            'time': time,
+            'event': event,
+            'group': group
+        })
+
+        result = multivariate_logrank_test(data['time'], data['group'], data['event'], weightings="wilcoxon")
+
+        self.resultEdt.setText(f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
+        text = (f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
+        self.time(text)
         QMessageBox.information(self, "Gehan-Wilcoxon test", "Wykonano test Gehan-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_cox_mantel(self):  # TODO
