@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import sys
 import matplotlib.pyplot as plt
+import numpy as np
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from lifelines import KaplanMeierFitter
@@ -31,6 +32,7 @@ class Pomoka(QWidget):
         self.interface()
         self.isExecuting = False
         self.column_ranges = {}
+        self.curves_data = []
 
     def interface(self):  # interface apki
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
@@ -45,6 +47,7 @@ class Pomoka(QWidget):
         self.preferencesBtn = QPushButton("&Preferences", self)
         self.setRangeBtn = QPushButton("&Set Range", self)
         self.executeBtn = QPushButton("&Execute", self)
+        self.addCurveBtn = QPushButton("&Add next curve", self)
         shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
         self.ukladV = QVBoxLayout()
@@ -59,6 +62,7 @@ class Pomoka(QWidget):
         self.ukladH.addWidget(self.preferencesBtn)
         self.ukladH.addWidget(self.setRangeBtn)
         self.ukladV.addWidget(self.executeBtn)
+        self.ukladH.addWidget(self.addCurveBtn)
 
         self.ukladV.addLayout(self.ukladH)
         self.ukladV.addWidget(shutdownBtn)
@@ -70,10 +74,12 @@ class Pomoka(QWidget):
         self.testsBtn.clicked.connect(self.CBtests)
         self.preferencesBtn.clicked.connect(self.CBpreferences)
         self.setRangeBtn.clicked.connect(self.setRanges)
+        self.addCurveBtn.clicked.connect(self.addCurve)
         self.executeBtn.clicked.connect(self.toggleExecution)
 
         self.preferencesBtn.setEnabled(False)
         self.setRangeBtn.setEnabled(False)
+        self.addCurveBtn.setEnabled(False)
 
         self.resize(400, 270)
         self.center()
@@ -175,6 +181,7 @@ class Pomoka(QWidget):
         self.ukladV.addWidget(self.preferencesList)
         self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
         self.setRangeBtn.setEnabled(True)
+        self.addCurveBtn.setEnabled
 
     def setRanges(self):
         selected_columns = [item.text() for item in self.preferencesList.selectedItems()]
@@ -324,6 +331,7 @@ class Pomoka(QWidget):
             self.x_data_trimmed = x_data[valid_indices]
             self.y_data_probability_trimmed = y_data_probability[valid_indices]
 
+
             #dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'GUS {year_start}-{year_end}',
                     linestyle='-', color='orange')
@@ -387,6 +395,13 @@ class Pomoka(QWidget):
         kmf_ill.fit(self.T_ill, event_observed=self.E_ill)
         last_time_km = kmf_ill.survival_function_.index[-1]
         kmf_ill.plot_survival_function(ax=ax, label='ILL')
+        ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+
+        #pobieranie danych z wykresu kaplana
+        self.survival_probabilities = kmf_ill.survival_function_['KM_estimate'].values
+        self.time_points = kmf_ill.survival_function_.index
+        #print(f"Czas: {self.time_points}")
+        #print(f"Funkcja przeżycia: {self.survival_probabilities}")
 
         ax.set_title('Chart')
         ax.set_xlabel('Time')
@@ -413,15 +428,108 @@ class Pomoka(QWidget):
         self.resize(self.width() + 300, self.height() + 400)
         self.center()
 
+    def addCurve(self):
+        if not hasattr(self, 'df'):
+            QMessageBox.warning(self, "Error", "Data is not loaded.")
+            return
+
+        selected_preferences = [item.text() for item in self.preferencesList.selectedItems() if
+                                item.text() != "no preferences"]
+
+        if not selected_preferences:
+            QMessageBox.warning(self, "Error", "No preferences selected.")
+            return
+
+        df_filtered = self.df.copy()
+
+        for column, (lower, upper) in self.column_ranges.items():
+            df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
+
+        if df_filtered.empty:
+            QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
+            return
+
+        self.filtered_patient_count = len(df_filtered)
+        print(f"Additional curve - patients considered: {self.filtered_patient_count}")
+
+        if 'time' in df_filtered.columns:
+            T_additional = df_filtered['time']
+        else:
+            column_names = df_filtered.columns.tolist()
+            selected_column, ok = QInputDialog.getItem(self, "Select column for 'time'",
+                                                       "Available columns:", column_names, 0, False)
+            if ok and selected_column:
+                T_additional = df_filtered[selected_column]
+            else:
+                QMessageBox.warning(self, "Error", "No column selected for 'time'.")
+                return
+
+        if 'event' in df_filtered.columns:
+            E_additional = df_filtered['event']
+        else:
+            column_names = df_filtered.columns.tolist()
+            selected_column, ok = QInputDialog.getItem(self, "Select column for 'event'",
+                                                       "Available columns:", column_names, 0, False)
+            if ok and selected_column:
+                E_additional = df_filtered[selected_column]
+            else:
+                QMessageBox.warning(self, "Error", "No column selected for 'event'.")
+                return
+
+        kmf_additional = KaplanMeierFitter()
+
+        if not hasattr(self, 'canvas') or self.canvas is None:
+            QMessageBox.warning(self, "Error", "No existing plot to add a curve.")
+            return
+
+        ax = self.canvas.figure.axes[0]
+
+        predefined_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+
+        existing_lines = len(ax.lines)
+        if existing_lines >= len(predefined_colors):
+            QMessageBox.warning(self, "Error", "No more unique colors available.")
+            return
+
+        selected_color = predefined_colors[existing_lines]
+
+        kmf_additional.fit(T_additional, event_observed=E_additional)
+        kmf_additional.plot_survival_function(ax=ax, label=f'Additional Curve {existing_lines + 1}',
+                                              color=selected_color)
+        ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+        self.canvas.draw()
+
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
+        if not hasattr(self, 'output_dir'):
+            self.output_dir = os.path.join("plots", timestamp)
+            if not os.path.exists(self.output_dir):
+                os.makedirs(self.output_dir)
+
+        self.canvas.figure.savefig(os.path.join(self.output_dir, f"updated_plot_{existing_lines + 1}.png"))
+        self.preferencesList.close()
+        self.preferencesList.clearSelection()
+        self.preferencesBtn.setEnabled(True)
+        self.preferencesList.setEnabled(True)
+        self.setRangeBtn.setEnabled(True)
+        self.column_ranges = {}
+
     def run_gehan_wilcoxon(self):  # TODO
-        print(f"T_ill type: {type(self.T_ill)}, value: {self.T_ill}")
+        self.survival_gus_interpolated = np.interp(self.time_points, self.x_data_trimmed, self.y_data_probability_trimmed)
+
+        print(f"T_ill type: {type(self.time_points)}, value: {self.time_points}")
         print(f"x_data_trimmed type: {type(self.x_data_trimmed)}, value: {self.x_data_trimmed}")
         print(f"y_data_trimmed type: {type(self.y_data_probability_trimmed)}, value: {self.y_data_probability_trimmed}")
-        print(f"E_ill type: {type(self.E_ill)}, value: {self.E_ill}")
+        print(f"self.survival_gus_interpolated: {type(self.survival_gus_interpolated)}, value: {self.survival_gus_interpolated}")
+        print(f"E_ill type: {type(self.survival_probabilities)}, value: {self.survival_probabilities}")
+        print(f"E_ill type: {type(self.T_ill)}, value: {self.survival_probabilities}")
+        #time = list(self.T_ill) + list(self.x_data_trimmed)
+        #event = list(self.E_ill) + list(self.y_data_probability_trimmed)
+        #group = ['ill'] * len(self.T_ill) + ['gus'] * len(self.x_data_trimmed)
 
-        time = list(self.T_ill) + list(self.x_data_trimmed)
-        event = list(self.E_ill) + list(self.y_data_probability_trimmed)
-        group = ['ill'] * len(self.T_ill) + ['gus'] * len(self.x_data_trimmed)
+        time = list(self.time_points) + list(self.time_points)
+        event = list(self.survival_probabilities) + list(self.survival_gus_interpolated)
+        group = ['ill'] * len(self.time_points) + ['gus'] * len(self.time_points)
 
         data = pd.DataFrame({
             'time': time,
@@ -497,7 +605,9 @@ class Pomoka(QWidget):
         self.testsBtn.setEnabled(False)
         self.setRangeBtn.setEnabled(False)
         self.preferencesBtn.setEnabled(False)
+
         self.uploadBtn.setEnabled(False)
+        self.addCurveBtn.setEnabled(True)
         if hasattr(self, 'testsList') and self.testsList.isVisible():
             self.testsList.setEnabled(False)
         if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
@@ -506,7 +616,12 @@ class Pomoka(QWidget):
         self.isExecuting = True
 
         self.ill()
-
+        self.preferencesList.close()
+        self.preferencesList.clearSelection()
+        self.preferencesBtn.setEnabled(True)
+        self.preferencesList.setEnabled(True)
+        self.setRangeBtn.setEnabled(True)
+        self.column_ranges = {}
         selected_tests = [item.text() for item in self.testsList.selectedItems()]
         for test in selected_tests:
             if test == "Gehan-Wilcoxon test":
