@@ -1,1 +1,0 @@
-Log-rank test: Z-statystyka = 4.0708758884187075, p-wartość = 0.043628645936772556

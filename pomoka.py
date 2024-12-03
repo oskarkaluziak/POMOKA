@@ -1,32 +1,29 @@
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
-                             QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
+import os
+import sys
+from datetime import datetime
+
+# PyQt5 imports
+from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
+    QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
 from PyQt5.QtGui import QPixmap, QPainter, QIcon
 from PyQt5.QtCore import Qt
 
-import os
+# Data handling and analysis
 import pandas as pd
-import sys
-import matplotlib.pyplot as plt
 import numpy as np
 
+# Matplotlib for plotting
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+# Lifelines for survival analysis
 from lifelines import KaplanMeierFitter
-from lifelines.statistics import logrank_test
-from lifelines.statistics import multivariate_logrank_test
+from lifelines.statistics import logrank_test, multivariate_logrank_test #(delete when new tests come in)
+
+# Custom imports
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
-from datetime import datetime
 
-
-#TODO - dorobienie reszty testów statystycznych (konieczne chyba przerobienie danych pierw)
-#TODO - mozliwe ustawienie setrange dla słów 0-1; yes,no,optimal,...
-#TODO - czy wprowadzony range, znajduje jakiekolwiek takie wartości w wprowadzonym pliku (czy nie ma bledu w wprowadzonym range)
-#TODO - po ponownym wgraniu xlsx, bez wyboru preferencji, przycisk Execute - crashuje apke
-#TODO - modyfikacja raportu, żeby byl jako pdf i może był opisywany wniosek przez AI?
-#TODO - preferences wywala caly program, gdy jako glowny wiersz z kolumnami xlsx wybierzemy taki zawierujacy liczby, a nie nazwy pokroju "age"
-#TODO - globalny test programu, znalezienie większości sposobów na wywalenie programu
-#TODO - algorytm przerabiający każdą kombinacje i dążący do wskazywania istotnych korelacji z śmiertelnością ludzi na jej podstawie
-#TODO - algorytm budujący model śmiertelności np. Model Lee Cartera
-class Pomoka(QWidget):
+class POMOKAstat(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.interface()
@@ -82,10 +79,8 @@ class Pomoka(QWidget):
         self.addCurveBtn.setEnabled(False)
 
         self.resize(400, 270)
-        self.center()
         self.setWindowTitle("POMOKA")
         self.setWindowIcon(QIcon('icon.png'))
-        self.show()
 
     def center(self):
         # pobranie wymiarów ekranu
@@ -104,7 +99,6 @@ class Pomoka(QWidget):
 
         # ustawienie geometrii okna
         self.setGeometry(x, y, window_width, window_height)
-
     def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(
@@ -118,8 +112,7 @@ class Pomoka(QWidget):
             self.filePathEdt.setText(fileName)
             self.askHeaderRow(fileName)
 
-
-    def askHeaderRow(self, fileName):
+    def askHeaderRow(self, fileName):  # funkcja pytająca o header kolumne
         row, ok = QInputDialog.getInt(self, "Header Row", "Enter the row number containing column headers:", 1, 1, 100, 1)
         if ok:
             self.readCSV(fileName, row)
@@ -196,55 +189,60 @@ class Pomoka(QWidget):
             value_range, ok = QInputDialog.getText(self, f"Select range for {column}",
                                                    f"Enter the range for column {column} (minimum value-maximum value):")
             if ok:
-                lower, upper = map(int, value_range.split('-'))
-                self.column_ranges[column] = (lower, upper)
+                try:
+                    if '-' in value_range:
+                        lower, upper = map(int, value_range.split('-'))
+                    else:
+                        lower = upper = int(value_range)  # Treat single value as both lower and upper
 
-                # sprawdzanie wybranej płci, jak nie uzytkownik nie wybierze to bierze obydwie do wykresu
-                if column.lower() == 'sex' or column.lower() == 'Sex' or column.lower() == 'SEX' or column.lower() == 'Plec' or column.lower() == 'plec' or column.lower() == 'PLEC' or column.lower() == 'Płeć' or column.lower() == 'płeć' or column.lower() == 'PŁEĆ':
-                    if lower == upper:
-                        if lower == 1 or lower == 'M' or lower == 'm':
-                            self.selected_sex = 0 ##0=dane_mezczyzn
-                        if lower == 0 or lower == 'K' or lower == 'k' or lower == 'W' or lower == 'w':
-                            self.selected_sex = 1 ##1=dane_kobiet
+                    self.column_ranges[column] = (lower, upper)
+
+                    # sprawdzanie wybranej płci, jak nie uzytkownik nie wybierze to bierze obydwie do wykresu
+                    if column.lower() in ['sex', 'plec', 'płeć', 'pŁeĆ']:
+                        if lower == upper:
+                            if lower in [1, 'M', 'm']:
+                                self.selected_sex = 0  # 0=dane_mezczyzn
+                            elif lower in [0, 'K', 'k', 'W', 'w']:
+                                self.selected_sex = 1  # 1=dane_kobiet
+                        else:
+                            self.selected_sex = 2
+
+                    if column.lower() in ['female', 'kobieta']:
+                        if lower == upper:
+                            if lower == 1:
+                                self.selected_sex = 1
+                            elif lower == 0:
+                                self.selected_sex = 0
+                        else:
+                            self.selected_sex = 2
+
+                    if column.lower() in ['male', 'mezczyzna', 'mężczyzna']:
+                        if lower == upper:
+                            if lower == 1:
+                                self.selected_sex = 0
+                            elif lower == 0:
+                                self.selected_sex = 1
+                        else:
+                            self.selected_sex = 2
                     else:
                         self.selected_sex = 2
-                if column.lower() == 'Female' or column.lower() == 'female' or column.lower() == 'FEMALE' or column.lower() == 'Kobieta' or column.lower() == 'kobieta' or column.lower() == 'KOBIETA':
-                    if lower == upper:
-                        if lower == 1:
-                            self.selected_sex = 1
-                        if lower == 0:
-                            self.selected_sex = 0
-                    else:
-                        self.selected_sex = 2
-                if column.lower() == 'Male' or column.lower() == 'male' or column.lower() == 'MALE' or column.lower() == 'Mezczyzna' or column.lower() == 'mezczyzna' or column.lower() == 'MEZCZYZNA' or column.lower() == 'Mężczyzna' or column.lower() == 'mężczyzna' or column.lower() == 'MĘŻCZYZNA':
-                    if lower == upper:
-                        if lower == 1:
-                            self.selected_sex = 0
-                        if lower == 0:
-                            self.selected_sex = 1
-                    else:
-                        self.selected_sex = 2
-                else:
-                    self.selected_sex = 2
 
-                # sprawdzanie wybranego wieku, jak nie uzytkownik nie wybierze to bierze średni
-                if column.lower() == 'Age' or column.lower() == 'age' or column.lower() == 'AGE' or column.lower() == 'Wiek' or column.lower() == 'wiek' or column.lower() == 'WIEK':
-                    if lower == upper:
-                        self.selected_age = lower
-                        self.selected_option = 1
-                    if lower > upper:
-                        self.selected_age_start = upper
-                        self.selected_age_end = lower
-                        self.selected_option = 2
-                    if upper > lower:
-                        self.selected_age_start = lower
-                        self.selected_age_end = upper
-                        self.selected_option = 2
+                    # sprawdzanie wybranego wieku, jak nie uzytkownik nie wybierze to bierze średni
+                    if column.lower() in ['age', 'wiek']:
+                        if lower == upper:
+                            self.selected_age = lower
+                            self.selected_option = 1
+                        elif lower > upper:
+                            self.selected_age_start = upper
+                            self.selected_age_end = lower
+                            self.selected_option = 2
+                        else:
+                            self.selected_age_start = lower
+                            self.selected_age_end = upper
+                            self.selected_option = 2
 
-    def paintEvent(self, event):  # funkcja zmieniajaca tło w aplikacji + autosize
-        painter = QPainter(self)
-        pixmap = QPixmap("POMOKA1.png")
-        painter.drawPixmap(self.rect(), pixmap)
+                except ValueError:
+                    QMessageBox.warning(self, "Input Error", "Please enter a valid numeric range.")
 
     def shutdown(self):  # zamykanie aplikacji poprzez przycisk
         self.close()
@@ -300,16 +298,11 @@ class Pomoka(QWidget):
 
             #przycinanie osi X do dlugosci kmf
             valid_indices = x_data <= last_time_km
-            x_data_trimmed = x_data[valid_indices]
-            y_data_probability_trimmed = y_data_probability[valid_indices]
-
-            #idk czemu ale musi byc tak, tak jak w opcji 2 z jakiegos powodu tu nie dziala
-            self.x_data_trimmed = x_data_trimmed
-            self.y_data_probability_trimmed = y_data_probability_trimmed
-
+            self.x_data_trimmed = x_data[valid_indices]
+            self.y_data_probability_trimmed = y_data_probability[valid_indices]
 
             # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
-            ax.step(x_data_trimmed, y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year}',
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year}',
                     linestyle='-', color='orange')
             ax.legend()
 
@@ -330,7 +323,6 @@ class Pomoka(QWidget):
             valid_indices = x_data <= last_time_km
             self.x_data_trimmed = x_data[valid_indices]
             self.y_data_probability_trimmed = y_data_probability[valid_indices]
-
 
             #dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'GUS {year_start}-{year_end}',
@@ -635,8 +627,6 @@ class Pomoka(QWidget):
             elif test == "Peto-Peto-Wilcoxon test":
                 self.run_peto_peto_wilcoxon()
 
-
-
     def breakExecution(self):
         for i in reversed(range(self.ukladV.count())):
             widget = self.ukladV.itemAt(i).widget()
@@ -664,7 +654,49 @@ class Pomoka(QWidget):
         else:
             self.setRangeBtn.setEnabled(False)
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    okno = Pomoka()
-    sys.exit(app.exec_())
+class POMOKAstartup(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setupUI()
+
+    def setupUI(self):
+        self.setWindowTitle("POMOKA")
+        self.setWindowIcon(QIcon('icon.png'))
+        self.setStyleSheet("background-color: lightgrey;")
+        self.resize(500, 270)
+
+        self.label = QLabel("<b>Welcome to POMOKA<b>", self)
+        self.label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        self.label.setStyleSheet("font-size: 20px; margin-top: 5px;")
+
+        self.statBtn = QPushButton("POMOKA stat", self)
+        self.modelBtn = QPushButton("POMOKA model (in progress)", self)
+        button_style = (
+            "background-color: white; border: 2px solid #000; border-radius: 10px; font-size: 14px; padding: 30px; width: 400px;"
+        )
+        self.statBtn.setStyleSheet(button_style)
+        self.modelBtn.setStyleSheet(button_style)
+        self.modelBtn.setEnabled(False)
+
+        self.statBtn.clicked.connect(self.openMainApp)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.label, alignment=Qt.AlignTop)
+        layout.addStretch()
+        layout.addWidget(self.statBtn, alignment=Qt.AlignCenter)
+        layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
+        layout.addStretch()
+        self.setLayout(layout)
+
+    def openMainApp(self):
+        self.mainApp = POMOKAstat()
+        self.mainApp.show()
+        self.close()
+
+if __name__ == "__main__":
+    from PyQt5.QtWidgets import QApplication
+
+    app = QApplication([])
+    startup = POMOKAstartup()
+    startup.show()
+    app.exec_()

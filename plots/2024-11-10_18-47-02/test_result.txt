@@ -1,1 +1,0 @@
-Gehan-Wilcoxon test: Z-statystyka = 1.7566515225902717, p-wartość = 0.18504272362652893
