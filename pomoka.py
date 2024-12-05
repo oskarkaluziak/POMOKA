@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 # PyQt5 imports
-from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
+from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
     QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
 from PyQt5.QtGui import QPixmap, QPainter, QIcon
 from PyQt5.QtCore import Qt
@@ -224,8 +224,7 @@ class POMOKAstat(QWidget):
                                 self.selected_sex = 1
                         else:
                             self.selected_sex = 2
-                    else:
-                        self.selected_sex = 2
+
 
                     # sprawdzanie wybranego wieku, jak nie uzytkownik nie wybierze to bierze średni
                     if column.lower() in ['age', 'wiek']:
@@ -278,6 +277,12 @@ class POMOKAstat(QWidget):
         file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
         file_path_men = 'dane_mezczyzni.xlsx'
         file_path_women = 'dane_kobiety.xlsx'
+        if sex == 0:
+            sextext = 'men'
+        if sex == 1:
+            sextext = 'women'
+        if sex == 2:
+            sextext = 'men and women'
         # tworzenie plikow jesli nie istnieja (w przyszlosci przyda sie do aktualizacji danych)
         if not os.path.exists(file_path_men) or not os.path.exists(file_path_women):
             tab_m, tab_k = prepare_data(file_path)
@@ -302,7 +307,10 @@ class POMOKAstat(QWidget):
             self.y_data_probability_trimmed = y_data_probability[valid_indices]
 
             # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
-            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'Survival Curve GUS {year}',
+            agetext = 2022 - year
+            print (f'{self.selected_sex}')
+            print (f'{sex}')
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'HEALTHY (age: {agetext}; sex: {sextext})',
                     linestyle='-', color='orange')
             ax.legend()
 
@@ -325,10 +333,13 @@ class POMOKAstat(QWidget):
             self.y_data_probability_trimmed = y_data_probability[valid_indices]
 
             #dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
-            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'GUS {year_start}-{year_end}',
+            agetextstart = 2022 - year_start
+            agetextend = 2022 - year_end
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
                     linestyle='-', color='orange')
             ax.legend()
-    def ill(self):  # TODO
+
+    def ill(self):
         if not hasattr(self, 'df'):
             QMessageBox.warning(self, "Error", "Data is not loaded.")
             return
@@ -351,8 +362,8 @@ class POMOKAstat(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
-        self.filtered_patient_count = len(df_filtered) #liczba pacjentow wzietych pod uwage do pliku
-        print (f"pacjentów wziętych pod uwage: {self.filtered_patient_count}")
+        self.filtered_patient_count = len(df_filtered)  # liczba pacjentow wzietych pod uwage do pliku
+        print(f"pacjentów wziętych pod uwage: {self.filtered_patient_count}")
         # sprawdzamy, czy kolumny 'time' i 'event' istnieją
         if 'time' in df_filtered.columns:
             self.T_ill = df_filtered['time']
@@ -386,14 +397,17 @@ class POMOKAstat(QWidget):
 
         kmf_ill.fit(self.T_ill, event_observed=self.E_ill)
         last_time_km = kmf_ill.survival_function_.index[-1]
-        kmf_ill.plot_survival_function(ax=ax, label='ILL')
+
+        # Tworzenie opisu dla legendy na podstawie preferencji i zakresów
+        preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}-{self.column_ranges[pref][1]}"
+                                             for pref in selected_preferences if pref in self.column_ranges])
+
+        kmf_ill.plot_survival_function(ax=ax, label=f'ILL ({preferences_description})')
         ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
 
-        #pobieranie danych z wykresu kaplana
+        # pobieranie danych z wykresu kaplana
         self.survival_probabilities = kmf_ill.survival_function_['KM_estimate'].values
         self.time_points = kmf_ill.survival_function_.index
-        #print(f"Czas: {self.time_points}")
-        #print(f"Funkcja przeżycia: {self.survival_probabilities}")
 
         ax.set_title('Chart')
         ax.set_xlabel('Time')
@@ -485,9 +499,11 @@ class POMOKAstat(QWidget):
 
         selected_color = predefined_colors[existing_lines]
 
+        preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}-{self.column_ranges[pref][1]}"
+                                             for pref in selected_preferences if pref in self.column_ranges])
+
         kmf_additional.fit(T_additional, event_observed=E_additional)
-        kmf_additional.plot_survival_function(ax=ax, label=f'Additional Curve {existing_lines + 1}',
-                                              color=selected_color)
+        kmf_additional.plot_survival_function(ax=ax, label=f'ILL ({preferences_description})', color=selected_color)
         ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
         self.canvas.draw()
 
@@ -660,7 +676,7 @@ class POMOKAstartup(QWidget):
         self.setupUI()
 
     def setupUI(self):
-        self.setWindowTitle("POMOKA")
+        self.setWindowTitle("POMOKA menu")
         self.setWindowIcon(QIcon('icon.png'))
         self.setStyleSheet("background-color: lightgrey;")
         self.resize(500, 270)
@@ -672,7 +688,7 @@ class POMOKAstartup(QWidget):
         self.statBtn = QPushButton("POMOKA stat", self)
         self.modelBtn = QPushButton("POMOKA model (in progress)", self)
         button_style = (
-            "background-color: white; border: 2px solid #000; border-radius: 10px; font-size: 14px; padding: 30px; width: 400px;"
+            "background-color: white; border: 2px solid #000; border-radius: 10px; font-size: 14px; padding: 25px; width: 400px;"
         )
         self.statBtn.setStyleSheet(button_style)
         self.modelBtn.setStyleSheet(button_style)
@@ -694,8 +710,6 @@ class POMOKAstartup(QWidget):
         self.close()
 
 if __name__ == "__main__":
-    from PyQt5.QtWidgets import QApplication
-
     app = QApplication([])
     startup = POMOKAstartup()
     startup.show()

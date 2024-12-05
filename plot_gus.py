@@ -172,7 +172,6 @@ def lineChartOne(sex, year):
     # Plot the line chart
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(row_data.index, row_data.values, marker='o')
-    ax.set_title(f"Survival curve for {'Women' if sex == 1 else 'Men' if sex == 0 else 'Everyone'}, year  {year}")
     ax.set_xlabel("Years")
     ax.set_ylabel("Percentage")
     ax.grid(True)
@@ -203,7 +202,6 @@ def lineChartRange(sex, start, end):
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(avg_data.index, avg_data.values, marker='o')
-    ax.set_title(f"Average survival curve for {'Women' if sex == 1 else 'Men' if sex == 0 else 'Everyone'}, years {start}-{end}")
     ax.set_xlabel("Years")
     ax.set_ylabel("Percentage")
     ax.grid(True)
