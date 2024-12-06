@@ -113,16 +113,39 @@ class POMOKAstat(QWidget):
             self.askHeaderRow(fileName)
 
     def askHeaderRow(self, fileName):  # funkcja pytająca o header kolumne
-        row, ok = QInputDialog.getInt(self, "Header Row", "Enter the row number containing column headers:", 1, 1, 100, 1)
+        row, ok = QInputDialog.getInt(self, "Header Row", "Enter the row number containing column headers:", 1, 1, 100,
+                                      1)
         if ok:
-            self.readCSV(fileName, row)
+            if self.verifyHeaderRow(fileName, row):
+                self.readCSV(fileName, row)
+            else:
+                QMessageBox.warning(self, "Warning",
+                                    "The selected row does not seem to contain valid headers. Please try again.")
+
+    def verifyHeaderRow(self, fileName, headerRow):  # funkcja weryfikująca nagłówki
+        try:
+            if fileName.endswith('.csv'):
+                df = pd.read_csv(fileName, header=headerRow - 1, nrows=10)  # wczytujemy tylko kilka pierwszych wierszy
+            elif fileName.endswith('.xlsx') or fileName.endswith('.xls'):
+                df = pd.read_excel(fileName, header=headerRow - 1, nrows=10)
+            else:
+                raise ValueError("Unsupported file format")
+
+            headers = df.columns.tolist()
+            if all(isinstance(header, str) and header.strip() != "" for header in headers):
+                return True
+            else:
+                return False
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Unable to verify header row: {str(e)}")
+            return False
 
     def readCSV(self, fileName, headerRow):  # funkcja do wczytania csv/xlsx/xls
         try:
             if fileName.endswith('.csv'):
-                df = pd.read_csv(fileName, header=headerRow-1)
+                df = pd.read_csv(fileName, header=headerRow - 1)
             elif fileName.endswith('.xlsx') or fileName.endswith('.xls'):
-                df = pd.read_excel(fileName, header=headerRow-1)
+                df = pd.read_excel(fileName, header=headerRow - 1)
             else:
                 raise ValueError("Unsupported file format")
 
@@ -690,18 +713,24 @@ class POMOKAstat(QWidget):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
-                self.resize(self.width() - 300, self.height() - 400)
+                self.resize(400, 270)
                 self.center()
+
 
         self.executeBtn.setText("Execute")
         self.isExecuting = False
+        self.preferencesList.close()
+        self.preferencesList.clearSelection()
+        self.column_ranges = {}
         if hasattr(self, 'testsList') and self.testsList.isVisible():
-            self.testsList.setEnabled(True)
+            self.testsList.close()
+            self.testsBtn.setEnabled(True)
         else:
             self.testsBtn.setEnabled(True)
         if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
-            self.preferencesList.setEnabled(True)
+            self.preferencesList.close()
             self.setRangeBtn.setEnabled(True)
+            self.preferencesBtn.setEnabled(True)
         else:
             self.preferencesBtn.setEnabled(True)
         self.uploadBtn.setEnabled(True)
