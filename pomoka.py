@@ -192,70 +192,85 @@ class POMOKAstat(QWidget):
             values = [str(value) for value in values]
 
             value_range, ok = QInputDialog.getText(self, f"Select range for {column}",
-                                                   f"Enter the range for column {column} (minimum value-maximum value):")
+                                                   f"Enter the range for column {column} (minimum value-maximum value or specific values like 'SVG,MVG,SAG+Veins'):")
             if ok:
                 try:
+                    specific_values = None
                     if '-' in value_range:
-                        lower, upper = map(int, value_range.split('-'))
+                        try:
+                            lower, upper = map(int, value_range.split('-'))
+                            # sprawdzanie czy zakres wprowadzony przez uzytkownika jest zgodny z danymi
+                            column_values = self.df[column]
+                            filtered_values = column_values[(column_values >= lower) & (column_values <= upper)]
+
+                            if filtered_values.empty:
+                                QMessageBox.warning(self, "Range Error",
+                                                    f"No values found in column '{column}' for the given range: {lower}-{upper}. Make sure you enter the correct format: MINIMUM value - MAXIMUM value")
+                                continue
+
+                            self.column_ranges[column] = ('numeric', (lower, upper))
+
+                        except ValueError:
+                            QMessageBox.warning(self, "Input Error", "Please enter a valid numeric range.")
+                            continue
                     else:
-                        lower = upper = int(value_range)  # Treat single value as both lower and upper
+                        specific_values = [value.strip() for value in value_range.split(',')]
+                        valid_values = [value.lower() for value in values]
+                        if not set([v.lower() for v in specific_values]).issubset(set(valid_values)):
+                            QMessageBox.warning(self, "Range Error",
+                                                f"Some values in '{value_range}' are not present in the column '{column}'. Please enter valid values like: {', '.join(valid_values)}")
+                            continue
 
-                    # sprawdzanie czy zakres wprowadzony przez uzytkownika jest zgodny z danymi
-                    column_values = self.df[column]
-                    filtered_values = column_values[(column_values >= lower) & (column_values <= upper)]
-
-                    if filtered_values.empty:
-                        QMessageBox.warning(self, "Range Error",
-                                            f"No values found in column '{column}' for the given range: {lower}-{upper}. Make sure you enter the correct format: MINIMUM value - MAXIMUM value")
-                        continue
-
-                    self.column_ranges[column] = (lower, upper)
+                        self.column_ranges[column] = ('categorical', specific_values)
 
                     # sprawdzanie wybranej płci, jak nie uzytkownik nie wybierze to bierze obydwie do wykresu
-                    if column.lower() in ['sex', 'plec', 'płeć', 'pŁeĆ']:
-                        if lower == upper:
-                            if lower in [1, 'M', 'm']:
+                    if column.lower() in ['sex', 'plec', 'płeć', 'pŁeć']:
+                        if specific_values and len(specific_values) == 1:
+                            value = specific_values[0].lower()
+                            if value in ['1', 'm', 'male']:
                                 self.selected_sex = 0  # 0=dane_mezczyzn
-                            elif lower in [0, 'K', 'k', 'W', 'w']:
+                            elif value in ['0', 'k', 'female', 'w']:
                                 self.selected_sex = 1  # 1=dane_kobiet
                         else:
                             self.selected_sex = 2
 
                     if column.lower() in ['female', 'kobieta']:
-                        if lower == upper:
-                            if lower == 1:
+                        if specific_values and len(specific_values) == 1:
+                            value = specific_values[0].lower()
+                            if value == '1':
                                 self.selected_sex = 1
-                            elif lower == 0:
+                            elif value == '0':
                                 self.selected_sex = 0
                         else:
                             self.selected_sex = 2
 
                     if column.lower() in ['male', 'mezczyzna', 'mężczyzna']:
-                        if lower == upper:
-                            if lower == 1:
+                        if specific_values and len(specific_values) == 1:
+                            value = specific_values[0].lower()
+                            if value == '1':
                                 self.selected_sex = 0
-                            elif lower == 0:
+                            elif value == '0':
                                 self.selected_sex = 1
                         else:
                             self.selected_sex = 2
 
                     # sprawdzanie wybranego wieku, jak nie uzytkownik nie wybierze to bierze średni
                     if column.lower() in ['age', 'wiek']:
-                        if lower == upper:
-                            self.selected_age = lower
+                        if specific_values and len(specific_values) == 1:
+                            self.selected_age = int(specific_values[0])
                             self.selected_option = 1
-                        elif lower > upper:
-                            self.selected_age_start = upper
-                            self.selected_age_end = lower
-                            self.selected_option = 2
-                        else:
-                            self.selected_age_start = lower
-                            self.selected_age_end = upper
+                        elif len(value_range.split('-')) == 2:
+                            lower, upper = map(int, value_range.split('-'))
+                            if lower > upper:
+                                self.selected_age_start = upper
+                                self.selected_age_end = lower
+                            else:
+                                self.selected_age_start = lower
+                                self.selected_age_end = upper
                             self.selected_option = 2
 
                 except ValueError:
-                    QMessageBox.warning(self, "Input Error", "Please enter a valid numeric range.")
-
+                    QMessageBox.warning(self, "Input Error", "Please enter a valid numeric or categorical range.")
     def shutdown(self):  # zamykanie aplikacji poprzez przycisk
         self.close()
 
@@ -367,10 +382,13 @@ class POMOKAstat(QWidget):
 
         df_filtered = self.df.copy()
 
-
         # filtrowanie po wszystkich kolumnach wedlug set range lower/upper
-        for column, (lower, upper) in self.column_ranges.items():
-            df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
+        for column, (range_type, values) in self.column_ranges.items():
+            if range_type == 'numeric':
+                lower, upper = values
+                df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
+            elif range_type == 'categorical':
+                df_filtered = df_filtered[df_filtered[column].isin(values)]
 
         if df_filtered.empty:
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
@@ -413,18 +431,11 @@ class POMOKAstat(QWidget):
         last_time_km = kmf_ill.survival_function_.index[-1]
 
         # Tworzenie opisu dla legendy na podstawie preferencji i zakresów
-        if any(self.column_ranges[pref][0] != self.column_ranges[pref][1] for pref in selected_preferences if
-               pref in self.column_ranges):
-            preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}-{self.column_ranges[pref][1]}"
-                for pref in selected_preferences
-                if pref in self.column_ranges
-            ])
-        if any(self.column_ranges[pref][0] == self.column_ranges[pref][1] for pref in selected_preferences if
-                   pref in self.column_ranges):
-            preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}"
-                for pref in selected_preferences
-                if pref in self.column_ranges
-            ])
+        preferences_description = "; ".join([
+            f"{pref}: {self.column_ranges[pref][1][0]}-{self.column_ranges[pref][1][1]}" if self.column_ranges[pref][
+                                                                                                0] == 'numeric' else f"{pref}: {', '.join(self.column_ranges[pref][1])}"
+            for pref in selected_preferences if pref in self.column_ranges
+        ])
 
         kmf_ill.plot_survival_function(ax=ax, label=f'ILL ({preferences_description})')
         ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
@@ -457,7 +468,6 @@ class POMOKAstat(QWidget):
 
         self.resize(self.width() + 300, self.height() + 400)
         self.center()
-
     def addCurve(self):
         if not hasattr(self, 'df'):
             QMessageBox.warning(self, "Error", "Data is not loaded.")
