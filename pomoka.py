@@ -200,6 +200,15 @@ class POMOKAstat(QWidget):
                     else:
                         lower = upper = int(value_range)  # Treat single value as both lower and upper
 
+                    # sprawdzanie czy zakres wprowadzony przez uzytkownika jest zgodny z danymi
+                    column_values = self.df[column]
+                    filtered_values = column_values[(column_values >= lower) & (column_values <= upper)]
+
+                    if filtered_values.empty:
+                        QMessageBox.warning(self, "Range Error",
+                                            f"No values found in column '{column}' for the given range: {lower}-{upper}. Make sure you enter the correct format: MINIMUM value - MAXIMUM value")
+                        continue
+
                     self.column_ranges[column] = (lower, upper)
 
                     # sprawdzanie wybranej płci, jak nie uzytkownik nie wybierze to bierze obydwie do wykresu
@@ -229,7 +238,6 @@ class POMOKAstat(QWidget):
                                 self.selected_sex = 1
                         else:
                             self.selected_sex = 2
-
 
                     # sprawdzanie wybranego wieku, jak nie uzytkownik nie wybierze to bierze średni
                     if column.lower() in ['age', 'wiek']:
