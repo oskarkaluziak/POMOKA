@@ -177,6 +177,11 @@ class POMOKAstat(QWidget):
         self.addCurveBtn.setEnabled
 
     def setRanges(self):
+
+        self.selected_sex = 2
+        self.selected_age_start = 0
+        self.selected_age_end = 100
+        self.selected_option = 2
         selected_columns = [item.text() for item in self.preferencesList.selectedItems()]
 
         for column in selected_columns:
@@ -354,6 +359,7 @@ class POMOKAstat(QWidget):
 
         df_filtered = self.df.copy()
 
+
         # filtrowanie po wszystkich kolumnach wedlug set range lower/upper
         for column, (lower, upper) in self.column_ranges.items():
             df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
@@ -399,8 +405,18 @@ class POMOKAstat(QWidget):
         last_time_km = kmf_ill.survival_function_.index[-1]
 
         # Tworzenie opisu dla legendy na podstawie preferencji i zakresów
-        preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}-{self.column_ranges[pref][1]}"
-                                             for pref in selected_preferences if pref in self.column_ranges])
+        if any(self.column_ranges[pref][0] != self.column_ranges[pref][1] for pref in selected_preferences if
+               pref in self.column_ranges):
+            preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}-{self.column_ranges[pref][1]}"
+                for pref in selected_preferences
+                if pref in self.column_ranges
+            ])
+        if any(self.column_ranges[pref][0] == self.column_ranges[pref][1] for pref in selected_preferences if
+                   pref in self.column_ranges):
+            preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}"
+                for pref in selected_preferences
+                if pref in self.column_ranges
+            ])
 
         kmf_ill.plot_survival_function(ax=ax, label=f'ILL ({preferences_description})')
         ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
@@ -499,8 +515,19 @@ class POMOKAstat(QWidget):
 
         selected_color = predefined_colors[existing_lines]
 
-        preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}-{self.column_ranges[pref][1]}"
-                                             for pref in selected_preferences if pref in self.column_ranges])
+        # Tworzenie opisu dla legendy na podstawie preferencji i zakresów
+        if any(self.column_ranges[pref][0] != self.column_ranges[pref][1] for pref in selected_preferences if
+               pref in self.column_ranges):
+            preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}-{self.column_ranges[pref][1]}"
+                                                 for pref in selected_preferences
+                                                 if pref in self.column_ranges
+                                                 ])
+        if any(self.column_ranges[pref][0] == self.column_ranges[pref][1] for pref in selected_preferences if
+               pref in self.column_ranges):
+            preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}"
+                                                 for pref in selected_preferences
+                                                 if pref in self.column_ranges
+                                                 ])
 
         kmf_additional.fit(T_additional, event_observed=E_additional)
         kmf_additional.plot_survival_function(ax=ax, label=f'ILL ({preferences_description})', color=selected_color)
