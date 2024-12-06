@@ -482,8 +482,12 @@ class POMOKAstat(QWidget):
 
         df_filtered = self.df.copy()
 
-        for column, (lower, upper) in self.column_ranges.items():
-            df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
+        for column, (range_type, values) in self.column_ranges.items():
+            if range_type == 'numeric':
+                lower, upper = values
+                df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
+            elif range_type == 'categorical':
+                df_filtered = df_filtered[df_filtered[column].isin(values)]
 
         if df_filtered.empty:
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
@@ -534,18 +538,11 @@ class POMOKAstat(QWidget):
         selected_color = predefined_colors[existing_lines]
 
         # Tworzenie opisu dla legendy na podstawie preferencji i zakresów
-        if any(self.column_ranges[pref][0] != self.column_ranges[pref][1] for pref in selected_preferences if
-               pref in self.column_ranges):
-            preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}-{self.column_ranges[pref][1]}"
-                                                 for pref in selected_preferences
-                                                 if pref in self.column_ranges
-                                                 ])
-        if any(self.column_ranges[pref][0] == self.column_ranges[pref][1] for pref in selected_preferences if
-               pref in self.column_ranges):
-            preferences_description = "; ".join([f"{pref}: {self.column_ranges[pref][0]}"
-                                                 for pref in selected_preferences
-                                                 if pref in self.column_ranges
-                                                 ])
+        preferences_description = "; ".join([
+            f"{pref}: {self.column_ranges[pref][1][0]}-{self.column_ranges[pref][1][1]}" if self.column_ranges[pref][
+                                                                                                0] == 'numeric' else f"{pref}: {', '.join(self.column_ranges[pref][1])}"
+            for pref in selected_preferences if pref in self.column_ranges
+        ])
 
         kmf_additional.fit(T_additional, event_observed=E_additional)
         kmf_additional.plot_survival_function(ax=ax, label=f'ILL ({preferences_description})', color=selected_color)
