@@ -597,31 +597,23 @@ class POMOKAstat(QWidget):
 
         last_time_km = kmf_additional.survival_function_.index[-1]
 
-        # Oblicz liczby pacjentów co 2 lata
-        time_intervals = range(0, int(last_time_km) + 1, 2)  # Zakres co 2 lata
+        time_intervals = range(0, int(last_time_km) + 1, 2)  # zakres co 2 lata
         survival_values = kmf_additional.survival_function_['KM_estimate']
-        n_at_risk = kmf_additional.event_table['at_risk']  # Liczba pacjentów zagrożonych w każdym punkcie czasu
-        step = 0.02  # Stała wartość przesunięcia liczby w górę w razie kolizji
+        n_at_risk = kmf_additional.event_table['at_risk']
+        step = 0.02
 
-        # Dodaj liczby pacjentów jako adnotacje na krzywej
         for t in time_intervals:
-            if t <= 1:  # Pomijamy punkty czasu mniejsze lub równe 1
-                continue
 
-            # Znajdź najbliższy czas w Kaplan-Meier
             closest_time = min(n_at_risk.index, key=lambda x: abs(x - t))
-            patients_at_t = n_at_risk.loc[closest_time]  # Liczba pacjentów w tym punkcie
-            survival_at_t = survival_values.loc[closest_time]  # Wartość survival w tym punkcie
+            patients_at_t = n_at_risk.loc[closest_time]
+            survival_at_t = survival_values.loc[closest_time]
 
-            # Domyślne położenie liczby
-            adjusted_y = survival_at_t + 0.05  # Domyślnie ustawione nad krzywą
+            adjusted_y = survival_at_t + 0.05
 
-            # Sprawdzanie kolizji z krzywą i dynamiczne przesuwanie liczby
-            while adjusted_y <= survival_at_t + step:  # Dopóki liczba dotyka lub nachodzi na krzywą
-                adjusted_y += step  # Przesuń liczbę w górę o stały krok
+            while adjusted_y <= survival_at_t + step:
+                adjusted_y += step
 
-            # Dodaj liczbę pacjentów jako tekst nad krzywą
-            ax.text(t, adjusted_y,  # Pozycja Y z dynamicznym przesunięciem
+            ax.text(t, adjusted_y,
                     str(patients_at_t), ha='center', fontsize=8, color=selected_color, alpha=0.9,
                     verticalalignment='bottom')
 
