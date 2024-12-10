@@ -44,8 +44,6 @@ class POMOKAstat(QWidget):
         self.resultEdt.setReadOnly(True)
 
         self.uploadBtn = QPushButton("&Upload data", self)
-        self.testsBtn = QPushButton("&Select test", self)
-        self.preferencesBtn = QPushButton("&Preferences", self)
         self.setRangeBtn = QPushButton("&Set Range", self)
         self.executeBtn = QPushButton("&Execute", self)
         self.addCurveBtn = QPushButton("&Add next curve", self)
@@ -55,12 +53,13 @@ class POMOKAstat(QWidget):
         self.ukladH = QHBoxLayout()
 
         self.ukladV.addWidget(self.label1)
-        self.ukladV.addWidget(self.label2)
-        self.ukladV.addWidget(self.resultEdt)
+
+        self.horizontalLayoutForLabel2AndResult = QHBoxLayout()
+        self.horizontalLayoutForLabel2AndResult.addWidget(self.label2)
+        self.horizontalLayoutForLabel2AndResult.addWidget(self.resultEdt)
+        self.ukladV.addLayout(self.horizontalLayoutForLabel2AndResult)
 
         self.ukladV.addWidget(self.uploadBtn)
-        self.ukladH.addWidget(self.testsBtn)
-        self.ukladH.addWidget(self.preferencesBtn)
         self.ukladH.addWidget(self.setRangeBtn)
         self.ukladV.addWidget(self.executeBtn)
         self.ukladH.addWidget(self.addCurveBtn)
@@ -72,13 +71,10 @@ class POMOKAstat(QWidget):
 
         shutdownBtn.clicked.connect(self.shutdown)
         self.uploadBtn.clicked.connect(self.uploadCSV)
-        self.testsBtn.clicked.connect(self.CBtests)
-        self.preferencesBtn.clicked.connect(self.CBpreferences)
         self.setRangeBtn.clicked.connect(self.setRanges)
         self.addCurveBtn.clicked.connect(self.addCurve)
         self.executeBtn.clicked.connect(self.toggleExecution)
 
-        self.preferencesBtn.setEnabled(False)
         self.setRangeBtn.setEnabled(False)
         self.addCurveBtn.setEnabled(False)
 
@@ -164,7 +160,8 @@ class POMOKAstat(QWidget):
                 self.toggleSetRangeBtn()
                 self.adjustSize()
 
-            self.preferencesBtn.setEnabled(True)
+            self.CBpreferences()
+            self.CBtests()
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
 
@@ -183,8 +180,11 @@ class POMOKAstat(QWidget):
         default_index = self.testsList.indexFromItem(default_item).row()
         self.testsList.setCurrentRow(default_index)
 
-        self.ukladV.addWidget(self.testsList)
-        self.testsBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
+        horizontalLayout = QHBoxLayout()
+        horizontalLayout.addWidget(self.preferencesList)
+        horizontalLayout.addWidget(self.testsList)
+        self.ukladV.addLayout(horizontalLayout)
+
 
     def CBpreferences(self):
         self.preferencesList = QListWidget(self)
@@ -198,8 +198,7 @@ class POMOKAstat(QWidget):
 
         self.preferencesList.setFixedSize(300, 75)
 
-        self.ukladV.addWidget(self.preferencesList)
-        self.preferencesBtn.setEnabled(False)  # dezaktywacja przycisku po dodaniu pól
+
         self.setRangeBtn.setEnabled(True)
         self.addCurveBtn.setEnabled
 
@@ -658,9 +657,7 @@ class POMOKAstat(QWidget):
                 os.makedirs(self.output_dir)
 
         self.canvas.figure.savefig(os.path.join(self.output_dir, f"updated_plot_{existing_lines + 1}.png"))
-        self.preferencesList.close()
         self.preferencesList.clearSelection()
-        self.preferencesBtn.setEnabled(True)
         self.preferencesList.setEnabled(True)
         self.setRangeBtn.setEnabled(True)
         self.column_ranges = {}
@@ -753,9 +750,7 @@ class POMOKAstat(QWidget):
             if item.isSelected() and item.text() != "no preferences" and item.text() not in self.column_ranges:
                 QMessageBox.warning(self, "Warning", f"Please set range for {item.text()} before executing.")
                 return
-        self.testsBtn.setEnabled(False)
         self.setRangeBtn.setEnabled(False)
-        self.preferencesBtn.setEnabled(False)
 
         self.uploadBtn.setEnabled(False)
         self.addCurveBtn.setEnabled(True)
@@ -767,9 +762,7 @@ class POMOKAstat(QWidget):
         self.isExecuting = True
 
         self.ill()
-        self.preferencesList.close()
         self.preferencesList.clearSelection()
-        self.preferencesBtn.setEnabled(True)
         self.preferencesList.setEnabled(True)
         self.setRangeBtn.setEnabled(True)
         self.column_ranges = {}
@@ -791,9 +784,8 @@ class POMOKAstat(QWidget):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
-                self.resize(400, 270)
+                self.resize(300, 270)
                 self.center()
-
 
         self.executeBtn.setText("Execute")
         self.isExecuting = False
@@ -802,64 +794,14 @@ class POMOKAstat(QWidget):
         self.column_ranges = {}
         if hasattr(self, 'testsList') and self.testsList.isVisible():
             self.testsList.close()
-            self.testsBtn.setEnabled(True)
-        else:
-            self.testsBtn.setEnabled(True)
         if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
             self.preferencesList.close()
             self.setRangeBtn.setEnabled(True)
-            self.preferencesBtn.setEnabled(True)
         else:
-            self.preferencesBtn.setEnabled(True)
-        self.uploadBtn.setEnabled(True)
+            self.uploadBtn.setEnabled(True)
 
     def toggleSetRangeBtn(self):
         if self.preferencesList.isVisible():
             self.setRangeBtn.setEnabled(True)
         else:
             self.setRangeBtn.setEnabled(False)
-
-class POMOKAstartup(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setupUI()
-
-    def setupUI(self):
-        self.setWindowTitle("POMOKA menu")
-        self.setWindowIcon(QIcon('icon.png'))
-        self.setStyleSheet("background-color: lightgrey;")
-        self.resize(500, 270)
-
-        self.label = QLabel("<b>Welcome to POMOKA<b>", self)
-        self.label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
-        self.label.setStyleSheet("font-size: 20px; margin-top: 5px;")
-
-        self.statBtn = QPushButton("POMOKA stat", self)
-        self.modelBtn = QPushButton("POMOKA model (in progress)", self)
-        button_style = (
-            "background-color: white; border: 2px solid #000; border-radius: 10px; font-size: 14px; padding: 25px; width: 400px;"
-        )
-        self.statBtn.setStyleSheet(button_style)
-        self.modelBtn.setStyleSheet(button_style)
-        self.modelBtn.setEnabled(False)
-
-        self.statBtn.clicked.connect(self.openMainApp)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.label, alignment=Qt.AlignTop)
-        layout.addStretch()
-        layout.addWidget(self.statBtn, alignment=Qt.AlignCenter)
-        layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
-        layout.addStretch()
-        self.setLayout(layout)
-
-    def openMainApp(self):
-        self.mainApp = POMOKAstat()
-        self.mainApp.show()
-        self.close()
-
-if __name__ == "__main__":
-    app = QApplication([])
-    startup = POMOKAstartup()
-    startup.show()
-    app.exec_()
