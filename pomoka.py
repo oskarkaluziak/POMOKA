@@ -572,12 +572,21 @@ class POMOKAstat(QWidget):
 
         legend_text = ax.get_legend().get_texts()[0].get_text()
         self.text_widget = QLabel()
-        self.text_widget.setText(
-            f"{self.guslegend}\n"
-            f"{legend_text}\n"
-            f"IN PROGRESS - TU BEDZIE LEGENDA OBIECUJE\n"
-            f"IN PROGRESS - TU BEDZIE LEGENDA OBIECUJE"
-        )
+        row_text_1_1 = (f'<span style=")color: blue;">&#8212;</span> {legend_text} ')
+        row_text_1_2 = (f'<span style="color: orange;">&#8212;</span> {self.guslegend}<br>')
+        row_text_2_1 = (f'<span style=")color: blue;">&#8212;</span> {legend_text} ')
+        row_text_2_2 = (f'<span style="color: orange;">&#8212;</span> {self.guslegend}<br>')
+        row_text_3_1 = (f'<span style=")color: blue;">&#8212;</span> {legend_text} ')
+        row_text_3_2 = (f'<span style="color: orange;">&#8212;</span> {self.guslegend}<br>')
+        row_text_4_1 = (f'<span style=")color: blue;">&#8212;</span> {legend_text} ')
+        row_text_4_2 = (f'<span style="color: orange;">&#8212;</span> {self.guslegend}')
+
+        text = (row_text_1_1, row_text_1_2,
+                row_text_2_1, row_text_2_2,
+                row_text_3_1, row_text_3_2,
+                row_text_4_1, row_text_4_2)
+        html_content = "".join(text)
+        self.text_widget.setText(html_content)
         self.text_widget.setWordWrap(True)
         self.text_widget.setStyleSheet("""
             QLabel {
