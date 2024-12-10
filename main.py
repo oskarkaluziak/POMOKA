@@ -20,11 +20,30 @@ class POMOKAstartup(QWidget):
 
         self.statBtn = QPushButton("POMOKA stat", self)
         self.modelBtn = QPushButton("POMOKA model (in progress)", self)
-        button_style = (
-            "background-color: white; border: 2px solid #000; border-radius: 10px; font-size: 14px; padding: 25px; width: 400px;"
-        )
-        self.statBtn.setStyleSheet(button_style)
-        self.modelBtn.setStyleSheet(button_style)
+        common_button_style = """
+                            QPushButton {
+                                color: black;            /* Kolor tekstu */
+                                background-color: white; /* Tło prostokąta */
+                                border: 2px solid black; /* Ramka prostokąta */
+                                padding: 25px;            /* Wewnętrzny margines */
+                                border-radius: 10px; 
+                                font-size: 14px;
+                                width: 400px;
+                            }
+                            QPushButton:hover {
+                                background-color: #f0f0f0; /* Jaśniejsze tło po najechaniu */
+                            }
+                            QPushButton:pressed {
+                                background-color: #e0e0e0; /* Jeszcze ciemniejsze tło po kliknięciu */
+                            }
+                            QPushButton:disabled {
+                            background-color: #f5f5f5; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
+                            color: #b0b0b0;            /* Delikatnie wyblakły tekst */
+                            border: 2px solid #d0d0d0; /* Subtelna ramka */
+                        }
+                        """
+        self.statBtn.setStyleSheet(common_button_style)
+        self.modelBtn.setStyleSheet(common_button_style)
         self.modelBtn.setEnabled(False)
 
         self.statBtn.clicked.connect(self.openMainApp)

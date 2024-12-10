@@ -56,8 +56,44 @@ class POMOKAstat(QWidget):
 
         self.horizontalLayoutForLabel2AndResult = QHBoxLayout()
         self.horizontalLayoutForLabel2AndResult.addWidget(self.label2)
+        self.resultEdt.setStyleSheet("""
+            QLineEdit {  /* Jeśli to QLineEdit, używamy selektora QLineEdit */
+                color: black;            /* Kolor tekstu */
+                background-color: white; /* Tło prostokąta */
+                border: 1px solid black; /* Ramka prostokąta */
+                padding: 3px;            /* Wewnętrzny margines */
+                border-radius: 5px;      /* Zaokrąglone rogi */
+            }
+        """)
         self.horizontalLayoutForLabel2AndResult.addWidget(self.resultEdt)
         self.ukladV.addLayout(self.horizontalLayoutForLabel2AndResult)
+
+        common_button_style = """
+            QPushButton {
+                color: black;            /* Kolor tekstu */
+                background-color: white; /* Tło prostokąta */
+                border: 1px solid black; /* Ramka prostokąta */
+                padding: 3px;            /* Wewnętrzny margines */
+                border-radius: 5px;      /* Zaokrąglone rogi */
+            }
+            QPushButton:hover {
+                background-color: #f0f0f0; /* Jaśniejsze tło po najechaniu */
+            }
+            QPushButton:pressed {
+                background-color: #e0e0e0; /* Jeszcze ciemniejsze tło po kliknięciu */
+            }
+            QPushButton:disabled {
+                background-color: #f5f5f5; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
+                color: #b0b0b0;            /* Delikatnie wyblakły tekst */
+                border: 2px solid #d0d0d0; /* Subtelna ramka */
+            }
+        """
+        # Ustawienie stylu dla przycisków
+        self.uploadBtn.setStyleSheet(common_button_style)
+        self.setRangeBtn.setStyleSheet(common_button_style)
+        self.executeBtn.setStyleSheet(common_button_style)
+        self.addCurveBtn.setStyleSheet(common_button_style)
+        shutdownBtn.setStyleSheet(common_button_style)
 
         self.ukladV.addWidget(self.uploadBtn)
         self.ukladH.addWidget(self.setRangeBtn)
@@ -183,6 +219,24 @@ class POMOKAstat(QWidget):
         horizontalLayout = QHBoxLayout()
         horizontalLayout.addWidget(self.preferencesList)
         horizontalLayout.addWidget(self.testsList)
+        common_style = """
+                    QListWidget {
+                        color: black;            /* Kolor tekstu */
+                        background-color: white; /* Tło prostokąta */
+                        border: 1px solid black; /* Ramka prostokąta */
+                        padding: 3px;           /* Wewnętrzny margines */
+                        border-radius: 5px;      /* Zaokrąglone rogi */
+                    }
+                    QListWidget::item {
+                        padding: 3px;           /* Wewnętrzny margines elementów */
+                    }
+                    QListWidget::item:selected {
+                        background-color: lightblue; /* Tło wybranego elementu */
+                        color: black;               /* Kolor tekstu wybranego elementu */
+                    }
+                """
+        self.preferencesList.setStyleSheet(common_style)
+        self.testsList.setStyleSheet(common_style)
         self.ukladV.addLayout(horizontalLayout)
 
 
@@ -366,6 +420,7 @@ class POMOKAstat(QWidget):
             print (f'{sex}')
             ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'HEALTHY (age: {agetext}; sex: {sextext})',
                     linestyle='-', color='orange')
+            self.guslegend = f'HEALTHY (age: {agetext}; sex: {sextext})'
             ax.legend()
 
         if opcja == 2:
@@ -391,6 +446,7 @@ class POMOKAstat(QWidget):
             agetextend = 2022 - year_end
             ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
                     linestyle='-', color='orange')
+            self.guslegend = f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})'
             ax.legend()
 
     def ill(self):
@@ -422,6 +478,7 @@ class POMOKAstat(QWidget):
 
         self.filtered_patient_count = len(df_filtered)  # liczba pacjentow wzietych pod uwage do pliku
         print(f"pacjentów wziętych pod uwage: {self.filtered_patient_count}")
+
         # sprawdzamy, czy kolumny 'time' i 'event' istnieją
         if 'time' in df_filtered.columns:
             self.T_ill = df_filtered['time']
@@ -452,9 +509,7 @@ class POMOKAstat(QWidget):
         kmf_ill = KaplanMeierFitter()
 
         fig, ax = plt.subplots(figsize=(10, 6))
-
         kmf_ill.fit(self.T_ill, event_observed=self.E_ill)
-        last_time_km = kmf_ill.survival_function_.index[-1]
 
         # Tworzenie opisu dla legendy na podstawie preferencji i zakresów
         preferences_description = "; ".join([
@@ -512,6 +567,28 @@ class POMOKAstat(QWidget):
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.canvas.draw()
+        if hasattr(self, 'text_widget') and self.text_widget:
+            self.text_widget.setParent(None)
+
+        legend_text = ax.get_legend().get_texts()[0].get_text()
+        self.text_widget = QLabel()
+        self.text_widget.setText(
+            f"{self.guslegend}\n"
+            f"{legend_text}\n"
+            f"IN PROGRESS - TU BEDZIE LEGENDA OBIECUJE\n"
+            f"IN PROGRESS - TU BEDZIE LEGENDA OBIECUJE"
+        )
+        self.text_widget.setWordWrap(True)
+        self.text_widget.setStyleSheet("""
+            QLabel {
+                color: black;            /* Kolor tekstu */
+                background-color: white; /* Tło prostokąta */
+                border: 1px solid black; /* Ramka prostokąta */
+                padding: 3px;           /* Wewnętrzny margines */
+                border-radius: 5px;      /* Zaokrąglone rogi */
+            }
+        """)
+        self.ukladV.addWidget(self.text_widget)
 
         now = datetime.now()
         timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -520,7 +597,7 @@ class POMOKAstat(QWidget):
             os.makedirs(self.output_dir)
         self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"))
 
-        self.resize(self.width() + 300, self.height() + 400)
+        self.resize(self.width() + 300, self.height() + 500)
         self.center()
 
     def addCurve(self):
@@ -783,6 +860,8 @@ class POMOKAstat(QWidget):
         self.testsList.close()
         self.preferencesList.clearSelection()
         self.preferencesList.close()
+        self.resultEdt.clear()
+        self.text_widget.close()
         if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
             self.setRangeBtn.setEnabled(True)
         self.uploadBtn.setEnabled(True)
