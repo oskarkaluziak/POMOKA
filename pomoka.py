@@ -15,6 +15,7 @@ import numpy as np
 # Matplotlib for plotting
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.patheffects import withStroke
 
 # Lifelines for survival analysis
 from lifelines import KaplanMeierFitter
@@ -24,12 +25,15 @@ from lifelines.statistics import logrank_test, multivariate_logrank_test #(delet
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
 class POMOKAstat(QWidget):
+    global_iteration_offset = 0
+    is_first_call = True
     def __init__(self, parent=None):
         super().__init__(parent)
         self.interface()
         self.isExecuting = False
         self.column_ranges = {}
         self.curves_data = []
+
 
     def interface(self):  # interface apki
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
@@ -474,6 +478,7 @@ class POMOKAstat(QWidget):
 
         line_color = ax.lines[-1].get_color()
         step = 0.02
+        initial_offset_x = 0.5
 
         for t in time_intervals:
 
@@ -481,14 +486,18 @@ class POMOKAstat(QWidget):
             patients_at_t = n_at_risk.loc[closest_time]
             survival_at_t = survival_values.loc[closest_time]
 
+            adjusted_x = t + initial_offset_x
             adjusted_y = survival_at_t + 0.05
 
             while adjusted_y <= survival_at_t + step:
                 adjusted_y += step
 
-            ax.text(t, adjusted_y,
-                    str(patients_at_t), ha='center', fontsize=8, color=line_color, alpha=0.9,
-                    verticalalignment='bottom')
+            ax.text(adjusted_x, adjusted_y,
+                str(patients_at_t),
+                ha='center', fontsize=8, fontweight='bold',  # Grubszy tekst
+                color=line_color, alpha=0.9,  # Kolor tekstu
+                verticalalignment='bottom',
+                path_effects=[withStroke(linewidth=3, foreground="white")])
 
         ax.set_title('Chart')
         ax.set_xlabel('Time')
@@ -575,7 +584,16 @@ class POMOKAstat(QWidget):
 
         ax = self.canvas.figure.axes[0]
 
-        predefined_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+        predefined_colors = [
+            '#1f77b4',  # niebieski
+            '#ff7f0e',  # pomarańczowy
+            '#2ca02c',  # zielony
+            '#d62728',  # czerwony
+            '#9467bd',  # fioletowy
+            '#8c564b',  # brązowy
+            '#e377c2',  # różowy
+            '#7f7f7f',  # szary
+        ]
 
         existing_lines = len(ax.lines)
         if existing_lines >= len(predefined_colors):
@@ -602,21 +620,34 @@ class POMOKAstat(QWidget):
         n_at_risk = kmf_additional.event_table['at_risk']
         step = 0.02
 
-        for t in time_intervals:
+        global is_first_call, global_iteration_offset_y  # Użycie globalnej zmiennej
+        drawn_text_positions = []
+        offset_step_y = 0.2
+        initial_offset_x = -0.5
 
+        for t in time_intervals:
             closest_time = min(n_at_risk.index, key=lambda x: abs(x - t))
             patients_at_t = n_at_risk.loc[closest_time]
             survival_at_t = survival_values.loc[closest_time]
 
-            adjusted_y = survival_at_t + 0.05
+            # Specjalne przesunięcie dla timeline = 0
+            adjusted_x = t + initial_offset_x  # Pozycja w osi X pozostaje bez zmian
+            adjusted_y = survival_at_t - self.global_iteration_offset  # Przesunięcie w pionie dla kolejnych iteracji
 
-            while adjusted_y <= survival_at_t + step:
-                adjusted_y += step
+                # Sprawdzenie kolizji z wcześniej dodanym tekstem
+            while any(abs(adjusted_x - x) < 0.5 and abs(adjusted_y - y) < 0.05 for x, y in drawn_text_positions):
+                adjusted_y += 0.02  # Standardowy krok przesunięcia w osi Y
 
-            ax.text(t, adjusted_y,
-                    str(patients_at_t), ha='center', fontsize=8, color=selected_color, alpha=0.9,
-                    verticalalignment='bottom')
+            # Rysowanie tekstu
+            ax.text(adjusted_x, adjusted_y,
+                    str(patients_at_t),
+                    ha='center', fontsize=8, fontweight='bold',  # Grubszy tekst
+                    color=selected_color, alpha=0.9,  # Kolor tekstu
+                    verticalalignment='bottom',
+                    path_effects=[withStroke(linewidth=3, foreground="white")])  # Obramowanie
+            drawn_text_positions.append((adjusted_x, adjusted_y))  # Dodanie nowej pozycji tekstu do listy
 
+        self.global_iteration_offset += (offset_step_y/2)
         self.canvas.draw()
 
         now = datetime.now()
