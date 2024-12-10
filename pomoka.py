@@ -780,25 +780,22 @@ class POMOKAstat(QWidget):
                 self.run_peto_peto_wilcoxon()
 
     def breakExecution(self):
+        self.testsList.close()
+        self.preferencesList.clearSelection()
+        self.preferencesList.close()
+        if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
+            self.setRangeBtn.setEnabled(True)
+        self.uploadBtn.setEnabled(True)
         for i in reversed(range(self.ukladV.count())):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
-                self.resize(300, 270)
+                self.resize(400, 270)
                 self.center()
 
         self.executeBtn.setText("Execute")
         self.isExecuting = False
-        self.preferencesList.close()
-        self.preferencesList.clearSelection()
         self.column_ranges = {}
-        if hasattr(self, 'testsList') and self.testsList.isVisible():
-            self.testsList.close()
-        if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
-            self.preferencesList.close()
-            self.setRangeBtn.setEnabled(True)
-        else:
-            self.uploadBtn.setEnabled(True)
 
     def toggleSetRangeBtn(self):
         if self.preferencesList.isVisible():
