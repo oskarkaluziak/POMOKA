@@ -647,7 +647,7 @@ class POMOKAstat(QWidget):
                     path_effects=[withStroke(linewidth=3, foreground="white")])  # Obramowanie
             drawn_text_positions.append((adjusted_x, adjusted_y))  # Dodanie nowej pozycji tekstu do listy
 
-        self.global_iteration_offset += (offset_step_y/2)
+        self.global_iteration_offset += (offset_step_y/3)
         self.canvas.draw()
 
         now = datetime.now()
