@@ -767,7 +767,6 @@ class POMOKAstat(QWidget):
         time_intervals = range(0, int(last_time_km) + 1, 2)  # zakres co 2 lata
         survival_values = kmf_additional.survival_function_['KM_estimate']
         n_at_risk = kmf_additional.event_table['at_risk']
-        step = 0.02
 
         global is_first_call, global_iteration_offset_y  # Użycie globalnej zmiennej
         drawn_text_positions = []
