@@ -33,6 +33,7 @@ class POMOKAstat(QWidget):
         self.isExecuting = False
         self.column_ranges = {}
         self.curves_data = []
+        self.legend_text = []
 
 
     def interface(self):  # interface apki
@@ -448,6 +449,67 @@ class POMOKAstat(QWidget):
                     linestyle='-', color='orange')
             self.guslegend = f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})'
             ax.legend()
+    def update_legend_widget(self):
+        if not hasattr(self, 'text_widget'):
+            self.text_widget = QLabel()
+
+        self.text_widget.hide()
+        self.text_widget = QLabel()
+        predefined_colors = [
+            '#1f77b4',  # niebieski
+            '#ff7f0e',  # pomarańczowy
+            '#2ca02c',  # zielony
+            '#d62728',  # czerwony
+            '#9467bd',  # fioletowy
+            '#8c564b',  # brązowy
+            '#e377c2',  # różowy
+            '#7f7f7f',  # szary
+        ]
+        row_text_1_1 = (f'<span style="color: #ff7f0e;">&#8212;</span> {self.guslegend} ')
+        row_text_1_2 = (f'<span style="color: #1f77b4;">&#8212;</span> {self.legend_text[0]}')
+        if self.legend_text and len(self.legend_text) > 1 and self.legend_text[1] != "":
+            row_text_2_1 = (f'<br><span style="color: #2ca02c;">&#8212;</span> {self.legend_text[1]} ')
+        else:
+            row_text_2_1 = ''
+        if self.legend_text and len(self.legend_text) > 2 and self.legend_text[2] != "":
+            row_text_2_2 = (f'<span style="color: #d62728;">&#8212;</span> {self.legend_text[2]}')
+        else:
+            row_text_2_2 = ''
+        if self.legend_text and len(self.legend_text) > 3 and self.legend_text[3] != "":
+            row_text_3_1 = (f'<br><span style="color: #9467bd;">&#8212;</span> {self.legend_text[3]} ')
+        else:
+            row_text_3_1 = ''
+        if self.legend_text and len(self.legend_text) > 4 and self.legend_text[4] != "":
+            row_text_3_2 = (f'<span style="color: #8c564b;">&#8212;</span> {self.legend_text[4]}')
+        else:
+            row_text_3_2 = ''
+        if self.legend_text and len(self.legend_text) > 5 and self.legend_text[5] != "":
+            row_text_4_1 = (f'<br><span style="color: #e377c2;">&#8212;</span> {self.legend_text[5]} ')
+        else:
+            row_text_4_1 = ''
+        if self.legend_text and len(self.legend_text) > 6 and self.legend_text[6] != "":
+            row_text_4_2 = (f'<span style="color: #7f7f7f;">&#8212;</span> {self.legend_text[6]}')
+        else:
+            row_text_4_2 = ''
+
+        text = (row_text_1_1, row_text_1_2,
+                row_text_2_1, row_text_2_2,
+                row_text_3_1, row_text_3_2,
+                row_text_4_1, row_text_4_2)
+        html_content = "".join(text)
+        self.text_widget.setText(html_content)
+        self.text_widget.setWordWrap(True)
+        self.text_widget.setStyleSheet("""
+                    QLabel {
+                        color: black;            /* Kolor tekstu */
+                        background-color: white; /* Tło prostokąta */
+                        border: 1px solid black; /* Ramka prostokąta */
+                        padding: 3px;           /* Wewnętrzny margines */
+                        border-radius: 5px;      /* Zaokrąglone rogi */
+                    }
+                """)
+        if not self.text_widget in [self.ukladV.itemAt(i).widget() for i in range(self.ukladV.count())]:
+            self.ukladV.addWidget(self.text_widget)
 
     def ill(self):
         if not hasattr(self, 'df'):
@@ -517,7 +579,8 @@ class POMOKAstat(QWidget):
                                                                                                 0] == 'numeric' else f"{pref}: {', '.join(self.column_ranges[pref][1])}"
             for pref in selected_preferences if pref in self.column_ranges
         ])
-        kmf_ill.plot_survival_function(ax=ax, label=f'ILL ({preferences_description})')
+        label_text = f'ILL ({preferences_description})'
+        kmf_ill.plot_survival_function(ax=ax, label=label_text)
         ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
 
         # pobieranie danych z wykresu kaplana
@@ -567,37 +630,9 @@ class POMOKAstat(QWidget):
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.canvas.draw()
-        if hasattr(self, 'text_widget') and self.text_widget:
-            self.text_widget.setParent(None)
 
-        legend_text = ax.get_legend().get_texts()[0].get_text()
-        self.text_widget = QLabel()
-        row_text_1_1 = (f'<span style=")color: blue;">&#8212;</span> {legend_text} ')
-        row_text_1_2 = (f'<span style="color: orange;">&#8212;</span> {self.guslegend}<br>')
-        row_text_2_1 = (f'<span style=")color: blue;">&#8212;</span> {legend_text} ')
-        row_text_2_2 = (f'<span style="color: orange;">&#8212;</span> {self.guslegend}<br>')
-        row_text_3_1 = (f'<span style=")color: blue;">&#8212;</span> {legend_text} ')
-        row_text_3_2 = (f'<span style="color: orange;">&#8212;</span> {self.guslegend}<br>')
-        row_text_4_1 = (f'<span style=")color: blue;">&#8212;</span> {legend_text} ')
-        row_text_4_2 = (f'<span style="color: orange;">&#8212;</span> {self.guslegend}')
-
-        text = (row_text_1_1, row_text_1_2,
-                row_text_2_1, row_text_2_2,
-                row_text_3_1, row_text_3_2,
-                row_text_4_1, row_text_4_2)
-        html_content = "".join(text)
-        self.text_widget.setText(html_content)
-        self.text_widget.setWordWrap(True)
-        self.text_widget.setStyleSheet("""
-            QLabel {
-                color: black;            /* Kolor tekstu */
-                background-color: white; /* Tło prostokąta */
-                border: 1px solid black; /* Ramka prostokąta */
-                padding: 3px;           /* Wewnętrzny margines */
-                border-radius: 5px;      /* Zaokrąglone rogi */
-            }
-        """)
-        self.ukladV.addWidget(self.text_widget)
+        self.legend_text.append(label_text)
+        self.update_legend_widget()
 
         now = datetime.now()
         timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -695,9 +730,13 @@ class POMOKAstat(QWidget):
         ])
 
         kmf_additional.fit(T_additional, event_observed=E_additional)
-        kmf_additional.plot_survival_function(ax=ax, label=f'ILL ({preferences_description})', color=selected_color)
+        label_text = f'ILL ({preferences_description})'
+        kmf_additional.plot_survival_function(ax=ax, label=label_text, color=selected_color)
         ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
 
+        self.legend_text.append(label_text)
+        print(f"Current legend_text: {self.legend_text}")  # Debugowanie
+        self.update_legend_widget()
         last_time_km = kmf_additional.survival_function_.index[-1]
 
         time_intervals = range(0, int(last_time_km) + 1, 2)  # zakres co 2 lata
