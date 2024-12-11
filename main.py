@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
-from pomoka import POMOKAstat
+from pomokastat import POMOKAstat
+from pomokamodel import POMOKAmodel
 
 class POMOKAstartup(QWidget):
     def __init__(self):
@@ -44,9 +45,10 @@ class POMOKAstartup(QWidget):
                         """
         self.statBtn.setStyleSheet(common_button_style)
         self.modelBtn.setStyleSheet(common_button_style)
-        self.modelBtn.setEnabled(False)
+        #self.modelBtn.setEnabled(False)
 
-        self.statBtn.clicked.connect(self.openMainApp)
+        self.statBtn.clicked.connect(self.openStatApp)
+        self.modelBtn.clicked.connect(self.openModelApp)
 
         layout = QVBoxLayout()
         layout.addWidget(self.label, alignment=Qt.AlignTop)
@@ -55,11 +57,23 @@ class POMOKAstartup(QWidget):
         layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
         layout.addStretch()
         self.setLayout(layout)
-
-    def openMainApp(self):
-        self.mainApp = POMOKAstat()
-        self.mainApp.show()
+    def openStatApp(self):
+        self.StatApp = POMOKAstat()
+        self.StatApp.show()
         self.close()
+
+    def openModelApp(self):
+        reply = QMessageBox.question(
+            self,
+            "Open Model App",
+            "Are you sure you want to open the model application? This version is in progress.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            self.ModelApp = POMOKAmodel()
+            self.ModelApp.show()
+            self.close()
 
 if __name__ == "__main__":
     app = QApplication([])
