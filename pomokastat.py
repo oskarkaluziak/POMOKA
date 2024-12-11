@@ -761,7 +761,6 @@ class POMOKAstat(QWidget):
         ax.legend().remove()
 
         self.legend_text.append(label_text)
-        print(f"Current legend_text: {self.legend_text}")  # Debugowanie
         self.update_legend_widget()
         last_time_km = kmf_additional.survival_function_.index[-1]
 
