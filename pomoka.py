@@ -235,6 +235,11 @@ class POMOKAstat(QWidget):
                         background-color: lightblue; /* Tło wybranego elementu */
                         color: black;               /* Kolor tekstu wybranego elementu */
                     }
+                    QListWidget:disabled {
+                        background-color: #f5f5f5; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
+                        color: #b0b0b0;            /* Delikatnie wyblakły tekst */
+                        border: 2px solid #d0d0d0; /* Subtelna ramka */
+                    }
                 """
         self.preferencesList.setStyleSheet(common_style)
         self.testsList.setStyleSheet(common_style)
@@ -651,6 +656,23 @@ class POMOKAstat(QWidget):
         if not hasattr(self, 'df'):
             QMessageBox.warning(self, "Error", "Data is not loaded.")
             return
+        if not hasattr(self, 'preferencesList') or self.preferencesList is None:
+            QMessageBox.warning(self, "Warning", "Preferences list is missing or invalid.")
+            return
+            # Próbuj odczytać selectedItems() tylko, jeśli preferencesList nie zostało usunięte
+        try:
+            if not self.preferencesList.selectedItems():
+                QMessageBox.warning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
+                return
+        except RuntimeError:
+            QMessageBox.warning(self, "Warning", "Preferences list has been deleted.")
+            return
+
+        for index in range(self.preferencesList.count()):
+            item = self.preferencesList.item(index)
+            if item.isSelected() and item.text() != "no preferences" and item.text() not in self.column_ranges:
+                QMessageBox.warning(self, "Warning", f"Please set range for {item.text()} before executing.")
+                return
 
         selected_preferences = [item.text() for item in self.preferencesList.selectedItems() if
                                 item.text() != "no preferences"]
