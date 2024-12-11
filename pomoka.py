@@ -419,7 +419,8 @@ class POMOKAstat(QWidget):
             agetext = 2022 - year
             print (f'{self.selected_sex}')
             print (f'{sex}')
-            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'HEALTHY (age: {agetext}; sex: {sextext})',
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
+                    label=f'HEALTHY (age: {agetext}; sex: {sextext})',
                     linestyle='-', color='orange')
             self.guslegend = f'HEALTHY (age: {agetext}; sex: {sextext})'
             ax.legend()
@@ -445,7 +446,8 @@ class POMOKAstat(QWidget):
             #dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             agetextstart = 2022 - year_start
             agetextend = 2022 - year_end
-            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post', label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
+                    label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
                     linestyle='-', color='orange')
             self.guslegend = f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})'
             ax.legend()
@@ -632,6 +634,7 @@ class POMOKAstat(QWidget):
         self.canvas.draw()
 
         self.legend_text.append(label_text)
+        ax.get_legend().remove() ###TO WYLACZA LEGENDE Z WYKRESU - WYSTARCZY TO USUNAC I BEDZIE LEGENDA NA WYKRESIE
         self.update_legend_widget()
 
         now = datetime.now()
@@ -733,6 +736,7 @@ class POMOKAstat(QWidget):
         label_text = f'ILL ({preferences_description})'
         kmf_additional.plot_survival_function(ax=ax, label=label_text, color=selected_color)
         ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+        ax.legend().remove()
 
         self.legend_text.append(label_text)
         print(f"Current legend_text: {self.legend_text}")  # Debugowanie
