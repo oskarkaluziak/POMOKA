@@ -914,6 +914,7 @@ class POMOKAstat(QWidget):
         self.preferencesList.close()
         self.resultEdt.clear()
         self.text_widget.close()
+        self.legend_text.clear()
         if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
             self.setRangeBtn.setEnabled(True)
         self.uploadBtn.setEnabled(True)
