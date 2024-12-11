@@ -391,6 +391,7 @@ class POMOKAstat(QWidget):
         file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
         file_path_men = 'dane_mezczyzni.xlsx'
         file_path_women = 'dane_kobiety.xlsx'
+        file_path_all = 'dane_ogolne.xlsx'
         if sex == 0:
             sextext = 'men'
         if sex == 1:
@@ -398,9 +399,9 @@ class POMOKAstat(QWidget):
         if sex == 2:
             sextext = 'men and women'
         # tworzenie plikow jesli nie istnieja (w przyszlosci przyda sie do aktualizacji danych)
-        if not os.path.exists(file_path_men) or not os.path.exists(file_path_women):
+        if not os.path.exists(file_path_men) or not os.path.exists(file_path_women) or not os.path.exists(file_path_all):
             tab_m, tab_k = prepare_data(file_path)
-            save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k)
+            save_data_to_excel(file_path_men, file_path_women, file_path_all, tab_m, tab_k)
 
         if opcja == 1:
             year = (2022 - self.selected_age)

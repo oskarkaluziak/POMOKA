@@ -1,6 +1,6 @@
 import openpyxl
 import os
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -87,7 +87,7 @@ def dane_wykresy(macierz):
 
 
 
-def save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k):
+def save_data_to_excel(file_path_men, file_path_women, file_path_a, tab_m, tab_k):
     # Zapisanie danych dla mężczyzn
     wb_m = Workbook()
     ws_m = wb_m.active
@@ -137,7 +137,45 @@ def save_data_to_excel(file_path_men, file_path_women, tab_m, tab_k):
             ws_k.cell(row=row_index, column=col_index, value=probability * 100)
 
     wb_k.save(file_path_women)
-    # print(f"Dane zostały zapisane do pliku {file_path_women}")
+
+    wb_a = Workbook()
+    ws_a = wb_a.active
+    ws_a.title = "Ogólne"
+
+    # Dodaj nagłówki kolumn (punkty)
+    years = list(range(0, 17))
+    ws_a.append(["punkt "] + years)
+
+    # Dodaj wiersze z wiekiem (0-100)
+    for year in range(2022, 1905, -1):
+        ws_a.append([year])
+
+    wb_m = load_workbook(file_path_men)
+    ws_m = wb_m.active
+
+    wb_k = load_workbook(file_path_women)
+    ws_k = wb_k.active
+
+    # Dodaj dane do arkusza "Średnia"
+    for row in range(2, ws_m.max_row + 1):
+        for col in range(2, ws_m.max_column + 1):
+            value_m = ws_m.cell(row=row, column=col).value
+            value_k = ws_k.cell(row=row, column=col).value
+
+            # Oblicz średnią, uwzględniając brakujące dane
+            if value_m is not None and value_k is not None:
+                avg_value = (value_m + value_k) / 2
+            elif value_m is not None:
+                avg_value = value_m
+            elif value_k is not None:
+                avg_value = value_k
+            else:
+                avg_value = None
+
+            ws_a.cell(row=row, column=col, value=avg_value)
+            print(f"Średnia - Wiersz: {row}, Kolumna: {col}, Wartość: {avg_value}")
+    wb_a.save(file_path_a)
+    print(f"Dane zostały zapisane do pliku {file_path_a}")
 
 # # Główna część programu
 # file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
@@ -156,7 +194,7 @@ def lineChartOne(sex, year):
     if sex == 1:
         path = 'dane_kobiety.xlsx'
     if sex == 2:
-        path = 'dane_kobiety.xlsx' ##TODO do zrobienia dane_ogolne.xlsx w to miejsce
+        path = 'dane_ogolne.xlsx'
 
     data = pd.read_excel(path)
     row = data[data.iloc[:, 0] == year]
@@ -187,7 +225,7 @@ def lineChartRange(sex, start, end):
     if sex == 1:
         path = 'dane_kobiety.xlsx'
     if sex == 2:
-        path = 'dane_kobiety.xlsx' ##TODO do zrobienia dane_ogolne.xlsx w to miejsce
+        path = 'dane_ogolne.xlsx'
 
     data = pd.read_excel(path)
 
@@ -199,6 +237,7 @@ def lineChartRange(sex, start, end):
     avg_data = rows.iloc[:, 1:].apply(pd.to_numeric, errors='coerce').mean(skipna=True)
 
     avg_data = pd.concat([pd.Series([100]), avg_data]).reset_index(drop=True)
+    #print(avg_data)
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(avg_data.index, avg_data.values, marker='o')
