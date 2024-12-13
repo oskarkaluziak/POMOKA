@@ -198,8 +198,10 @@ class POMOKAstat(QWidget):
                 self.toggleSetRangeBtn()
                 self.adjustSize()
 
+            self.executeBtn.setEnabled(True)
             self.CBpreferences()
             self.CBtests()
+            self.uploadBtn.setEnabled(False)
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
 
@@ -251,7 +253,7 @@ class POMOKAstat(QWidget):
         self.preferencesList = QListWidget(self)
         self.preferencesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
-        self.preferencesList.addItem("no preferences")
+        #self.preferencesList.addItem("no preferences") #TODO w ILL zeby to dzialalo
         if hasattr(self, 'df'):
             columns = self.df.columns
             for column in columns:
@@ -271,7 +273,7 @@ class POMOKAstat(QWidget):
         selected_columns = [item.text() for item in self.preferencesList.selectedItems()]
 
         for column in selected_columns:
-            if column == "no preferences":
+            if column == 'no preferences':
                 continue
 
             values = self.df[column].unique().tolist()
@@ -929,14 +931,17 @@ class POMOKAstat(QWidget):
                 self.run_peto_peto_wilcoxon()
 
     def breakExecution(self):
-        self.testsList.close()
+        self.testsList.clearSelection()
+        self.testsList.setEnabled(False)
         self.preferencesList.clearSelection()
-        self.preferencesList.close()
+        self.preferencesList.clear()
+        self.preferencesList.setEnabled(False)
         self.resultEdt.clear()
         self.text_widget.close()
         self.legend_text.clear()
-        if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
-            self.setRangeBtn.setEnabled(True)
+        self.addCurveBtn.setEnabled(False)
+        self.setRangeBtn.setEnabled(False)
+        self.executeBtn.setEnabled(False)
         self.uploadBtn.setEnabled(True)
         for i in reversed(range(self.ukladV.count())):
             widget = self.ukladV.itemAt(i).widget()
