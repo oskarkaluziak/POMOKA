@@ -12,6 +12,10 @@ from PyQt5.QtCore import Qt
 import pandas as pd
 import numpy as np
 import re
+from scipy import stats
+from scipy.interpolate import interp1d
+#from numpy import trapz
+from scipy.stats import mannwhitneyu
 
 # Matplotlib for plotting
 import matplotlib.pyplot as plt
@@ -21,9 +25,12 @@ from matplotlib.patheffects import withStroke
 # Lifelines for survival analysis
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import logrank_test, multivariate_logrank_test #(delete when new tests come in)
+from scipy.stats import ks_2samp
 
 # Custom imports
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
+
+
 
 class POMOKAstat(QWidget):
     global_iteration_offset = 0
@@ -209,14 +216,20 @@ class POMOKAstat(QWidget):
         self.testsList = QListWidget(self)
         self.testsList.setSelectionMode(QAbstractItemView.MultiSelection)
 
-        self.testsList.addItem("Gehan-Wilcoxon test")
-        self.testsList.addItem("Cox-Mantel test")
-        self.testsList.addItem("F Cox test")
-        self.testsList.addItem("Log-rank test")
-        self.testsList.addItem("Peto-Peto-Wilcoxon test")
+        self.testsList.addItem("Mann-Whitney U test")
+        self.testsList.addItem("AUC")
+        self.testsList.addItem("AUC Interpolated")
+        self.testsList.addItem("Kolomorow Smirnow")
+        self.testsList.addItem("Kolomorow Smirnow Interpolated")
+        self.testsList.addItem("Srednia roznica interpolated")
+        #self.testsList.addItem("Gehan-Wilcoxon test")
+        #self.testsList.addItem("Cox-Mantel test")
+        #self.testsList.addItem("F Cox test")
+        #self.testsList.addItem("Log-rank test")
+        #self.testsList.addItem("Peto-Peto-Wilcoxon test")
         self.testsList.setFixedSize(300, 75)
 
-        default_item = self.testsList.findItems("Log-rank test", Qt.MatchExactly)[0]
+        default_item = self.testsList.findItems("Mann-Whitney U test", Qt.MatchExactly)[0]
         default_index = self.testsList.indexFromItem(default_item).row()
         self.testsList.setCurrentRow(default_index)
 
@@ -813,6 +826,176 @@ class POMOKAstat(QWidget):
         self.setRangeBtn.setEnabled(True)
         self.column_ranges = {}
 
+
+
+    #Stworzenie struktur do przechowywania wyników testów do raportu (i info o krzywych?). ##TODO
+
+
+
+    def run_AUC(self): #porównanie pól pod krzywymi
+        time_points_ill = self.time_points
+        survival_probabilities_ill = self.survival_probabilities
+
+        time_points_gus = self.x_data_trimmed
+        survival_probabilities_gus = self.y_data_probability_trimmed
+
+        # Wyświetlenie wartości time_points_ill i survival_probabilities_ill
+        #print("Time Points (ILL):", time_points_ill)
+        #print("Survival Probabilities (ILL):", survival_probabilities_ill)
+
+        # Opcjonalnie: sprawdzenie długości tablic
+        #print("Length of Time Points (ILL):", len(time_points_ill))
+        #print("Length of Survival Probabilities (ILL):", len(survival_probabilities_ill))
+
+        # Wyświetlenie wartości time_points_gus i survival_probabilities_gus
+        #print("Time Points (gus):", time_points_gus)
+        #print("Survival Probabilities (gus):", survival_probabilities_gus)
+
+        # Opcjonalnie: sprawdzenie długości tablic
+        #print("Length of Time Points (gus):", len(time_points_gus))
+        #print("Length of Survival Probabilities (gus):", len(survival_probabilities_gus))
+
+        auc_ill = np.trapz(survival_probabilities_ill, x=time_points_ill)
+        auc_gus = np.trapz(survival_probabilities_gus, x=time_points_gus)
+        auc_diff = abs(auc_ill - auc_gus)
+
+        #print(f"AUC_gus:{auc_gus}")
+        #print(f"AUC_ill:{auc_ill}")
+        #print(f"AUC_diff:{auc_diff}")
+
+        # Formatowanie liczb do trzech miejsc po przecinku
+        formatted_auc_ill = f"{auc_ill:.3f}"
+        formatted_auc_gus = f"{auc_gus:.3f}"
+        formatted_auc_diff = f"{auc_diff:.3f}"
+
+        # Ustawianie tekstu z poprawnym formatowaniem
+        self.resultEdt.setText(
+            f"AUC test: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
+        )
+        text = f"AUC test: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus},Roznica = {formatted_auc_diff}"
+
+        # Przesyłanie tekstu do funkcji `time`
+        self.time(text)
+
+        # Informacja w okienku dialogowym
+        QMessageBox.information(self, "AUC test",
+                                "Wykonano test AUC, kliknij OK aby przejść do wyniku kolejnego testu")
+
+    def run_AUC_interpolated(self): #porównanie pól pod krzywymi
+        time_points_ill = self.time_points  #wiecej puntkow
+        survival_probabilities_ill = self.survival_probabilities
+
+        time_points_gus = self.x_data_trimmed  # mniej punktow
+        survival_probabilities_gus = self.y_data_probability_trimmed
+
+        interpolator = interp1d(time_points_gus, survival_probabilities_gus, kind='linear', fill_value="extrapolate")
+        survival_probabilities_gus_interpolated = interpolator(time_points_ill)
+
+        #Opcjonalnie: sprawdzenie długości tablic
+        print("Length of Time Points (ILL):", len(time_points_ill))
+        print("Length of Survival Probabilities (ILL):", len(survival_probabilities_ill))
+
+        print("Length of Time Points (ILL):", len(time_points_gus))
+        print("Length of Survival Probabilities (ILL):", len(survival_probabilities_gus))
+
+        #print("Length of Time Points (gus_inter):", len(survival_probabilities_gus_interpolated))
+        #print("Length of Survival Probabilities (gus_inter):", len(survival_probabilities_gus_interpolated))
+
+        print("AUC - Time Points ILL:", time_points_ill)
+        print("AUC - Survival Probabilities ILL:", survival_probabilities_ill)
+
+        print("AUC - Time Points GUS (interpolated):", time_points_ill)
+        print("AUC - Survival Probabilities GUS (interpolated):", survival_probabilities_gus_interpolated)
+
+        auc_ill = np.trapz(survival_probabilities_ill, x=time_points_ill)
+        auc_gus = np.trapz(survival_probabilities_gus_interpolated, x=time_points_ill)
+        auc_diff = abs(auc_ill - auc_gus)
+
+        # Formatowanie liczb do trzech miejsc po przecinku
+        formatted_auc_ill = f"{auc_ill:.3f}"
+        formatted_auc_gus = f"{auc_gus:.3f}"
+        formatted_auc_diff = f"{auc_diff:.3f}"
+
+
+        self.resultEdt.setText(
+            f"AUC test interpolated: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
+        )
+        text = f"AUC test interpolated: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus},Roznica = {formatted_auc_diff}"
+        self.time(text)
+        QMessageBox.information(self, "AUC test",
+                                "Wykonano test AUC po interpolacji, kliknij OK aby przejsc do wyniku kolejnego testu")
+
+    def run_KS_test(self):
+
+        survival_probabilities_ill = self.survival_probabilities
+        survival_probabilities_gus = self.y_data_probability_trimmed
+
+        ks_stat, p_value = ks_2samp(survival_probabilities_gus, survival_probabilities_ill)
+
+        self.resultEdt.setText(
+            f"Kolomorow Smirnow test: Statystyka KS = {ks_stat}, p-value = {p_value}")
+        text = f"Kolomorow Smirnow test: Statystyka KS = {ks_stat}, p-value = {p_value}"
+        self.time(text)
+        QMessageBox.information(self, "Kolomorow Smirnow test",
+                                "Wykonano test Kolomorow Smirnow, kliknij OK aby przejść do wyniku kolejnego testu")
+
+    def run_KS_test_interpolated(self):
+
+        time_points_ill = self.time_points
+        time_points_gus = self.x_data_trimmed
+        survival_probabilities_ill = self.survival_probabilities
+        survival_probabilities_gus = self.y_data_probability_trimmed
+
+        interpolator = interp1d(time_points_gus, survival_probabilities_gus, kind='linear', fill_value="extrapolate")
+        survival_probabilities_gus_interpolated = interpolator(time_points_ill)
+
+        ks_stat, p_value = ks_2samp(survival_probabilities_gus_interpolated, survival_probabilities_ill)
+
+        self.resultEdt.setText(
+            f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}")
+        text = f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}"
+        self.time(text)
+        QMessageBox.information(self, "Kolomorow Smirnow test interpolated",
+                                "Wykonano test Kolomorow Smirnow po interpolacji, kliknij OK aby przejść do wyniku kolejnego testu")
+
+    def run_mean_diff(self):
+        time_points_ill = self.time_points  # wiecej puntkow
+        survival_probabilities_ill = self.survival_probabilities
+
+        time_points_gus = self.x_data_trimmed  # mniej punktow
+        survival_probabilities_gus = self.y_data_probability_trimmed
+
+        interpolator = interp1d(time_points_gus, survival_probabilities_gus, kind='linear', fill_value="extrapolate")
+        survival_probabilities_gus_interpolated = interpolator(time_points_ill)
+
+        diff = np.mean(np.abs(survival_probabilities_ill - survival_probabilities_gus_interpolated))
+
+        self.resultEdt.setText(
+            f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}")
+        text = f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}"
+        self.time(text)
+        QMessageBox.information(self, "Srednia roznica pomiedzy ppunktami wykresu",
+                                "Obliczono srednia roznice pomiedzy ppunktami wykresu, kliknij OK aby przejść do wyniku kolejnego testu")
+
+    def run_mann_whitney_u(self):
+        time_points_ill = self.time_points  # wiecej puntkow
+        survival_probabilities_ill = self.survival_probabilities
+
+        time_points_gus = self.x_data_trimmed  # mniej punktow
+        survival_probabilities_gus = self.y_data_probability_trimmed
+
+        interpolator = interp1d(time_points_gus, survival_probabilities_gus, kind='linear', fill_value="extrapolate")
+        survival_probabilities_gus_interpolated = interpolator(time_points_ill)
+
+        stat, p_value = mannwhitneyu(survival_probabilities_gus_interpolated, survival_probabilities_ill, alternative='two-sided')
+
+        self.resultEdt.setText(
+            f"Test Manna-Whitneya U: Statystyka U = {stat}, P-value = {p_value}")
+        text = f"Test Manna-Whitneya U: Statystyka U = {stat}, P-value = {p_value}"
+        self.time(text)
+        QMessageBox.information(self, "Test Manna-Whitneya U",
+                                "Wykonano Test Manna-Whitneya U, kliknij OK aby przejść do wyniku kolejnego testu")
+
     def run_gehan_wilcoxon(self):  # TODO
         self.survival_gus_interpolated = np.interp(self.time_points, self.x_data_trimmed, self.y_data_probability_trimmed)
 
@@ -839,31 +1022,31 @@ class POMOKAstat(QWidget):
         result = multivariate_logrank_test(data['time'], data['group'], data['event'], weightings="wilcoxon")
 
         self.resultEdt.setText(f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
-        text = (f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
+        text = f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}"
         self.time(text)
         QMessageBox.information(self, "Gehan-Wilcoxon test", "Wykonano test Gehan-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
-    def run_cox_mantel(self):  # TODO
-        result = "in progress"
-        self.resultEdt.setText(f"Cox-Mantel test: Chi2 = {result}, p-wartość = {result}")
-        QMessageBox.information(self, "Cox-Mantel test", "Wykonano test Cox-Mantel, kliknij OK aby przejść do wyniku kolejnego testu")
+    #def run_cox_mantel(self):  # TODO
+    #    result = "in progress"
+    #    self.resultEdt.setText(f"Cox-Mantel test: Chi2 = {result}, p-wartość = {result}")
+    #    QMessageBox.information(self, "Cox-Mantel test", "Wykonano test Cox-Mantel, kliknij OK aby przejść do wyniku kolejnego testu")
 
-    def run_f_cox(self):  # TODO
-        result = "in progress"
-        self.resultEdt.setText(f"F Cox test: F-statystyka = {result}, p-wartość = {result}")
-        QMessageBox.information(self, "F Cox test", "Wykonano test F Cox, kliknij OK aby przejść do wyniku kolejnego testu")
+    #def run_f_cox(self):  # TODO
+    #    result = "in progress"
+    #    self.resultEdt.setText(f"F Cox test: F-statystyka = {result}, p-wartość = {result}")
+    #    QMessageBox.information(self, "F Cox test", "Wykonano test F Cox, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_log_rank(self):
         result = logrank_test(self.T_ill, self.x_data_trimmed, event_observed_A=self.E_ill, event_observed_B=self.y_data_probability_trimmed)
         self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
-        text = (f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
+        text = f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}"
         self.time(text)
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank, kliknij OK aby przejść do wyniku kolejnego testu")
 
-    def run_peto_peto_wilcoxon(self):  # TODO
-        result = "in progress"
-        self.resultEdt.setText(f"Peto-Peto-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
-        QMessageBox.information(self, "Peto-Peto-Wilcoxon test", "Wykonano test Peto-Peto-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
+    #def run_peto_peto_wilcoxon(self):  # TODO
+    #    result = "in progress"
+    #    self.resultEdt.setText(f"Peto-Peto-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
+    #    QMessageBox.information(self, "Peto-Peto-Wilcoxon test", "Wykonano test Peto-Peto-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def time(self, text):
         filename = os.path.join(self.output_dir, f"test_result.txt")
@@ -929,6 +1112,18 @@ class POMOKAstat(QWidget):
                 self.run_log_rank()
             elif test == "Peto-Peto-Wilcoxon test":
                 self.run_peto_peto_wilcoxon()
+            elif test == "AUC":
+                self.run_AUC()
+            elif test == "Kolomorow Smirnow":
+                self.run_KS_test()
+            elif test == "AUC Interpolated":
+                self.run_AUC_interpolated()
+            elif test == "Kolomorow Smirnow Interpolated":
+                self.run_KS_test_interpolated()
+            elif test == "Srednia roznica interpolated":
+                self.run_mean_diff()
+            elif test=="Mann-Whitney U test":
+                self.run_mann_whitney_u()
 
     def breakExecution(self):
         self.testsList.clearSelection()
