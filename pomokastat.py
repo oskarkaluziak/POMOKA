@@ -11,6 +11,7 @@ from PyQt5.QtCore import Qt
 # Data handling and analysis
 import pandas as pd
 import numpy as np
+import re
 
 # Matplotlib for plotting
 import matplotlib.pyplot as plt
@@ -263,7 +264,6 @@ class POMOKAstat(QWidget):
         self.addCurveBtn.setEnabled
 
     def setRanges(self):
-
         self.selected_sex = 2
         self.selected_age_start = 0
         self.selected_age_end = 100
@@ -277,86 +277,84 @@ class POMOKAstat(QWidget):
             values = self.df[column].unique().tolist()
             values = [str(value) for value in values]
 
-            value_range, ok = QInputDialog.getText(self, f"Select range for {column}",
-                                                   f"Enter the range for column {column} (minimum value-maximum value or specific values like 'SVG,MVG,SAG+Veins'):")
-            if ok:
+            while True:  # oętla do ponownego pytania w przypadku błędnego formatu
+                value_range, ok = QInputDialog.getText(self, f"Select range for {column}",
+                                                       f"Enter the range for column {column} (minimum value-maximum value or specific values like 'SVG,MVG,SAG+Veins'):")
+                if not ok:
+                    break  # przerwij, jeśli użytkownik anulował dialog
+
                 try:
-                    specific_values = None
                     if '-' in value_range:
-                        try:
-                            lower, upper = map(int, value_range.split('-'))
-                            # sprawdzanie czy zakres wprowadzony przez uzytkownika jest zgodny z danymi
-                            column_values = self.df[column]
-                            filtered_values = column_values[(column_values >= lower) & (column_values <= upper)]
+                        if not re.match(r"^\d+\-\d+$", value_range.strip()):
+                            QMessageBox.warning(self, "Format Error",
+                                                "No values found in column '{column}' for the given range: {lower}-{upper}. Make sure you enter the correct format: MINIMUM value - MAXIMUM value")
+                            continue  #wróć do początku pętli, aby użytkownik wprowadził dane ponownie
 
-                            if filtered_values.empty:
-                                QMessageBox.warning(self, "Range Error",
-                                                    f"No values found in column '{column}' for the given range: {lower}-{upper}. Make sure you enter the correct format: MINIMUM value - MAXIMUM value")
-                                continue
+                        lower, upper = map(int, value_range.split('-'))
+                        # sprawdzanie czy zakres wprowadzony przez uzytkownika jest zgodny z danymi
+                        column_values = self.df[column]
+                        filtered_values = column_values[(column_values >= lower) & (column_values <= upper)]
 
-                            self.column_ranges[column] = ('numeric', (lower, upper))
-
-                        except ValueError:
-                            QMessageBox.warning(self, "Input Error", "Please enter a valid numeric range.")
-                            continue
-                    else:
-                        specific_values = [value.strip() for value in value_range.split(',')]
-                        valid_values = [value.lower() for value in values]
-                        if not set([v.lower() for v in specific_values]).issubset(set(valid_values)):
+                        if filtered_values.empty:
                             QMessageBox.warning(self, "Range Error",
-                                                f"Some values in '{value_range}' are not present in the column '{column}'. Please enter valid values like: {', '.join(valid_values)}")
+                                                    f"No values found in column '{column}' for the given range: {lower}-{upper}. Make sure you enter the correct format: MINIMUM value - MAXIMUM value")
                             continue
 
-                        self.column_ranges[column] = ('categorical', specific_values)
-
-                    # sprawdzanie wybranej płci, jak nie uzytkownik nie wybierze to bierze obydwie do wykresu
-                    if column.lower() in ['sex', 'plec', 'płeć', 'pŁeć']:
-                        if specific_values and len(specific_values) == 1:
-                            value = specific_values[0].lower()
-                            if value in ['1', 'm', 'male']:
-                                self.selected_sex = 0  # 0=dane_mezczyzn
-                            elif value in ['0', 'k', 'female', 'w']:
-                                self.selected_sex = 1  # 1=dane_kobiet
-                        else:
-                            self.selected_sex = 2
-
-                    if column.lower() in ['female', 'kobieta']:
-                        if specific_values and len(specific_values) == 1:
-                            value = specific_values[0].lower()
-                            if value == '1':
-                                self.selected_sex = 1
-                            elif value == '0':
-                                self.selected_sex = 0
-                        else:
-                            self.selected_sex = 2
-
-                    if column.lower() in ['male', 'mezczyzna', 'mężczyzna']:
-                        if specific_values and len(specific_values) == 1:
-                            value = specific_values[0].lower()
-                            if value == '1':
-                                self.selected_sex = 0
-                            elif value == '0':
-                                self.selected_sex = 1
-                        else:
-                            self.selected_sex = 2
-
-                    # sprawdzanie wybranego wieku, jak nie uzytkownik nie wybierze to bierze średni
-                    if column.lower() in ['age', 'wiek']:
-                        if specific_values and len(specific_values) == 1:
-                            self.selected_age = int(specific_values[0])
-                            self.selected_option = 1
-                        elif len(value_range.split('-')) == 2:
+                        if column.lower() in ['age', 'wiek']:
                             lower, upper = map(int, value_range.split('-'))
-                            if lower > upper:
-                                self.selected_age_start = upper
-                                self.selected_age_end = lower
+                            if lower == upper:
+                                self.selected_age = lower
+                                self.selected_option = 1
                             else:
                                 self.selected_age_start = lower
                                 self.selected_age_end = upper
-                            self.selected_option = 2
+                                self.selected_option = 2
 
+                        if column.lower() in ['female', 'kobieta']:
+                            if len(value_range.split('-')) == 2:
+                                lower, upper = map(int, value_range.split('-'))
+                                if lower == upper:
+                                    value = lower
+                                if value == 1:
+                                    self.selected_sex = 1
+                                elif value == 0:
+                                    self.selected_sex = 0
+                                else:
+                                    self.selected_sex = 2
+
+                        if column.lower() in ['sex', 'plec', 'płeć', 'pŁeć']:
+                            if len(value_range.split('-')) == 2:
+                                lower, upper = map(int, value_range.split('-'))
+                                if lower == upper:
+                                    value = lower
+                                    if value == [1, 'm', 'male']:
+                                        self.selected_sex = 0  # 0=dane_mezczyzn
+                                    elif value == [0, 'k', 'female', 'w', 'f']:
+                                        self.selected_sex = 1  # 1=dane_kobiet
+                                    else:
+                                        self.selected_sex = 2
+
+                        if column.lower() in ['male', 'mezczyzna', 'mężczyzna']:
+                            if len(value_range.split('-')) == 2:
+                                lower, upper = map(int, value_range.split('-'))
+                                if lower == upper:
+                                    value = lower
+                                    if value == 1:
+                                        self.selected_sex = 0
+                                    elif value == 0:
+                                        self.selected_sex = 1
+                                    else:
+                                        self.selected_sex = 2
+
+                        self.column_ranges[column] = ('numeric', (lower, upper))
+                        break
+
+                    else:
+                        QMessageBox.warning(self, "Input Error", "Please enter a valid range in the format: MINIMUM-MAXIMUM.")
+                        continue
                 except ValueError:
-                    QMessageBox.warning(self, "Input Error", "Please enter a valid numeric or categorical range.")
+                    QMessageBox.warning(self, "Input Error", "Invalid input. Please enter a numeric range.")
+
     def shutdown(self):  # zamykanie aplikacji poprzez przycisk
         self.close()
 
@@ -392,6 +390,7 @@ class POMOKAstat(QWidget):
         file_path_men = 'dane_mezczyzni.xlsx'
         file_path_women = 'dane_kobiety.xlsx'
         file_path_all = 'dane_ogolne.xlsx'
+        print(f"koncowy_gus:{self.selected_sex}")
         if sex == 0:
             sextext = 'men'
         if sex == 1:
