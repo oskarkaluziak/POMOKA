@@ -5,7 +5,7 @@ from datetime import datetime
 # PyQt5 imports
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
     QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
-from PyQt5.QtGui import QPixmap, QPainter, QIcon
+from PyQt5.QtGui import QIcon, QPalette, QColor
 from PyQt5.QtCore import Qt
 
 # Data handling and analysis
@@ -38,6 +38,11 @@ class POMOKAstat(QWidget):
 
 
     def interface(self):  # interface apki
+        self.setAutoFillBackground(True)
+        palette = QPalette()
+        palette.setColor(QPalette.Background, QColor("#ECECED"))  # Zmień "lightblue" na inny kolor, jeśli chcesz
+        self.setPalette(palette)
+
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
         self.label2 = QLabel("<b>Results:<b>", self)
 
@@ -202,6 +207,7 @@ class POMOKAstat(QWidget):
             self.CBpreferences()
             self.CBtests()
             self.uploadBtn.setEnabled(False)
+            self.center()
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
 
@@ -253,13 +259,17 @@ class POMOKAstat(QWidget):
         self.preferencesList = QListWidget(self)
         self.preferencesList.setSelectionMode(QAbstractItemView.MultiSelection)
 
-        #self.preferencesList.addItem("no preferences") #TODO w ILL zeby to dzialalo
+        self.preferencesList.addItem("no preferences")
         if hasattr(self, 'df'):
             columns = self.df.columns
             for column in columns:
                 self.preferencesList.addItem(column)
 
         self.preferencesList.setFixedSize(300, 75)
+        self.selected_sex = 2
+        self.selected_age_start = 0
+        self.selected_age_end = 100
+        self.selected_option = 2
 
 
         self.setRangeBtn.setEnabled(True)
@@ -529,14 +539,18 @@ class POMOKAstat(QWidget):
         selected_preferences = [item.text() for item in self.preferencesList.selectedItems() if
                                 item.text() != "no preferences"]
 
-        if not selected_preferences:
-            QMessageBox.warning(self, "Error", "No preferences selected.")
-            return
+        for item in self.preferencesList.selectedItems():
+            if item.text() != "no preferences":
+                if not selected_preferences:
+                    QMessageBox.warning(self, "Error", "No preferences selected.")
+                    return
 
         df_filtered = self.df.copy()
 
         # filtrowanie po wszystkich kolumnach wedlug set range lower/upper
         for column, (range_type, values) in self.column_ranges.items():
+            if "no preferences" in selected_preferences:
+                continue  # jeśli jest 'no preferences', pomijamy filtrowanie tej kolumny
             if range_type == 'numeric':
                 lower, upper = values
                 df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]
@@ -679,13 +693,17 @@ class POMOKAstat(QWidget):
         selected_preferences = [item.text() for item in self.preferencesList.selectedItems() if
                                 item.text() != "no preferences"]
 
-        if not selected_preferences:
-            QMessageBox.warning(self, "Error", "No preferences selected.")
-            return
+        for item in self.preferencesList.selectedItems():
+            if item.text() != "no preferences":
+                if not selected_preferences:
+                    QMessageBox.warning(self, "Error", "No preferences selected.")
+                    return
 
         df_filtered = self.df.copy()
 
         for column, (range_type, values) in self.column_ranges.items():
+            if "no preferences" in selected_preferences:
+                continue  # jeśli jest 'no preferences', pomijamy filtrowanie tej kolumny
             if range_type == 'numeric':
                 lower, upper = values
                 df_filtered = df_filtered[(df_filtered[column] >= lower) & (df_filtered[column] <= upper)]

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPalette, QColor
 from PyQt5.QtCore import Qt
 from pomokastat import POMOKAstat
 from pomokamodel import POMOKAmodel
@@ -12,7 +12,11 @@ class POMOKAstartup(QWidget):
     def setupUI(self):
         self.setWindowTitle("POMOKA menu")
         self.setWindowIcon(QIcon('icon.png'))
-        self.setStyleSheet("background-color: lightgrey;")
+        self.setAutoFillBackground(True)
+        palette = QPalette()
+        palette.setColor(QPalette.Background, QColor("#ECECED"))  # Zmień "lightblue" na inny kolor, jeśli chcesz
+        self.setPalette(palette)
+
         self.resize(500, 270)
 
         self.label = QLabel("<b>Welcome to POMOKA<b>", self)
