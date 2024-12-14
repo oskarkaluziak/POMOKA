@@ -3,10 +3,10 @@ import sys
 from datetime import datetime
 
 # PyQt5 imports
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
+from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
     QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
-from PyQt5.QtGui import QPixmap, QPainter, QIcon
-from PyQt5.QtCore import Qt
+from PySide6.QtGui import QPixmap, QPainter, QIcon
+from PySide6.QtCore import Qt
 
 # Data handling and analysis
 import pandas as pd

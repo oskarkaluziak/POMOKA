@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
-from PyQt5.QtGui import QIcon, QPalette, QColor
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
+from PySide6.QtGui import QIcon, QPalette, QColor
+from PySide6.QtCore import Qt
 from pomokastat import POMOKAstat
 from pomokamodel import POMOKAmodel
 
@@ -14,7 +14,7 @@ class POMOKAstartup(QWidget):
         self.setWindowIcon(QIcon('icon.png'))
         self.setAutoFillBackground(True)
         palette = QPalette()
-        palette.setColor(QPalette.Background, QColor("#ECECED"))  # Zmień "lightblue" na inny kolor, jeśli chcesz
+        palette.setColor(QPalette.Window, QColor("#ECECED"))  # Używamy QPalette.Window zamiast QPalette.Background
         self.setPalette(palette)
 
         self.resize(700, 270)
@@ -49,7 +49,7 @@ class POMOKAstartup(QWidget):
                         """
         self.statBtn.setStyleSheet(common_button_style)
         self.modelBtn.setStyleSheet(common_button_style)
-        #self.modelBtn.setEnabled(False)
+        # self.modelBtn.setEnabled(False)
 
         self.statBtn.clicked.connect(self.openStatApp)
         self.modelBtn.clicked.connect(self.openModelApp)
@@ -61,6 +61,7 @@ class POMOKAstartup(QWidget):
         layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
         layout.addStretch()
         self.setLayout(layout)
+
     def openStatApp(self):
         self.StatApp = POMOKAstat()
         self.StatApp.show()
@@ -83,4 +84,4 @@ if __name__ == "__main__":
     app = QApplication([])
     startup = POMOKAstartup()
     startup.show()
-    app.exec_()
+    app.exec()

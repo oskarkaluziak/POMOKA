@@ -3,10 +3,10 @@ import sys
 from datetime import datetime
 
 # PyQt5 imports
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
+from PySide6.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
     QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
-from PyQt5.QtGui import QIcon, QPalette, QColor
-from PyQt5.QtCore import Qt
+from PySide6.QtGui import QIcon, QPalette, QColor, QGuiApplication
+from PySide6.QtCore import Qt
 
 # Data handling and analysis
 import pandas as pd
@@ -65,7 +65,7 @@ class POMOKAstat(QWidget):
     def interface(self):  # interface apki
         self.setAutoFillBackground(True)
         palette = QPalette()
-        palette.setColor(QPalette.Background, QColor("#ECECED"))  # Zmień "lightblue" na inny kolor, jeśli chcesz
+        palette.setColor(QPalette.Window, QColor("#ECECED"))
         self.setPalette(palette)
 
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
@@ -163,21 +163,22 @@ class POMOKAstat(QWidget):
         self.setWindowIcon(QIcon('icon.png'))
 
     def center(self):
-        # pobranie wymiarów ekranu
-        screen = QApplication.desktop().screenGeometry()
-        screen_width = screen.width()
-        screen_height = screen.height()
+        # Pobranie głównego ekranu
+        screen = QGuiApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
 
-        # pobranie wymiarów okna
+        # Pobranie wymiarów okna
         window_size = self.geometry()
         window_width = window_size.width()
         window_height = window_size.height()
 
-        # obliczenie pozycji X i Y
+        # Obliczenie pozycji X i Y
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
 
-        # ustawienie geometrii okna
+        # Ustawienie geometrii okna
         self.setGeometry(x, y, window_width, window_height)
     def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
         options = QFileDialog.Options()
@@ -886,7 +887,6 @@ class POMOKAstat(QWidget):
         self.preferencesList.setEnabled(True)
         self.setRangeBtn.setEnabled(True)
         self.column_ranges = {}
-        self.resize(self.width() + 200, self.height() + 500)
         self.center()
 
         curve_id = preferences_description
