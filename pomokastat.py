@@ -128,7 +128,7 @@ class POMOKAstat(QWidget):
         self.setRangeBtn.setEnabled(False)
         self.addCurveBtn.setEnabled(False)
 
-        self.resize(400, 270)
+        self.resize(700, 270)
         self.setWindowTitle("POMOKA")
         self.setWindowIcon(QIcon('icon.png'))
 
@@ -208,7 +208,7 @@ class POMOKAstat(QWidget):
                 self.preferencesList.setParent(None)
                 self.preferencesList.deleteLater()
                 self.toggleSetRangeBtn()
-                self.adjustSize()
+                #self.adjustSize()
 
             self.executeBtn.setEnabled(True)
             self.CBpreferences()
@@ -219,6 +219,10 @@ class POMOKAstat(QWidget):
             QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
 
     def CBtests(self):  # wybor testow
+        if hasattr(self, 'testsList') and self.testsList is not None:
+            self.testsList.deleteLater()
+            self.testsList = None
+
         self.testsList = QListWidget(self)
         self.testsList.setSelectionMode(QAbstractItemView.MultiSelection)
 
@@ -266,6 +270,7 @@ class POMOKAstat(QWidget):
         self.preferencesList.setStyleSheet(common_style)
         self.testsList.setStyleSheet(common_style)
         self.ukladV.addLayout(horizontalLayout)
+        self.center()
 
 
     def CBpreferences(self):
@@ -678,7 +683,7 @@ class POMOKAstat(QWidget):
             os.makedirs(self.output_dir)
         self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"))
 
-        self.resize(self.width() + 300, self.height() + 500)
+        self.resize(self.width() + 200, self.height() + 500)
         self.center()
 
     def addCurve(self):
@@ -843,10 +848,14 @@ class POMOKAstat(QWidget):
         self.preferencesList.setEnabled(True)
         self.setRangeBtn.setEnabled(True)
         self.column_ranges = {}
+        self.resize(self.width() + 200, self.height() + 500)
+        self.center()
 
 
 
-    #Stworzenie struktur do przechowywania wyników testów do raportu (i info o krzywych?). ##TODO
+
+
+#Stworzenie struktur do przechowywania wyników testów do raportu (i info o krzywych?). ##TODO
 
 
 

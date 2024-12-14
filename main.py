@@ -17,7 +17,7 @@ class POMOKAstartup(QWidget):
         palette.setColor(QPalette.Background, QColor("#ECECED"))  # Zmień "lightblue" na inny kolor, jeśli chcesz
         self.setPalette(palette)
 
-        self.resize(500, 270)
+        self.resize(700, 270)
 
         self.label = QLabel("<b>Welcome to POMOKA<b>", self)
         self.label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
@@ -33,7 +33,7 @@ class POMOKAstartup(QWidget):
                                 padding: 25px;            /* Wewnętrzny margines */
                                 border-radius: 10px; 
                                 font-size: 14px;
-                                width: 400px;
+                                width: 600px;
                             }
                             QPushButton:hover {
                                 background-color: #f0f0f0; /* Jaśniejsze tło po najechaniu */
