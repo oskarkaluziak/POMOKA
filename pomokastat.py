@@ -31,36 +31,17 @@ from scipy.stats import ks_2samp
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
 
-class TestResultsStorage:
-    def __init__(self):
-        self.results = {}  # Struktura: {"Test_Name": {"Curve_ID": {"Metric": value}}}
-
-    def add_result(self, test_name, curve_id, result_dict):
-        if test_name not in self.results:
-            self.results[test_name] = {}
-        self.results[test_name][curve_id] = result_dict
-
-    def get_result(self, test_name, curve_id):
-        return self.results.get(test_name, {}).get(curve_id, None)
-
-    def get_all_results(self):
-        return self.results
-
 
 class POMOKAstat(QWidget):
     global_iteration_offset = 0
     is_first_call = True
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.survival_probabilities_ill = None
-        self.time_points_ill = None
-        self.time
         self.interface()
         self.isExecuting = False
         self.column_ranges = {}
         self.curves_data = []
         self.legend_text = []
-        self.results_storage = TestResultsStorage()
 
 
     def interface(self):  # interface apki
@@ -147,7 +128,7 @@ class POMOKAstat(QWidget):
         self.setRangeBtn.setEnabled(False)
         self.addCurveBtn.setEnabled(False)
 
-        self.resize(400, 270)
+        self.resize(700, 270)
         self.setWindowTitle("POMOKA")
         self.setWindowIcon(QIcon('icon.png'))
 
@@ -227,7 +208,7 @@ class POMOKAstat(QWidget):
                 self.preferencesList.setParent(None)
                 self.preferencesList.deleteLater()
                 self.toggleSetRangeBtn()
-                self.adjustSize()
+                #self.adjustSize()
 
             self.executeBtn.setEnabled(True)
             self.CBpreferences()
@@ -238,6 +219,10 @@ class POMOKAstat(QWidget):
             QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
 
     def CBtests(self):  # wybor testow
+        if hasattr(self, 'testsList') and self.testsList is not None:
+            self.testsList.deleteLater()
+            self.testsList = None
+
         self.testsList = QListWidget(self)
         self.testsList.setSelectionMode(QAbstractItemView.MultiSelection)
 
@@ -285,6 +270,7 @@ class POMOKAstat(QWidget):
         self.preferencesList.setStyleSheet(common_style)
         self.testsList.setStyleSheet(common_style)
         self.ukladV.addLayout(horizontalLayout)
+        self.center()
 
 
     def CBpreferences(self):
@@ -697,9 +683,8 @@ class POMOKAstat(QWidget):
             os.makedirs(self.output_dir)
         self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"))
 
-        self.resize(self.width() + 300, self.height() + 500)
+        self.resize(self.width() + 200, self.height() + 500)
         self.center()
-        return preferences_description
 
     def addCurve(self):
         if not hasattr(self, 'df'):
@@ -821,12 +806,6 @@ class POMOKAstat(QWidget):
         survival_values = kmf_additional.survival_function_['KM_estimate']
         n_at_risk = kmf_additional.event_table['at_risk']
 
-        self.time_points = kmf_additional.survival_function_.index.tolist()
-        self.survival_probabilities = kmf_additional.survival_function_['KM_estimate'].tolist()
-
-        #self.survival_probabilities = kmf_ill.survival_function_['KM_estimate'].values
-        #self.time_points = kmf_ill.survival_function_.index
-
         global is_first_call, global_iteration_offset_y  # Użycie globalnej zmiennej
         drawn_text_positions = []
         offset_step_y = 0.2
@@ -869,37 +848,18 @@ class POMOKAstat(QWidget):
         self.preferencesList.setEnabled(True)
         self.setRangeBtn.setEnabled(True)
         self.column_ranges = {}
-
-        curve_id = preferences_description
-        selected_tests = [item.text() for item in self.testsList.selectedItems()]
-        # results_storage = TestResultsStorage()
-        for test in selected_tests:
-            if test == "Gehan-Wilcoxon test":
-                self.run_gehan_wilcoxon()
-            elif test == "Cox-Mantel test":
-                self.run_cox_mantel()
-            elif test == "F Cox test":
-                self.run_f_cox()
-            elif test == "Log-rank test":
-                self.run_log_rank()
-            elif test == "Peto-Peto-Wilcoxon test":
-                self.run_peto_peto_wilcoxon()
-            elif test == "AUC":
-                self.run_AUC(curve_id)
-            elif test == "Kolomorow Smirnow":
-                self.run_KS_test(curve_id)
-            elif test == "AUC Interpolated":
-                self.run_AUC_interpolated(curve_id)
-            elif test == "Kolomorow Smirnow Interpolated":
-                self.run_KS_test_interpolated(curve_id)
-            elif test == "Srednia roznica interpolated":
-                self.run_mean_diff(curve_id)
-            elif test == "Mann-Whitney U test":
-                self.run_mann_whitney_u(curve_id)
+        self.resize(self.width() + 200, self.height() + 500)
+        self.center()
 
 
 
-    def run_AUC(self, curve_id): #porównanie pól pod krzywymi
+
+
+#Stworzenie struktur do przechowywania wyników testów do raportu (i info o krzywych?). ##TODO
+
+
+
+    def run_AUC(self): #porównanie pól pod krzywymi
         time_points_ill = self.time_points
         survival_probabilities_ill = self.survival_probabilities
 
@@ -935,8 +895,6 @@ class POMOKAstat(QWidget):
         formatted_auc_gus = f"{auc_gus:.3f}"
         formatted_auc_diff = f"{auc_diff:.3f}"
 
-        self.results_storage.add_result("AUC", curve_id, {"AUC_ILL": formatted_auc_ill, "AUC_GUS": formatted_auc_gus, "AUC_DIFF": formatted_auc_diff})
-
         # Ustawianie tekstu z poprawnym formatowaniem
         self.resultEdt.setText(
             f"AUC test: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
@@ -950,10 +908,7 @@ class POMOKAstat(QWidget):
         QMessageBox.information(self, "AUC test",
                                 "Wykonano test AUC, kliknij OK aby przejść do wyniku kolejnego testu")
 
-        all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
-
-    def run_AUC_interpolated(self, curve_id): #porównanie pól pod krzywymi
+    def run_AUC_interpolated(self): #porównanie pól pod krzywymi
         time_points_ill = self.time_points  #wiecej puntkow
         survival_probabilities_ill = self.survival_probabilities
 
@@ -988,8 +943,6 @@ class POMOKAstat(QWidget):
         formatted_auc_gus = f"{auc_gus:.3f}"
         formatted_auc_diff = f"{auc_diff:.3f}"
 
-        self.results_storage.add_result("AUC interpolated", curve_id, {"AUC_ILL": formatted_auc_ill, "AUC_GUS": formatted_auc_gus, "AUC_DIFF": formatted_auc_diff})
-
 
         self.resultEdt.setText(
             f"AUC test interpolated: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
@@ -998,18 +951,13 @@ class POMOKAstat(QWidget):
         self.time(text)
         QMessageBox.information(self, "AUC test",
                                 "Wykonano test AUC po interpolacji, kliknij OK aby przejsc do wyniku kolejnego testu")
-        all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
 
-    def run_KS_test(self, curve_id):
+    def run_KS_test(self):
 
         survival_probabilities_ill = self.survival_probabilities
         survival_probabilities_gus = self.y_data_probability_trimmed
 
         ks_stat, p_value = ks_2samp(survival_probabilities_gus, survival_probabilities_ill)
-
-        self.results_storage.add_result("KS test", curve_id, {"KS_stat": ks_stat, "P-value": p_value})
-
 
         self.resultEdt.setText(
             f"Kolomorow Smirnow test: Statystyka KS = {ks_stat}, p-value = {p_value}")
@@ -1017,10 +965,8 @@ class POMOKAstat(QWidget):
         self.time(text)
         QMessageBox.information(self, "Kolomorow Smirnow test",
                                 "Wykonano test Kolomorow Smirnow, kliknij OK aby przejść do wyniku kolejnego testu")
-        all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
 
-    def run_KS_test_interpolated(self, curve_id):
+    def run_KS_test_interpolated(self):
 
         time_points_ill = self.time_points
         time_points_gus = self.x_data_trimmed
@@ -1032,18 +978,14 @@ class POMOKAstat(QWidget):
 
         ks_stat, p_value = ks_2samp(survival_probabilities_gus_interpolated, survival_probabilities_ill)
 
-        self.results_storage.add_result("KS test", curve_id, {"KS_stat": ks_stat, "P-value": p_value})
-
         self.resultEdt.setText(
             f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}")
         text = f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}"
         self.time(text)
         QMessageBox.information(self, "Kolomorow Smirnow test interpolated",
                                 "Wykonano test Kolomorow Smirnow po interpolacji, kliknij OK aby przejść do wyniku kolejnego testu")
-        all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
 
-    def run_mean_diff(self, curve_id):
+    def run_mean_diff(self):
         time_points_ill = self.time_points  # wiecej puntkow
         survival_probabilities_ill = self.survival_probabilities
 
@@ -1055,38 +997,24 @@ class POMOKAstat(QWidget):
 
         diff = np.mean(np.abs(survival_probabilities_ill - survival_probabilities_gus_interpolated))
 
-        self.results_storage.add_result("Mean diff test", curve_id, {"Mean_diff": diff})
-
         self.resultEdt.setText(
             f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}")
         text = f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}"
         self.time(text)
         QMessageBox.information(self, "Srednia roznica pomiedzy ppunktami wykresu",
                                 "Obliczono srednia roznice pomiedzy ppunktami wykresu, kliknij OK aby przejść do wyniku kolejnego testu")
-        all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
 
-    def run_mann_whitney_u(self, curve_id):
+    def run_mann_whitney_u(self):
         time_points_ill = self.time_points  # wiecej puntkow
         survival_probabilities_ill = self.survival_probabilities
-        print(f"Time_points_ill: {time_points_ill}")
-        print(f"Survival_probabilities_ill: {survival_probabilities_ill}")
-
 
         time_points_gus = self.x_data_trimmed  # mniej punktow
         survival_probabilities_gus = self.y_data_probability_trimmed
 
-        print(f"time_points_gus: {time_points_gus}")
-        print(f"survival_probabilities_gus: {survival_probabilities_gus}")
-
         interpolator = interp1d(time_points_gus, survival_probabilities_gus, kind='linear', fill_value="extrapolate")
         survival_probabilities_gus_interpolated = interpolator(time_points_ill)
-        print(f"Suv_gur_interpolated = {survival_probabilities_gus_interpolated}")
-
 
         stat, p_value = mannwhitneyu(survival_probabilities_gus_interpolated, survival_probabilities_ill, alternative='two-sided')
-
-        self.results_storage.add_result("Mann-Whitney U", curve_id, {"Statystyka U": stat, "P-value": p_value})
 
         self.resultEdt.setText(
             f"Test Manna-Whitneya U: Statystyka U = {stat}, P-value = {p_value}")
@@ -1094,8 +1022,6 @@ class POMOKAstat(QWidget):
         self.time(text)
         QMessageBox.information(self, "Test Manna-Whitneya U",
                                 "Wykonano Test Manna-Whitneya U, kliknij OK aby przejść do wyniku kolejnego testu")
-        all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
 
     def run_gehan_wilcoxon(self):  # TODO
         self.survival_gus_interpolated = np.interp(self.time_points, self.x_data_trimmed, self.y_data_probability_trimmed)
@@ -1196,13 +1122,12 @@ class POMOKAstat(QWidget):
         self.executeBtn.setText("Break")
         self.isExecuting = True
 
-        curve_id = self.ill()
+        self.ill()
         self.preferencesList.clearSelection()
         self.preferencesList.setEnabled(True)
         self.setRangeBtn.setEnabled(True)
         self.column_ranges = {}
         selected_tests = [item.text() for item in self.testsList.selectedItems()]
-        #results_storage = TestResultsStorage()
         for test in selected_tests:
             if test == "Gehan-Wilcoxon test":
                 self.run_gehan_wilcoxon()
@@ -1215,17 +1140,17 @@ class POMOKAstat(QWidget):
             elif test == "Peto-Peto-Wilcoxon test":
                 self.run_peto_peto_wilcoxon()
             elif test == "AUC":
-                self.run_AUC(curve_id)
+                self.run_AUC()
             elif test == "Kolomorow Smirnow":
-                self.run_KS_test(curve_id)
+                self.run_KS_test()
             elif test == "AUC Interpolated":
-                self.run_AUC_interpolated(curve_id)
+                self.run_AUC_interpolated()
             elif test == "Kolomorow Smirnow Interpolated":
-                self.run_KS_test_interpolated(curve_id)
+                self.run_KS_test_interpolated()
             elif test == "Srednia roznica interpolated":
-                self.run_mean_diff(curve_id)
+                self.run_mean_diff()
             elif test=="Mann-Whitney U test":
-                self.run_mann_whitney_u(curve_id)
+                self.run_mann_whitney_u()
 
     def breakExecution(self):
         self.testsList.clearSelection()
