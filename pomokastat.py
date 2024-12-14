@@ -919,7 +919,9 @@ class POMOKAstat(QWidget):
     def generateReport(self):
         #wybor ktore krzywe maja sie znajdowac sie w raoporcie (zapisywanie sciecek do wykresow w testresultsstorage)
         # + jakies sensowniejsze opisy tych wykresow i dodanie opcji zapisania szarych
-        # + zapis krzywych na jednym wykresie albo na roznych #TODO
+        # + zapis krzywych na jednym wykresie albo na roznych
+        # + dodanie tabeli z iloscia pazjentow w danym roku ale to wszystko do rozjebania w pol godziny
+        # #TODO
         try:
             # Tworzenie obiektu PDF
             pdf = FPDF()
