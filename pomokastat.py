@@ -30,6 +30,9 @@ from scipy.stats import ks_2samp
 # Custom imports
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
+from fpdf import FPDF
+
+
 class TestResultsStorage:
     def __init__(self):
         self.results = {}  # Struktura: {"Test_Name": {"Curve_ID": {"Metric": value}}}
@@ -59,7 +62,6 @@ class POMOKAstat(QWidget):
         self.legend_text = []
         self.results_storage = TestResultsStorage()
 
-
     def interface(self):  # interface apki
         self.setAutoFillBackground(True)
         palette = QPalette()
@@ -77,27 +79,10 @@ class POMOKAstat(QWidget):
         self.setRangeBtn = QPushButton("&Set Range", self)
         self.executeBtn = QPushButton("&Execute", self)
         self.addCurveBtn = QPushButton("&Add next curve", self)
+        self.generateReportBtn = QPushButton("&Generate Report", self)  # Nowy przycisk do raportu
         shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
-        self.ukladV = QVBoxLayout()
-        self.ukladH = QHBoxLayout()
-
-        self.ukladV.addWidget(self.label1)
-
-        self.horizontalLayoutForLabel2AndResult = QHBoxLayout()
-        self.horizontalLayoutForLabel2AndResult.addWidget(self.label2)
-        self.resultEdt.setStyleSheet("""
-            QLineEdit {  /* Jeśli to QLineEdit, używamy selektora QLineEdit */
-                color: black;            /* Kolor tekstu */
-                background-color: white; /* Tło prostokąta */
-                border: 1px solid black; /* Ramka prostokąta */
-                padding: 3px;            /* Wewnętrzny margines */
-                border-radius: 5px;      /* Zaokrąglone rogi */
-            }
-        """)
-        self.horizontalLayoutForLabel2AndResult.addWidget(self.resultEdt)
-        self.ukladV.addLayout(self.horizontalLayoutForLabel2AndResult)
-
+        # Styl przycisków
         common_button_style = """
             QPushButton {
                 color: black;            /* Kolor tekstu */
@@ -118,31 +103,60 @@ class POMOKAstat(QWidget):
                 border: 2px solid #d0d0d0; /* Subtelna ramka */
             }
         """
-        # Ustawienie stylu dla przycisków
         self.uploadBtn.setStyleSheet(common_button_style)
         self.setRangeBtn.setStyleSheet(common_button_style)
         self.executeBtn.setStyleSheet(common_button_style)
         self.addCurveBtn.setStyleSheet(common_button_style)
+        self.generateReportBtn.setStyleSheet(common_button_style)  # Styl nowego przycisku
         shutdownBtn.setStyleSheet(common_button_style)
 
+        # Układ przycisków
+        self.ukladV = QVBoxLayout()
+        self.ukladH = QHBoxLayout()
+
+        self.ukladV.addWidget(self.label1)
+
+        # Sekcja dla wyników
+        horizontalLayoutForLabel2AndResult = QHBoxLayout()
+        horizontalLayoutForLabel2AndResult.addWidget(self.label2)
+        self.resultEdt.setStyleSheet("""
+            QLineEdit {
+                color: black;            /* Kolor tekstu */
+                background-color: white; /* Tło prostokąta */
+                border: 1px solid black; /* Ramka prostokąta */
+                padding: 3px;            /* Wewnętrzny margines */
+                border-radius: 5px;      /* Zaokrąglone rogi */
+            }
+        """)
+        horizontalLayoutForLabel2AndResult.addWidget(self.resultEdt)
+        self.ukladV.addLayout(horizontalLayoutForLabel2AndResult)
+
+        # Dodanie przycisków do układu
         self.ukladV.addWidget(self.uploadBtn)
         self.ukladH.addWidget(self.setRangeBtn)
         self.ukladV.addWidget(self.executeBtn)
         self.ukladH.addWidget(self.addCurveBtn)
-
         self.ukladV.addLayout(self.ukladH)
+
+        # Dodanie nowego przycisku do raportu
+        self.ukladV.addWidget(self.generateReportBtn)  # Przycisk raportu
+
         self.ukladV.addWidget(shutdownBtn)
 
         self.setLayout(self.ukladV)
 
+        # Połączenia sygnałów z funkcjami
         shutdownBtn.clicked.connect(self.shutdown)
         self.uploadBtn.clicked.connect(self.uploadCSV)
         self.setRangeBtn.clicked.connect(self.setRanges)
         self.addCurveBtn.clicked.connect(self.addCurve)
         self.executeBtn.clicked.connect(self.toggleExecution)
+        self.generateReportBtn.clicked.connect(self.generateReport)  # Połączenie przycisku raportu
 
+        # Ustawienia początkowe
         self.setRangeBtn.setEnabled(False)
         self.addCurveBtn.setEnabled(False)
+        self.generateReportBtn.setEnabled(False)  # Przycisk raportu na początku wyłączony
 
         self.resize(700, 270)
         self.setWindowTitle("POMOKA")
@@ -692,6 +706,7 @@ class POMOKAstat(QWidget):
         ax.get_legend().remove() ###TO WYLACZA LEGENDE Z WYKRESU - WYSTARCZY TO USUNAC I BEDZIE LEGENDA NA WYKRESIE
         self.update_legend_widget()
 
+
         now = datetime.now()
         timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
         self.output_dir = os.path.join("plots", timestamp)
@@ -699,8 +714,11 @@ class POMOKAstat(QWidget):
             os.makedirs(self.output_dir)
         self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"))
 
+        self.generateReportBtn.setEnabled(True)  # wlaczenie przycisku do zapisywania raportu
+
         self.resize(self.width() + 200, self.height() + 500)
         self.center()
+
         return preferences_description
 
     def addCurve(self):
@@ -898,10 +916,60 @@ class POMOKAstat(QWidget):
             elif test == "Mann-Whitney U test":
                 self.run_mann_whitney_u(curve_id)
 
+    def generateReport(self):
+        #wybor ktore krzywe maja sie znajdowac sie w raoporcie (zapisywanie sciecek do wykresow w testresultsstorage)
+        # + jakies sensowniejsze opisy tych wykresow i dodanie opcji zapisania szarych
+        # + zapis krzywych na jednym wykresie albo na roznych #TODO
+        try:
+            # Tworzenie obiektu PDF
+            pdf = FPDF()
+            pdf.set_auto_page_break(auto=True, margin=15)
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
 
+            # Dodanie tytułu raportu
+            pdf.set_font("Arial", style="B", size=16)
+            pdf.cell(200, 10, txt="Statistical Analysis Report", ln=True, align='C')
+            pdf.ln(10)
 
+            # Dodanie wyników testów
+            pdf.set_font("Arial", size=12)
+            pdf.cell(0, 10, txt="Test Results:", ln=True, align='L')
+            pdf.ln(5)
 
-#Stworzenie struktur do przechowywania wyników testów do raportu (i info o krzywych?). ##TODO
+            results = self.results_storage.get_all_results()
+            for test_name, curves in results.items():
+                pdf.cell(0, 10, txt=f"Test: {test_name}", ln=True, align='L')
+                for curve_id, metrics in curves.items():
+                    pdf.cell(10)  # Wcięcie
+                    pdf.cell(0, 10, txt=f"Curve: {curve_id}", ln=True, align='L')
+                    for metric, value in metrics.items():
+                        pdf.cell(20)  # Wcięcie
+                        pdf.cell(0, 10, txt=f"{metric}: {value}", ln=True, align='L')
+                pdf.ln(5)
+
+            # Dodanie wygenerowanego wykresu
+            pdf.add_page()
+            pdf.set_font("Arial", style="B", size=12)
+            pdf.cell(0, 10, txt="Generated Plot:", ln=True, align='L')
+            pdf.ln(5)
+
+            # Ścieżka do wygenerowanego wykresu
+            plot_path = os.path.join(self.output_dir, "full_plot.png")
+            if os.path.exists(plot_path):
+                pdf.image(plot_path, x=10, y=30, w=190)  # Dodanie obrazu do PDF
+            else:
+                pdf.cell(0, 10, txt="Plot not found.", ln=True, align='L')
+
+            # Zapis raportu PDF
+            report_path = os.path.join(self.output_dir, "report.pdf")
+            pdf.output(report_path)
+
+            QMessageBox.information(self, "Report Generated", f"Report saved at: {report_path}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"An error occurred while generating the report: {str(e)}")
+
+    #Stworzenie struktur do przechowywania wyników testów do raportu (i info o krzywych?). ##TODO
 
     def run_AUC(self, curve_id):  # porównanie pól pod krzywymi
         time_points_ill = self.time_points
