@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from PySide6.QtGui import QIcon, QPalette, QColor
 from PySide6.QtCore import Qt
-from pomokastat import POMOKAstat
-from pomokamodel import POMOKAmodel
+from pomoka_stat import POMOKAstat
+from pomoka_model import POMOKAmodel
 
 class POMOKAstartup(QWidget):
     def __init__(self):

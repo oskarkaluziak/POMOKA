@@ -447,10 +447,10 @@ class POMOKAstat(QWidget):
 
         # te dwie plus sex generuje wykres dla zakresu rocznikow
         opcja = self.selected_option #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
-        file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
-        file_path_men = 'dane_mezczyzni.xlsx'
-        file_path_women = 'dane_kobiety.xlsx'
-        file_path_all = 'dane_ogolne.xlsx'
+        file_path = 'data/tablice_trwania_zycia_w_latach_1990-2022.xlsx'
+        file_path_men = 'data/dane_mezczyzni.xlsx'
+        file_path_women = 'data/dane_kobiety.xlsx'
+        file_path_all = 'data/dane_ogolne.xlsx'
         print(f"koncowy_gus:{self.selected_sex}")
         if sex == 0:
             sextext = 'men'
