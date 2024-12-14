@@ -1,4 +1,5 @@
 **POMOKA -**
+
 Open-source application which have to help physicians and researchers in creating plots from medical datasets.
 
 **Co-authors**
