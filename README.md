@@ -1,4 +1,5 @@
-**POMOKA -**
+**POMOKA**
+
 
 Open-source application which have to help physicians and researchers in creating plots from medical datasets.
 
@@ -7,7 +8,9 @@ Open-source application which have to help physicians and researchers in creatin
 2. prof. Piotr Formanowicz, prof. Bartłomiej Perek, Mikołaj Powalski
 
 **How to install?**
+
 pip3 install PySide6; pip3 install matplotlib; pip3 install pyarrow; pip3 install numpy; pip3 install xlrd; pip3 install scipy statsmodels; pip3 install fpdf
 
 **How to execute?**
+
 python pomoka.py
