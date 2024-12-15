@@ -1,10 +1,10 @@
 **POMOKA**
 
 
-Open-source application which have to help physicians and researchers in creating plots from medical datasets.
+Open-source application made for helping physicians and researchers creating plots from medical datasets.
 
 **Co-authors**
-1. Oskar Kałuziak, Grzegorz Możdzyński (oskar@kaluziak.pl, grzegorz.mozdzynski@student.put.poznan.pl)
+1. Oskar Kałuziak, Grzegorz Możdżyński (oskar@kaluziak.pl, grzegorz.mozdzynski@student.put.poznan.pl)
 2. prof. Piotr Formanowicz, prof. Bartłomiej Perek, Mikołaj Powalski
 
 **How to install?**
