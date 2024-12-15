@@ -4,7 +4,7 @@ from datetime import datetime
 
 # PyQt5 imports
 from PySide6.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
-    QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
+    QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QDialog, QVBoxLayout, QCheckBox, QComboBox)
 from PySide6.QtGui import QIcon, QPalette, QColor, QGuiApplication
 from PySide6.QtCore import Qt
 
@@ -48,6 +48,220 @@ class TestResultsStorage:
     def get_all_results(self):
         return self.results
 
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QCheckBox, QPushButton, QLabel
+
+class ReportOptionsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Report Options")
+
+        self.layout = QVBoxLayout(self)
+
+        # Input for report name
+        self.reportNameLabel = QLabel("Enter report name:")
+        self.reportNameInput = QLineEdit(self)
+        self.layout.addWidget(self.reportNameLabel)
+        self.layout.addWidget(self.reportNameInput)
+
+        # Checkbox for saving chart separately
+        self.saveChartCheckbox = QCheckBox("Save chart as a separate file")
+        self.layout.addWidget(self.saveChartCheckbox)
+
+        # Buttons
+        self.okButton = QPushButton("OK", self)
+        self.cancelButton = QPushButton("Cancel", self)
+        self.okButton.clicked.connect(self.accept)
+        self.cancelButton.clicked.connect(self.reject)
+
+        self.layout.addWidget(self.okButton)
+        self.layout.addWidget(self.cancelButton)
+
+    def getOptions(self):
+        return {
+            "report_name": self.reportNameInput.text().strip(),
+            "save_chart_separately": self.saveChartCheckbox.isChecked(),
+        }
+
+
+class ChartEditorDialog(QWidget):
+    def __init__(self, figure, parent=None):
+        super().__init__(parent)
+        self.figure = figure  # Przekazujemy obiekt wykresu
+        self.original_colors = []  # Przechowuje oryginalne kolory linii
+        self.original_styles = []  # Przechowuje oryginalne style linii
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle("Chart Editor")
+        layout = QVBoxLayout()
+
+        # Sekcja czcionki osi
+        font_label = QLabel("Set Axis Font Size:")
+        self.font_input = QLineEdit(self)
+        self.font_input.setPlaceholderText("Enter font size (e.g., 12)")
+        layout.addWidget(font_label)
+        layout.addWidget(self.font_input)
+
+        font_apply_btn = QPushButton("Apply Font Size", self)
+        font_apply_btn.clicked.connect(self.applyFontSize)
+        layout.addWidget(font_apply_btn)
+
+        # Sekcja tytułu wykresu
+        title_label = QLabel("Chart Title:")
+        self.title_input = QLineEdit(self)
+        self.title_input.setPlaceholderText("Enter chart title (e.g., My Chart)")
+        layout.addWidget(title_label)
+        layout.addWidget(self.title_input)
+
+        self.title_checkbox = QPushButton("Toggle Chart Title", self)
+        self.title_checkbox.clicked.connect(self.toggleTitle)
+        layout.addWidget(self.title_checkbox)
+
+        # Sekcja osi Y
+        y_axis_label = QLabel("Y-axis Title:")
+        self.y_axis_input = QLineEdit(self)
+        self.y_axis_input.setPlaceholderText("Enter Y-axis title")
+        layout.addWidget(y_axis_label)
+        layout.addWidget(self.y_axis_input)
+
+        self.add_y_axis_btn = QPushButton("Add Y Axis Title", self)
+        self.add_y_axis_btn.clicked.connect(self.addYAxis)
+        layout.addWidget(self.add_y_axis_btn)
+
+        self.remove_y_axis_btn = QPushButton("Remove Y Axis Title", self)
+        self.remove_y_axis_btn.clicked.connect(self.removeYAxis)
+        layout.addWidget(self.remove_y_axis_btn)
+
+        # Sekcja osi X
+        x_axis_label = QLabel("X-axis Title:")
+        self.x_axis_input = QLineEdit(self)
+        self.x_axis_input.setPlaceholderText("Enter X-axis title")
+        layout.addWidget(x_axis_label)
+        layout.addWidget(self.x_axis_input)
+
+        self.add_x_axis_btn = QPushButton("Add X Axis Title", self)
+        self.add_x_axis_btn.clicked.connect(self.addXAxis)
+        layout.addWidget(self.add_x_axis_btn)
+
+        self.remove_x_axis_btn = QPushButton("Remove X Axis Title", self)
+        self.remove_x_axis_btn.clicked.connect(self.removeXAxis)
+        layout.addWidget(self.remove_x_axis_btn)
+
+        # Sekcja legendy
+        self.toggle_legend_btn = QPushButton("Toggle Legend", self)
+        self.toggle_legend_btn.clicked.connect(self.toggleLegend)
+        layout.addWidget(self.toggle_legend_btn)
+
+        # Sekcja stylów
+        self.black_white_btn = QPushButton("Set Black & White Style", self)
+        self.black_white_btn.clicked.connect(self.setBlackAndWhiteStyle)
+        layout.addWidget(self.black_white_btn)
+
+        self.color_btn = QPushButton("Restore Original Style", self)
+        self.color_btn.clicked.connect(self.restoreColorStyle)
+        layout.addWidget(self.color_btn)
+
+        # Zamknięcie okna
+        close_btn = QPushButton("Close Chart Editor", self)
+        close_btn.clicked.connect(self.close)
+        layout.addWidget(close_btn)
+
+        self.setLayout(layout)
+
+    def toggleTitle(self):
+        """Włącz lub wyłącz tytuł wykresu."""
+        for ax in self.figure.axes:
+            ax.set_title('' if ax.get_title() else self.title_input.text())
+        self.figure.canvas.draw()
+
+    def applyFontSize(self):
+        """Zastosuj rozmiar czcionki do osi."""
+        font_size = self.font_input.text()
+        if font_size.isdigit():
+            font_size = int(font_size)
+            for ax in self.figure.axes:
+                for label in ax.get_xticklabels() + ax.get_yticklabels():
+                    label.set_fontsize(font_size)
+            self.figure.canvas.draw()
+        else:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid font size.")
+
+    def toggleAxisTitles(self):
+        """Włącz lub wyłącz tytuły osi."""
+        for ax in self.figure.axes:
+            if ax.get_xlabel() or ax.get_ylabel():
+                ax.set_xlabel('')
+                ax.set_ylabel('')
+            else:
+                ax.set_xlabel(self.x_axis_input.text())
+                ax.set_ylabel(self.y_axis_input.text())
+        self.figure.canvas.draw()
+
+    def toggleLegend(self):
+        """Włącz lub wyłącz legendę."""
+        for ax in self.figure.axes:
+            legend = ax.get_legend()
+            if legend:
+                legend.remove()
+            else:
+                ax.legend()
+        self.figure.canvas.draw()
+
+    def setBlackAndWhiteStyle(self):
+        """Ustawia tryb czarno-biały na wykresie i aktualizuje legendę."""
+        self.original_colors = [line.get_color() for ax in self.figure.axes for line in ax.get_lines()]
+        self.original_styles = [line.get_linestyle() for ax in self.figure.axes for line in ax.get_lines()]
+        line_styles = ['-', '--', '-.', ':', (0, (5, 10)), (0, (5, 1)), (0, (3, 5, 1, 5)), (0, (1, 1))]  # Różne style linii
+        for ax in self.figure.axes:
+            for idx, line in enumerate(ax.get_lines()):
+                line.set_color("black")
+                line.set_linestyle(line_styles[idx % len(line_styles)])  # Unikalny styl linii dla każdej krzywej
+            ax.legend()  # Aktualizuj legendę
+        self.figure.canvas.draw()
+
+    def restoreColorStyle(self):
+        """Przywraca kolorowy styl wykresu i aktualizuje legendę."""
+        if not self.original_colors or not self.original_styles:
+            QMessageBox.warning(self, "Error", "Original styles or colors are not stored!")
+            return
+        i = 0
+        for ax in self.figure.axes:
+            for line in ax.get_lines():
+                if i < len(self.original_colors) and i < len(self.original_styles):
+                    line.set_color(self.original_colors[i])  # Przywraca oryginalny kolor
+                    line.set_linestyle(self.original_styles[i])  # Przywraca oryginalny styl
+                    i += 1
+            ax.legend()  # Aktualizuj legendę
+        self.figure.canvas.draw()
+
+    def addXAxis(self):
+        """Dodaje etykiety na osi X."""
+        for ax in self.figure.axes:
+            ax.set_xlabel(self.x_axis_input.text() or "X Axis")
+        self.figure.canvas.draw()
+
+    def removeXAxis(self):
+        """Usuwa etykiety z osi X."""
+        for ax in self.figure.axes:
+            ax.set_xlabel('')
+        self.figure.canvas.draw()
+
+    def addYAxis(self):
+        """Dodaje etykiety na osi Y."""
+        for ax in self.figure.axes:
+            ax.set_ylabel(self.y_axis_input.text() or "Y Axis")
+        self.figure.canvas.draw()
+
+    def removeYAxis(self):
+        """Usuwa etykiety z osi Y."""
+        for ax in self.figure.axes:
+            ax.set_ylabel('')
+        self.figure.canvas.draw()
+
+    def close(self):
+        """Zamyka okno dialogowe."""
+        self.hide()
+
 class POMOKAstat(QWidget):
     global_iteration_offset = 0
     is_first_call = True
@@ -79,7 +293,8 @@ class POMOKAstat(QWidget):
         self.setRangeBtn = QPushButton("&Set Range", self)
         self.executeBtn = QPushButton("&Execute", self)
         self.addCurveBtn = QPushButton("&Add next curve", self)
-        self.generateReportBtn = QPushButton("&Generate Report", self)  # Nowy przycisk do raportu
+        self.generateReportBtn = QPushButton("&Generate Report", self)
+        self.editChartBtn = QPushButton("&Edit Chart", self)
         shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
         # Styl przycisków
@@ -107,7 +322,8 @@ class POMOKAstat(QWidget):
         self.setRangeBtn.setStyleSheet(common_button_style)
         self.executeBtn.setStyleSheet(common_button_style)
         self.addCurveBtn.setStyleSheet(common_button_style)
-        self.generateReportBtn.setStyleSheet(common_button_style)  # Styl nowego przycisku
+        self.generateReportBtn.setStyleSheet(common_button_style)
+        self.editChartBtn.setStyleSheet(common_button_style)
         shutdownBtn.setStyleSheet(common_button_style)
 
         # Układ przycisków
@@ -137,9 +353,8 @@ class POMOKAstat(QWidget):
         self.ukladV.addWidget(self.executeBtn)
         self.ukladH.addWidget(self.addCurveBtn)
         self.ukladV.addLayout(self.ukladH)
-
-        # Dodanie nowego przycisku do raportu
-        self.ukladV.addWidget(self.generateReportBtn)  # Przycisk raportu
+        self.ukladV.addWidget(self.generateReportBtn)
+        self.ukladV.addWidget(self.editChartBtn)
 
         self.ukladV.addWidget(shutdownBtn)
 
@@ -151,12 +366,14 @@ class POMOKAstat(QWidget):
         self.setRangeBtn.clicked.connect(self.setRanges)
         self.addCurveBtn.clicked.connect(self.addCurve)
         self.executeBtn.clicked.connect(self.toggleExecution)
-        self.generateReportBtn.clicked.connect(self.generateReport)  # Połączenie przycisku raportu
+        self.generateReportBtn.clicked.connect(self.generateReport)
+        self.editChartBtn.clicked.connect(self.openEditChartWindow)
 
         # Ustawienia początkowe
         self.setRangeBtn.setEnabled(False)
         self.addCurveBtn.setEnabled(False)
-        self.generateReportBtn.setEnabled(False)  # Przycisk raportu na początku wyłączony
+        self.generateReportBtn.setEnabled(False)
+        self.editChartBtn.setEnabled(False)
 
         self.resize(700, 270)
         self.setWindowTitle("POMOKA")
@@ -741,7 +958,7 @@ class POMOKAstat(QWidget):
         self.canvas.draw()
 
         self.legend_text.append(label_text)
-        ax.get_legend().remove() ###TO WYLACZA LEGENDE Z WYKRESU - WYSTARCZY TO USUNAC I BEDZIE LEGENDA NA WYKRESIE
+        #ax.get_legend().remove() ###TO WYLACZA LEGENDE Z WYKRESU - WYSTARCZY TO USUNAC I BEDZIE LEGENDA NA WYKRESIE
         self.update_legend_widget()
 
 
@@ -752,7 +969,8 @@ class POMOKAstat(QWidget):
             os.makedirs(self.output_dir)
         self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"))
 
-        self.generateReportBtn.setEnabled(True)  # wlaczenie przycisku do zapisywania raportu
+        self.generateReportBtn.setEnabled(True)
+        self.editChartBtn.setEnabled(True)
 
         self.resize(self.width() + 200, self.height() + 500)
         self.center()
@@ -955,61 +1173,64 @@ class POMOKAstat(QWidget):
                 self.run_mann_whitney_u(curve_id)
 
     def generateReport(self):
-        #wybor ktore krzywe maja sie znajdowac sie w raoporcie (zapisywanie sciecek do wykresow w testresultsstorage)
-        # + jakies sensowniejsze opisy tych wykresow i dodanie opcji zapisania szarych
-        # + zapis krzywych na jednym wykresie albo na roznych
-        # + dodanie tabeli z iloscia pazjentow w danym roku ale to wszystko do rozjebania w pol godziny
-        # #TODO
-        try:
-            # Tworzenie obiektu PDF
-            pdf = FPDF()
-            pdf.set_auto_page_break(auto=True, margin=15)
-            pdf.add_page()
-            pdf.set_font("Arial", size=12)
+        # Wyświetlenie dialogu do ustawień raportu
+        dialog = ReportOptionsDialog(self)
+        if dialog.exec() != QDialog.Accepted:
+            return
 
-            # Dodanie tytułu raportu
-            pdf.set_font("Arial", style="B", size=16)
-            pdf.cell(200, 10, txt="Statistical Analysis Report", ln=True, align='C')
-            pdf.ln(10)
+        # Pobranie opcji z dialogu
+        options = dialog.getOptions()
+        report_name = options["report_name"] or "report"
+        save_chart_separately = options["save_chart_separately"]
 
-            # Dodanie wyników testów
-            pdf.set_font("Arial", size=12)
-            pdf.cell(0, 10, txt="Test Results:", ln=True, align='L')
+        # Ścieżka do zapisu raportu
+        report_path = os.path.join(self.output_dir, f"{report_name}.pdf")
+
+        # Tworzenie raportu PDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt="Statistical Test Report", ln=True, align='C')
+
+        # Nagłówki i metadane
+        pdf.cell(200, 10, txt=f"Report Name: {report_name}", ln=True)
+        pdf.cell(200, 10, txt=f"Generated at: {self.output_dir}", ln=True)
+        pdf.ln(10)
+
+        # Wyniki testów statystycznych
+        results = self.results_storage.get_all_results()
+        for test, curves in results.items():
+            pdf.cell(200, 10, txt=f"Test: {test}", ln=True)
+            for curve_id, metrics in curves.items():
+                pdf.cell(200, 10, txt=f"  Curve: {curve_id}", ln=True)
+                for metric, value in metrics.items():
+                    pdf.cell(200, 10, txt=f"    {metric}: {value}", ln=True)
             pdf.ln(5)
 
-            results = self.results_storage.get_all_results()
-            for test_name, curves in results.items():
-                pdf.cell(0, 10, txt=f"Test: {test_name}", ln=True, align='L')
-                for curve_id, metrics in curves.items():
-                    pdf.cell(10)  # Wcięcie
-                    pdf.cell(0, 10, txt=f"Curve: {curve_id}", ln=True, align='L')
-                    for metric, value in metrics.items():
-                        pdf.cell(20)  # Wcięcie
-                        pdf.cell(0, 10, txt=f"{metric}: {value}", ln=True, align='L')
-                pdf.ln(5)
+        # Dodanie wykresu do raportu PDF
+        chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
+        self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=300)
+        pdf.cell(200, 10, txt=f"Chart included in report and saved as: {chart_image_path}", ln=True)
+        pdf.image(chart_image_path, x=10, y=pdf.get_y() + 10, w=190)
+        pdf.ln(90)  # Przesunięcie po wykresie
 
-            # Dodanie wygenerowanego wykresu
-            pdf.add_page()
-            pdf.set_font("Arial", style="B", size=12)
-            pdf.cell(0, 10, txt="Generated Plot:", ln=True, align='L')
-            pdf.ln(5)
+        # Zapisanie wykresu jako osobnego pliku, jeśli opcja została zaznaczona
+        if save_chart_separately:
+            pdf.cell(200, 10, txt=f"Chart also saved separately at: {chart_image_path}", ln=True)
 
-            # Ścieżka do wygenerowanego wykresu
-            plot_path = os.path.join(self.output_dir, "full_plot.png")
-            if os.path.exists(plot_path):
-                pdf.image(plot_path, x=10, y=30, w=190)  # Dodanie obrazu do PDF
-            else:
-                pdf.cell(0, 10, txt="Plot not found.", ln=True, align='L')
+        # Zapisanie raportu PDF
+        pdf.output(report_path)
 
-            # Zapis raportu PDF
-            report_path = os.path.join(self.output_dir, "report.pdf")
-            pdf.output(report_path)
+        # Informacja o zakończeniu
+        self.resultEdt.setText(f"Report saved at: {report_path}")
+        QMessageBox.information(self, "Report", f"Report saved at: {report_path}")
 
-            QMessageBox.information(self, "Report Generated", f"Report saved at: {report_path}")
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"An error occurred while generating the report: {str(e)}")
-
-    #Stworzenie struktur do przechowywania wyników testów do raportu (i info o krzywych?). ##TODO
+    def openEditChartWindow(self):
+        if hasattr(self, 'canvas') and self.canvas is not None:
+            self.editChartWindow = ChartEditorDialog(self.canvas.figure)
+            self.editChartWindow.show()
+        else:
+            QMessageBox.warning(self, "Error", "No chart available for editing.")
 
     def run_AUC(self, curve_id):  # porównanie pól pod krzywymi
         time_points_ill = self.time_points
