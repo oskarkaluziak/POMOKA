@@ -160,7 +160,7 @@ class POMOKAstat(QWidget):
 
         self.resize(700, 270)
         self.setWindowTitle("POMOKA")
-        self.setWindowIcon(QIcon('icon.png'))
+        self.setWindowIcon(QIcon('data/icon.png'))
 
     def center(self):
         # Pobranie głównego ekranu
