@@ -190,11 +190,11 @@ def save_data_to_excel(file_path_men, file_path_women, file_path_a, tab_m, tab_k
 
 def lineChartOne(sex, year):
     if sex == 0:
-        path = 'dane_mezczyzni.xlsx'
+        path = 'data/dane_mezczyzni.xlsx'
     if sex == 1:
-        path = 'dane_kobiety.xlsx'
+        path = 'data/dane_kobiety.xlsx'
     if sex == 2:
-        path = 'dane_ogolne.xlsx'
+        path = 'data/dane_ogolne.xlsx'
 
     data = pd.read_excel(path)
     row = data[data.iloc[:, 0] == year]
@@ -221,11 +221,11 @@ def lineChartOne(sex, year):
 # test.show()
 def lineChartRange(sex, start, end):
     if sex == 0:
-        path = 'dane_mezczyzni.xlsx'
+        path = 'data/dane_mezczyzni.xlsx'
     if sex == 1:
-        path = 'dane_kobiety.xlsx'
+        path = 'data/dane_kobiety.xlsx'
     if sex == 2:
-        path = 'dane_ogolne.xlsx'
+        path = 'data/dane_ogolne.xlsx'
 
     data = pd.read_excel(path)
 

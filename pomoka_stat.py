@@ -3,10 +3,10 @@ import sys
 from datetime import datetime
 
 # PyQt5 imports
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
+from PySide6.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
     QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
-from PyQt5.QtGui import QIcon, QPalette, QColor
-from PyQt5.QtCore import Qt
+from PySide6.QtGui import QIcon, QPalette, QColor, QGuiApplication
+from PySide6.QtCore import Qt
 
 # Data handling and analysis
 import pandas as pd
@@ -65,7 +65,7 @@ class POMOKAstat(QWidget):
     def interface(self):  # interface apki
         self.setAutoFillBackground(True)
         palette = QPalette()
-        palette.setColor(QPalette.Background, QColor("#ECECED"))  # Zmień "lightblue" na inny kolor, jeśli chcesz
+        palette.setColor(QPalette.Window, QColor("#ECECED"))
         self.setPalette(palette)
 
         self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
@@ -160,24 +160,25 @@ class POMOKAstat(QWidget):
 
         self.resize(700, 270)
         self.setWindowTitle("POMOKA")
-        self.setWindowIcon(QIcon('icon.png'))
+        self.setWindowIcon(QIcon('data/icon.png'))
 
     def center(self):
-        # pobranie wymiarów ekranu
-        screen = QApplication.desktop().screenGeometry()
-        screen_width = screen.width()
-        screen_height = screen.height()
+        # Pobranie głównego ekranu
+        screen = QGuiApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
 
-        # pobranie wymiarów okna
+        # Pobranie wymiarów okna
         window_size = self.geometry()
         window_width = window_size.width()
         window_height = window_size.height()
 
-        # obliczenie pozycji X i Y
+        # Obliczenie pozycji X i Y
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
 
-        # ustawienie geometrii okna
+        # Ustawienie geometrii okna
         self.setGeometry(x, y, window_width, window_height)
     def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
         options = QFileDialog.Options()
@@ -328,6 +329,9 @@ class POMOKAstat(QWidget):
         self.selected_age_start = 0
         self.selected_age_end = 100
         self.selected_option = 2
+        self.column_ranges = {}
+
+        # Retrieve selected columns from preferences
         selected_columns = [item.text() for item in self.preferencesList.selectedItems()]
 
         for column in selected_columns:
@@ -337,31 +341,54 @@ class POMOKAstat(QWidget):
             values = self.df[column].unique().tolist()
             values = [str(value) for value in values]
 
-            while True:  # oętla do ponownego pytania w przypadku błędnego formatu
-                value_range, ok = QInputDialog.getText(self, f"Select range for {column}",
-                                                       f"Enter the range for column {column} (minimum value-maximum value or specific values like 'SVG,MVG,SAG+Veins'):")
+            while True:  # Loop to allow retry on invalid input
+                value_range, ok = QInputDialog.getText(
+                    self,
+                    f"Select range for {column}",
+                    f"Enter the range for column {column} (e.g., '1-10' or 'SVG,MVG'):"
+                )
+
                 if not ok:
-                    break  # przerwij, jeśli użytkownik anulował dialog
+                    break  # Exit if user cancels the dialog
 
                 try:
+                    # Check if input is a numeric range (e.g., "1-10")
                     if '-' in value_range:
-                        if not re.match(r"^\d+\-\d+$", value_range.strip()):
-                            QMessageBox.warning(self, "Format Error",
-                                                "No values found in column '{column}' for the given range: {lower}-{upper}. Make sure you enter the correct format: MINIMUM value - MAXIMUM value")
-                            continue  #wróć do początku pętli, aby użytkownik wprowadził dane ponownie
+                        # Ensure the format is strictly numeric (e.g., "min-max")
+                        if not re.match(r"^\d+-\d+$", value_range.strip()):
+                            QMessageBox.warning(
+                                self,
+                                "Format Error",
+                                f"Invalid range format for column '{column}'. Please enter a valid numeric range: MINIMUM-MAXIMUM."
+                            )
+                            continue
 
                         lower, upper = map(int, value_range.split('-'))
-                        # sprawdzanie czy zakres wprowadzony przez uzytkownika jest zgodny z danymi
+
+                        # Check if lower bound is less than or equal to upper bound
+                        if lower > upper:
+                            QMessageBox.warning(
+                                self,
+                                "Range Error",
+                                f"Invalid range: the lower bound ({lower}) cannot be greater than the upper bound ({upper})."
+                            )
+                            continue
+
                         column_values = self.df[column]
+
+                        # Filter values in the range
                         filtered_values = column_values[(column_values >= lower) & (column_values <= upper)]
 
                         if filtered_values.empty:
-                            QMessageBox.warning(self, "Range Error",
-                                                    f"No values found in column '{column}' for the given range: {lower}-{upper}. Make sure you enter the correct format: MINIMUM value - MAXIMUM value")
+                            QMessageBox.warning(
+                                self,
+                                "Range Error",
+                                f"No values found in column '{column}' for the range: {lower}-{upper}."
+                            )
                             continue
 
+                        # Handle special cases for specific columns (e.g., age, sex)
                         if column.lower() in ['age', 'wiek']:
-                            lower, upper = map(int, value_range.split('-'))
                             if lower == upper:
                                 self.selected_age = lower
                                 self.selected_option = 1
@@ -370,50 +397,50 @@ class POMOKAstat(QWidget):
                                 self.selected_age_end = upper
                                 self.selected_option = 2
 
-                        if column.lower() in ['female', 'kobieta']:
-                            if len(value_range.split('-')) == 2:
-                                lower, upper = map(int, value_range.split('-'))
-                                if lower == upper:
-                                    value = lower
-                                if value == 1:
-                                    self.selected_sex = 1
-                                elif value == 0:
-                                    self.selected_sex = 0
+                        if column.lower() in ['sex', 'plec', 'płeć', 'pŁeć']:
+                            value = 2
+                            if lower == upper:
+                                value = lower
+                                if value in [1, 'm', 'male']:
+                                    self.selected_sex = 0  # 0=dane_mezczyzn
+                                elif value in [0, 'k', 'female', 'w', 'f']:
+                                    self.selected_sex = 1  # 1=dane_kobiet
                                 else:
                                     self.selected_sex = 2
-
-                        if column.lower() in ['sex', 'plec', 'płeć', 'pŁeć']:
-                            if len(value_range.split('-')) == 2:
-                                lower, upper = map(int, value_range.split('-'))
-                                if lower == upper:
-                                    value = lower
-                                    if value == [1, 'm', 'male']:
-                                        self.selected_sex = 0  # 0=dane_mezczyzn
-                                    elif value == [0, 'k', 'female', 'w', 'f']:
-                                        self.selected_sex = 1  # 1=dane_kobiet
-                                    else:
-                                        self.selected_sex = 2
-
-                        if column.lower() in ['male', 'mezczyzna', 'mężczyzna']:
-                            if len(value_range.split('-')) == 2:
-                                lower, upper = map(int, value_range.split('-'))
-                                if lower == upper:
-                                    value = lower
-                                    if value == 1:
-                                        self.selected_sex = 0
-                                    elif value == 0:
-                                        self.selected_sex = 1
-                                    else:
-                                        self.selected_sex = 2
 
                         self.column_ranges[column] = ('numeric', (lower, upper))
                         break
 
+                    # Check if input is a comma-separated list of values (e.g., "SVG,MVG")
+                    elif ',' in value_range or value_range.strip():
+                        value_list = [val.strip() for val in value_range.split(',')]
+
+                        # Verify if all entered values exist in the column
+                        if not set(value_list).issubset(set(values)):
+                            QMessageBox.warning(
+                                self,
+                                "Value Error",
+                                f"Some values in '{value_range}' do not exist in column '{column}'."
+                            )
+                            continue
+
+                        self.column_ranges[column] = ('categorical', value_list)
+                        break
+
                     else:
-                        QMessageBox.warning(self, "Input Error", "Please enter a valid range in the format: MINIMUM-MAXIMUM.")
+                        QMessageBox.warning(
+                            self,
+                            "Input Error",
+                            "Please enter a valid range (e.g., 'MINIMUM-MAXIMUM' or 'value1,value2,...')."
+                        )
                         continue
+
                 except ValueError:
-                    QMessageBox.warning(self, "Input Error", "Invalid input. Please enter a numeric range.")
+                    QMessageBox.warning(
+                        self,
+                        "Input Error",
+                        "Invalid input. Please enter a valid numeric range or a comma-separated list of values."
+                    )
 
     def shutdown(self):  # zamykanie aplikacji poprzez przycisk
         self.close()
@@ -435,6 +462,16 @@ class POMOKAstat(QWidget):
 
     def gus(self, ax, last_time_km):  # TODO
         # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
+        ##DEBUG
+        print("=== DEBUG: START OF FUNCTION 'gus' ===")
+        print(f"Selected sex: {self.selected_sex}")
+        #print(f"Selected age: {self.selected_age}")
+        print(f"Selected age start: {self.selected_age_start}")
+        print(f"Selected age end: {self.selected_age_end}")
+        print(f"Selected option: {self.selected_option}")
+        print(f"Last time KM: {last_time_km}")
+        print("=====================================")
+
         sex = self.selected_sex
 
         #BACKLOG jak działa:
@@ -446,10 +483,10 @@ class POMOKAstat(QWidget):
 
         # te dwie plus sex generuje wykres dla zakresu rocznikow
         opcja = self.selected_option #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
-        file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
-        file_path_men = 'dane_mezczyzni.xlsx'
-        file_path_women = 'dane_kobiety.xlsx'
-        file_path_all = 'dane_ogolne.xlsx'
+        file_path = 'data/tablice_trwania_zycia_w_latach_1990-2022.xlsx'
+        file_path_men = 'data/dane_mezczyzni.xlsx'
+        file_path_women = 'data/dane_kobiety.xlsx'
+        file_path_all = 'data/dane_ogolne.xlsx'
         print(f"koncowy_gus:{self.selected_sex}")
         if sex == 0:
             sextext = 'men'
@@ -579,6 +616,7 @@ class POMOKAstat(QWidget):
             self.ukladV.addWidget(self.text_widget)
 
     def ill(self):
+        self.ill_correct = 0
         if not hasattr(self, 'df'):
             QMessageBox.warning(self, "Error", "Data is not loaded.")
             return
@@ -718,6 +756,7 @@ class POMOKAstat(QWidget):
 
         self.resize(self.width() + 200, self.height() + 500)
         self.center()
+        self.ill_correct = 1
 
         return preferences_description
 
@@ -886,7 +925,6 @@ class POMOKAstat(QWidget):
         self.preferencesList.setEnabled(True)
         self.setRangeBtn.setEnabled(True)
         self.column_ranges = {}
-        self.resize(self.width() + 200, self.height() + 500)
         self.center()
 
         curve_id = preferences_description
@@ -1259,46 +1297,47 @@ class POMOKAstat(QWidget):
             if item.isSelected() and item.text() != "no preferences" and item.text() not in self.column_ranges:
                 QMessageBox.warning(self, "Warning", f"Please set range for {item.text()} before executing.")
                 return
-        self.setRangeBtn.setEnabled(False)
-
-        self.uploadBtn.setEnabled(False)
-        self.addCurveBtn.setEnabled(True)
-        if hasattr(self, 'testsList') and self.testsList.isVisible():
-            self.testsList.setEnabled(False)
-        if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
-            self.preferencesList.setEnabled(False)
-        self.executeBtn.setText("Break")
-        self.isExecuting = True
-
         curve_id = self.ill()
-        self.preferencesList.clearSelection()
-        self.preferencesList.setEnabled(True)
-        self.setRangeBtn.setEnabled(True)
-        self.column_ranges = {}
-        selected_tests = [item.text() for item in self.testsList.selectedItems()]
-        for test in selected_tests:
-            if test == "Gehan-Wilcoxon test":
-                self.run_gehan_wilcoxon()
-            elif test == "Cox-Mantel test":
-                self.run_cox_mantel()
-            elif test == "F Cox test":
-                self.run_f_cox()
-            elif test == "Log-rank test":
-                self.run_log_rank()
-            elif test == "Peto-Peto-Wilcoxon test":
-                self.run_peto_peto_wilcoxon()
-            elif test == "AUC":
-                self.run_AUC(curve_id)
-            elif test == "Kolomorow Smirnow":
-                self.run_KS_test(curve_id)
-            elif test == "AUC Interpolated":
-                self.run_AUC_interpolated(curve_id)
-            elif test == "Kolomorow Smirnow Interpolated":
-                self.run_KS_test_interpolated(curve_id)
-            elif test == "Srednia roznica interpolated":
-                self.run_mean_diff(curve_id)
-            elif test == "Mann-Whitney U test":
-                self.run_mann_whitney_u(curve_id)
+        if self.ill_correct == 1:
+            self.setRangeBtn.setEnabled(False)
+
+            self.uploadBtn.setEnabled(False)
+            self.addCurveBtn.setEnabled(True)
+            if hasattr(self, 'testsList') and self.testsList.isVisible():
+                self.testsList.setEnabled(False)
+            if hasattr(self, 'preferencesList') and self.preferencesList.isVisible():
+                self.preferencesList.setEnabled(False)
+            self.executeBtn.setText("Break")
+            self.isExecuting = True
+
+            self.preferencesList.clearSelection()
+            self.preferencesList.setEnabled(True)
+            self.setRangeBtn.setEnabled(True)
+            self.column_ranges = {}
+            selected_tests = [item.text() for item in self.testsList.selectedItems()]
+            for test in selected_tests:
+                if test == "Gehan-Wilcoxon test":
+                    self.run_gehan_wilcoxon()
+                elif test == "Cox-Mantel test":
+                    self.run_cox_mantel()
+                elif test == "F Cox test":
+                    self.run_f_cox()
+                elif test == "Log-rank test":
+                    self.run_log_rank()
+                elif test == "Peto-Peto-Wilcoxon test":
+                    self.run_peto_peto_wilcoxon()
+                elif test == "AUC":
+                    self.run_AUC(curve_id)
+                elif test == "Kolomorow Smirnow":
+                    self.run_KS_test(curve_id)
+                elif test == "AUC Interpolated":
+                    self.run_AUC_interpolated(curve_id)
+                elif test == "Kolomorow Smirnow Interpolated":
+                    self.run_KS_test_interpolated(curve_id)
+                elif test == "Srednia roznica interpolated":
+                    self.run_mean_diff(curve_id)
+                elif test == "Mann-Whitney U test":
+                    self.run_mann_whitney_u(curve_id)
 
     def breakExecution(self):
         self.testsList.clearSelection()
