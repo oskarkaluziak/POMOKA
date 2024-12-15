@@ -49,7 +49,7 @@ class POMOKAstartup(QWidget):
                         """
         self.statBtn.setStyleSheet(common_button_style)
         self.modelBtn.setStyleSheet(common_button_style)
-        # self.modelBtn.setEnabled(False)
+        self.modelBtn.setEnabled(False)
 
         self.statBtn.clicked.connect(self.openStatApp)
         self.modelBtn.clicked.connect(self.openModelApp)
