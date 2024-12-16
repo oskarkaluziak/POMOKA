@@ -11,7 +11,7 @@ class POMOKAstartup(QWidget):
 
     def setupUI(self):
         self.setWindowTitle("POMOKA menu")
-        self.setWindowIcon(QIcon('data/icon.png'))
+        self.setWindowIcon(QIcon('images/icon.png'))
         self.setAutoFillBackground(True)
         palette = QPalette()
         palette.setColor(QPalette.Window, QColor("#ECECED"))  # Używamy QPalette.Window zamiast QPalette.Background

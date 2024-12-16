@@ -148,13 +148,17 @@ class ChartEditorDialog(QWidget):
         layout.addWidget(self.remove_x_axis_btn)
 
         # Sekcja legendy
+        legend_label = QLabel("Legend:")
         self.toggle_legend_btn = QPushButton("Toggle Legend", self)
         self.toggle_legend_btn.clicked.connect(self.toggleLegend)
+        layout.addWidget(legend_label)
         layout.addWidget(self.toggle_legend_btn)
 
         # Sekcja stylów
+        style_label = QLabel("Style:")
         self.black_white_btn = QPushButton("Set Black & White Style", self)
         self.black_white_btn.clicked.connect(self.setBlackAndWhiteStyle)
+        layout.addWidget(style_label)
         layout.addWidget(self.black_white_btn)
 
         self.color_btn = QPushButton("Restore Original Style", self)
@@ -375,9 +379,9 @@ class POMOKAstat(QWidget):
         self.generateReportBtn.setEnabled(False)
         self.editChartBtn.setEnabled(False)
 
-        self.resize(700, 270)
+        self.resize(600, 270)
         self.setWindowTitle("POMOKA")
-        self.setWindowIcon(QIcon('data/icon.png'))
+        self.setWindowIcon(QIcon('images/icon.png'))
 
     def center(self):
         # Pobranie głównego ekranu
