@@ -372,6 +372,7 @@ class POMOKAstat(QWidget):
         self.executeBtn.clicked.connect(self.toggleExecution)
         self.generateReportBtn.clicked.connect(self.generateReport)
         self.editChartBtn.clicked.connect(self.openEditChartWindow)
+        self.openstatusEditChartWindow = 0
 
         # Ustawienia początkowe
         self.setRangeBtn.setEnabled(False)
@@ -1240,6 +1241,7 @@ class POMOKAstat(QWidget):
         QMessageBox.information(self, "Report", f"Report saved at: {report_path}")
 
     def openEditChartWindow(self):
+        self.openstatusEditChartWindow = 1
         if hasattr(self, 'canvas') and self.canvas is not None:
             self.editChartWindow = ChartEditorDialog(self.canvas.figure)
             self.editChartWindow.show()
@@ -1587,7 +1589,8 @@ class POMOKAstat(QWidget):
         self.setRangeBtn.setEnabled(False)
         self.executeBtn.setEnabled(False)
         self.uploadBtn.show()
-        self.editChartWindow.hide()
+        if self.openstatusEditChartWindow == 1:
+            self.editChartWindow.hide()
         for i in reversed(range(self.ukladV.count())):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
