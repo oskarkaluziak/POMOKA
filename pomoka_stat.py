@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 # PyQt5 imports
-from PySide6.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
+from PySide6.QtWidgets import (QWidget, QLabel, QRadioButton, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
     QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QDialog, QVBoxLayout, QCheckBox, QComboBox)
 from PySide6.QtGui import QIcon, QPalette, QColor, QGuiApplication
 from PySide6.QtCore import Qt
@@ -67,6 +67,12 @@ class ReportOptionsDialog(QDialog):
         self.saveChartCheckbox = QCheckBox("Save chart as a separate file")
         self.layout.addWidget(self.saveChartCheckbox)
 
+        self.layout.addWidget(QLabel("Select report format:"))
+        self.pdf_option = QRadioButton("PDF")
+        self.pdf_option.setChecked(True)  # Domyślnie PDF
+        self.png_option = QRadioButton("PNG")
+        self.layout.addWidget(self.pdf_option)
+        self.layout.addWidget(self.png_option)
         # Buttons
         self.okButton = QPushButton("OK", self)
         self.cancelButton = QPushButton("Cancel", self)
@@ -78,8 +84,9 @@ class ReportOptionsDialog(QDialog):
 
     def getOptions(self):
         return {
-            "report_name": self.reportNameInput.text().strip(),
+            "report_name": self.reportNameInput.text(),
             "save_chart_separately": self.saveChartCheckbox.isChecked(),
+            "output_format": "pdf" if self.pdf_option.isChecked() else "png",
         }
 
 
@@ -1166,14 +1173,8 @@ class POMOKAstat(QWidget):
         for test in selected_tests:
             if test == "Gehan-Wilcoxon test":
                 self.run_gehan_wilcoxon()
-            elif test == "Cox-Mantel test":
-                self.run_cox_mantel()
-            elif test == "F Cox test":
-                self.run_f_cox()
             elif test == "Log-rank test":
                 self.run_log_rank()
-            elif test == "Peto-Peto-Wilcoxon test":
-                self.run_peto_peto_wilcoxon()
             elif test == "AUC":
                 self.run_AUC(curve_id)
             elif test == "Kolomorow Smirnow":
@@ -1182,7 +1183,7 @@ class POMOKAstat(QWidget):
                 self.run_AUC_interpolated(curve_id)
             elif test == "Kolomorow Smirnow Interpolated":
                 self.run_KS_test_interpolated(curve_id)
-            elif test == "Srednia roznica interpolated":
+            elif test == "Average difference Interpolated":
                 self.run_mean_diff(curve_id)
             elif test == "Mann-Whitney U test":
                 self.run_mann_whitney_u(curve_id)
@@ -1197,47 +1198,101 @@ class POMOKAstat(QWidget):
         options = dialog.getOptions()
         report_name = options["report_name"] or "report"
         save_chart_separately = options["save_chart_separately"]
+        output_format = options["output_format"]  # Nowa opcja: 'pdf' lub 'png'
 
-        # Ścieżka do zapisu raportu
-        report_path = os.path.join(self.output_dir, f"{report_name}.pdf")
-
-        # Tworzenie raportu PDF
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.cell(200, 10, txt="Statistical Test Report", ln=True, align='C')
-
-        # Nagłówki i metadane
-        pdf.cell(200, 10, txt=f"Report Name: {report_name}", ln=True)
-        pdf.cell(200, 10, txt=f"Generated at: {self.output_dir}", ln=True)
-        pdf.ln(10)
-
-        # Wyniki testów statystycznych
-        results = self.results_storage.get_all_results()
-        for test, curves in results.items():
-            pdf.cell(200, 10, txt=f"Test: {test}", ln=True)
-            for curve_id, metrics in curves.items():
-                pdf.cell(200, 10, txt=f"  Curve: {curve_id}", ln=True)
-                for metric, value in metrics.items():
-                    pdf.cell(200, 10, txt=f"    {metric}: {value}", ln=True)
-            pdf.ln(5)
-
-        # Dodanie wykresu do raportu PDF
+        # Ścieżki do zapisu raportu i wykresu
+        report_path = os.path.join(self.output_dir, f"{report_name}.{output_format}")
         chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
-        self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=300)
-        pdf.cell(200, 10, txt=f"Chart included in report and saved as: {chart_image_path}", ln=True)
-        pdf.image(chart_image_path, x=10, y=pdf.get_y() + 10, w=190)
-        pdf.ln(90)  # Przesunięcie po wykresie
 
-        # Zapisanie wykresu jako osobnego pliku, jeśli opcja została zaznaczona
-        if save_chart_separately:
-            pdf.cell(200, 10, txt=f"Chart also saved separately at: {chart_image_path}", ln=True)
+        # Generowanie raportu w formacie PDF
+        if output_format == "pdf":
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            pdf.cell(200, 10, txt="Statistical Test Report", ln=True, align='C')
 
-        # Zapisanie raportu PDF
-        pdf.output(report_path)
+            # Nagłówki i metadane
+            pdf.cell(200, 10, txt=f"Report Name: {report_name}", ln=True)
+            pdf.cell(200, 10, txt=f"Generated at: {self.output_dir}", ln=True)
+            pdf.ln(10)
+
+            # Wyniki testów statystycznych
+            results = self.results_storage.get_all_results()
+            for test, curves in results.items():
+                pdf.cell(200, 10, txt=f"Test: {test}", ln=True)
+                for curve_id, metrics in curves.items():
+                    pdf.cell(200, 10, txt=f"  Curve: {curve_id}", ln=True)
+                    for metric, value in metrics.items():
+                        pdf.cell(200, 10, txt=f"    {metric}: {value}", ln=True)
+                pdf.ln(5)
+
+            # Dodanie wykresu do raportu PDF
+            chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
+            self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=300)
+            pdf.cell(200, 10, txt=f"Chart included in report and saved as: {chart_image_path}", ln=True)
+            pdf.image(chart_image_path, x=10, y=pdf.get_y() + 10, w=190)
+            pdf.ln(90)  # Przesunięcie po wykresie
+
+            # Zapisanie wykresu jako osobnego pliku, jeśli opcja została zaznaczona
+            if save_chart_separately:
+                pdf.cell(200, 10, txt=f"Chart also saved separately at: {chart_image_path}", ln=True)
+
+            # Zapisanie raportu PDF
+            pdf.output(report_path)
+
+        # Generowanie raportu w formacie PNG
+        elif output_format == "png":
+            # Tworzenie figury raportu w formacie A4
+            fig = plt.figure(figsize=(8.27, 11.69))  # Rozmiar A4 w calach (210mm x 297mm)
+            ax = fig.add_subplot(111)
+            ax.axis('off')  # Ukrycie osi
+
+            # Dodanie tytułu raportu
+            fig.suptitle("Statistical Test Report", fontsize=16, weight='bold', y=0.95)
+
+            # Nagłówki i metadane
+            y_position = 0.85  # Pozycja startowa tekstu
+            line_height = 0.03  # Odstęp między liniami
+            report_content = [
+                f"Report Name: {report_name}",
+                f"Generated at: {self.output_dir}",
+                "",
+                "Results:"
+            ]
+
+            # Wyniki testów statystycznych
+            results = self.results_storage.get_all_results()
+            for test, curves in results.items():
+                report_content.append(f"Test: {test}")
+                for curve_id, metrics in curves.items():
+                    report_content.append(f"  Curve: {curve_id}")
+                    for metric, value in metrics.items():
+                        report_content.append(f"    {metric}: {value}")
+                report_content.append("")
+
+            # Renderowanie tekstu na obrazie
+            for line in report_content:
+                ax.text(0.1, y_position, line, fontsize=10, va='top')
+                y_position -= line_height
+
+            # Dodanie wykresu poniżej tekstu
+            chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
+            self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=300)  # Zapisanie wykresu tymczasowo
+            chart_img = plt.imread(chart_image_path)  # Wczytanie wykresu
+
+            # Wyświetlenie wykresu w dolnej części strony
+            ax.imshow(chart_img, aspect='equal', extent=[0.1, 0.9, 0.1, 0.4])  # Ustawienie pozycji wykresu
+
+            # Zapisanie raportu jako pliku PNG
+            fig.savefig(report_path, bbox_inches="tight", dpi=300)
 
         # Informacja o zakończeniu
-        self.resultEdt.setText(f"Report saved at: {report_path}")
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Report")
+        msg_box.setText(f"Report saved at: {report_path}")
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.setGeometry(100, 100, 300, 100)  # Zapewnienie, że wiadomość otworzy się na ekranie
+        msg_box.exec()
         QMessageBox.information(self, "Report", f"Report saved at: {report_path}")
 
     def openEditChartWindow(self):
@@ -1476,27 +1531,12 @@ class POMOKAstat(QWidget):
         self.time(text)
         QMessageBox.information(self, "Gehan-Wilcoxon test", "Wykonano test Gehan-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
-    #def run_cox_mantel(self):  # TODO
-    #    result = "in progress"
-    #    self.resultEdt.setText(f"Cox-Mantel test: Chi2 = {result}, p-wartość = {result}")
-    #    QMessageBox.information(self, "Cox-Mantel test", "Wykonano test Cox-Mantel, kliknij OK aby przejść do wyniku kolejnego testu")
-
-    #def run_f_cox(self):  # TODO
-    #    result = "in progress"
-    #    self.resultEdt.setText(f"F Cox test: F-statystyka = {result}, p-wartość = {result}")
-    #    QMessageBox.information(self, "F Cox test", "Wykonano test F Cox, kliknij OK aby przejść do wyniku kolejnego testu")
-
     def run_log_rank(self):
         result = logrank_test(self.T_ill, self.x_data_trimmed, event_observed_A=self.E_ill, event_observed_B=self.y_data_probability_trimmed)
         self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
         text = f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}"
         self.time(text)
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank, kliknij OK aby przejść do wyniku kolejnego testu")
-
-    #def run_peto_peto_wilcoxon(self):  # TODO
-    #    result = "in progress"
-    #    self.resultEdt.setText(f"Peto-Peto-Wilcoxon test: Z-statystyka = {result}, p-wartość = {result}")
-    #    QMessageBox.information(self, "Peto-Peto-Wilcoxon test", "Wykonano test Peto-Peto-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def time(self, text):
         filename = os.path.join(self.output_dir, f"test_result.txt")
