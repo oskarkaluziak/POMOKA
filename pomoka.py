@@ -24,7 +24,7 @@ class POMOKAstartup(QWidget):
         self.label.setStyleSheet("font-size: 20px; margin-top: 5px;")
 
         self.statBtn = QPushButton("POMOKA stat", self)
-        self.modelBtn = QPushButton("POMOKA model (in progress)", self)
+        #self.modelBtn = QPushButton("POMOKA model (in progress)", self)
         common_button_style = """
                             QPushButton {
                                 color: black;            /* Kolor tekstu */
@@ -48,17 +48,17 @@ class POMOKAstartup(QWidget):
                         }
                         """
         self.statBtn.setStyleSheet(common_button_style)
-        self.modelBtn.setStyleSheet(common_button_style)
-        self.modelBtn.setEnabled(False)
+        #self.modelBtn.setStyleSheet(common_button_style)
+        #self.modelBtn.setEnabled(False)
 
         self.statBtn.clicked.connect(self.openStatApp)
-        self.modelBtn.clicked.connect(self.openModelApp)
+        #self.modelBtn.clicked.connect(self.openModelApp)
 
         layout = QVBoxLayout()
         layout.addWidget(self.label, alignment=Qt.AlignTop)
         layout.addStretch()
         layout.addWidget(self.statBtn, alignment=Qt.AlignCenter)
-        layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
+        #layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
         layout.addStretch()
         self.setLayout(layout)
 

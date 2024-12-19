@@ -307,7 +307,7 @@ class POMOKAstat(QWidget):
                 color: black;            /* Kolor tekstu */
                 background-color: white; /* Tło prostokąta */
                 border: 1px solid black; /* Ramka prostokąta */
-                padding: 3px;            /* Wewnętrzny margines */
+                padding: 2px;            /* Wewnętrzny margines */
                 border-radius: 5px;      /* Zaokrąglone rogi */
             }
             QPushButton:hover {
@@ -465,7 +465,7 @@ class POMOKAstat(QWidget):
             self.executeBtn.setEnabled(True)
             self.CBpreferences()
             self.CBtests()
-            self.uploadBtn.setEnabled(False)
+            self.uploadBtn.hide()
             self.center()
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
@@ -618,7 +618,7 @@ class POMOKAstat(QWidget):
                                 self.selected_age_end = upper
                                 self.selected_option = 2
 
-                        if column.lower() in ['sex', 'plec', 'płeć', 'pŁeć']:
+                        if column.lower() in ['sex', 'plec', 'płeć', 'pŁeć', 'male', 'mezczyzna', 'mężczyzna']:
                             value = 2
                             if lower == upper:
                                 value = lower
@@ -626,8 +626,18 @@ class POMOKAstat(QWidget):
                                     self.selected_sex = 0  # 0=dane_mezczyzn
                                 elif value in [0, 'k', 'female', 'w', 'f']:
                                     self.selected_sex = 1  # 1=dane_kobiet
-                                else:
-                                    self.selected_sex = 2
+                            else:
+                                self.selected_sex = 2
+                        if column.lower() in ['female', 'kobieta']:
+                            value = 2
+                            if lower == upper:
+                                value = lower
+                                if value in [1, 'k', 'female', 'w', 'f']:
+                                    self.selected_sex = 1  # 1=dane_kobiet
+                                elif value in [0, 'm', 'male']:
+                                    self.selected_sex = 0  # 0=dane_mezczyzn
+                            else:
+                                self.selected_sex = 2
 
                         self.column_ranges[column] = ('numeric', (lower, upper))
                         break
@@ -1526,7 +1536,7 @@ class POMOKAstat(QWidget):
         if self.ill_correct == 1:
             self.setRangeBtn.setEnabled(False)
 
-            self.uploadBtn.setEnabled(False)
+            self.uploadBtn.hide()
             self.addCurveBtn.setEnabled(True)
             if hasattr(self, 'testsList') and self.testsList.isVisible():
                 self.testsList.setEnabled(False)
@@ -1576,7 +1586,8 @@ class POMOKAstat(QWidget):
         self.addCurveBtn.setEnabled(False)
         self.setRangeBtn.setEnabled(False)
         self.executeBtn.setEnabled(False)
-        self.uploadBtn.setEnabled(True)
+        self.uploadBtn.show()
+        self.editChartWindow.hide()
         for i in reversed(range(self.ukladV.count())):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
