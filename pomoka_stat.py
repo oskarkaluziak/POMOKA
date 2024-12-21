@@ -4,7 +4,7 @@ from datetime import datetime
 
 # PyQt5 imports
 from PySide6.QtWidgets import (QWidget, QLabel, QRadioButton, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
-    QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QDialog, QVBoxLayout, QCheckBox, QComboBox)
+    QVBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QDialog, QVBoxLayout, QCheckBox, QComboBox)
 from PySide6.QtGui import QIcon, QPalette, QColor, QGuiApplication
 from PySide6.QtCore import Qt
 
@@ -103,90 +103,177 @@ class ChartEditorDialog(QWidget):
 
     def initUI(self):
         self.setWindowTitle("Chart Editor")
-        layout = QVBoxLayout()
+
+        # Styl przycisków
+        common_button_style = """
+            QPushButton {
+                color: black;            /* Kolor tekstu */
+                background-color: white; /* Tło prostokąta */
+                border: 1px solid black; /* Ramka prostokąta */
+                padding: 2px;            /* Wewnętrzny margines */
+                border-radius: 5px;      /* Zaokrąglone rogi */
+            }
+            QPushButton:hover {
+                background-color: #f0f0f0; /* Jaśniejsze tło po najechaniu */
+            }
+            QPushButton:pressed {
+                background-color: #e0e0e0; /* Jeszcze ciemniejsze tło po kliknięciu */
+            }
+            QPushButton:disabled {
+                background-color: #f5f5f5; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
+                color: #b0b0b0;            /* Delikatnie wyblakły tekst */
+                border: 2px solid #d0d0d0; /* Subtelna ramka */
+            }
+        """
+
+        # Styl pól tekstowych
+        line_edit_style = """
+            QLineEdit {
+                color: black;            /* Kolor tekstu */
+                background-color: white; /* Tło prostokąta */
+                border: 1px solid black; /* Ramka prostokąta */
+                padding: 3px;            /* Wewnętrzny margines */
+                border-radius: 5px;      /* Zaokrąglone rogi */
+            }
+        """
+
+        # Dodanie scrollowalnego widżetu
+        scroll_area = QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_content = QWidget()
+        layout = QVBoxLayout(scroll_content)
 
         # Sekcja czcionki osi
         font_label = QLabel("Set Axis Font Size:")
         self.font_input = QLineEdit(self)
         self.font_input.setPlaceholderText("Enter font size (e.g., 12)")
+        self.font_input.setStyleSheet(line_edit_style)
         layout.addWidget(font_label)
         layout.addWidget(self.font_input)
 
         font_apply_btn = QPushButton("Apply Font Size", self)
         font_apply_btn.clicked.connect(self.applyFontSize)
+        font_apply_btn.setStyleSheet(common_button_style)
         layout.addWidget(font_apply_btn)
 
         # Sekcja tytułu wykresu
         title_label = QLabel("Chart Title:")
         self.title_input = QLineEdit(self)
         self.title_input.setPlaceholderText("Enter chart title (e.g., My Chart)")
+        self.title_input.setStyleSheet(line_edit_style)
         layout.addWidget(title_label)
         layout.addWidget(self.title_input)
 
         self.title_checkbox = QPushButton("Toggle Chart Title", self)
         self.title_checkbox.clicked.connect(self.toggleTitle)
+        self.title_checkbox.setStyleSheet(common_button_style)
         layout.addWidget(self.title_checkbox)
 
         # Sekcja osi Y
         y_axis_label = QLabel("Y-axis Title:")
         self.y_axis_input = QLineEdit(self)
         self.y_axis_input.setPlaceholderText("Enter Y-axis title")
+        self.y_axis_input.setStyleSheet(line_edit_style)
         layout.addWidget(y_axis_label)
         layout.addWidget(self.y_axis_input)
 
         self.add_y_axis_btn = QPushButton("Add Y Axis Title", self)
         self.add_y_axis_btn.clicked.connect(self.addYAxis)
+        self.add_y_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.add_y_axis_btn)
 
         self.remove_y_axis_btn = QPushButton("Remove Y Axis Title", self)
         self.remove_y_axis_btn.clicked.connect(self.removeYAxis)
+        self.remove_y_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.remove_y_axis_btn)
 
         # Sekcja osi X
         x_axis_label = QLabel("X-axis Title:")
         self.x_axis_input = QLineEdit(self)
         self.x_axis_input.setPlaceholderText("Enter X-axis title")
+        self.x_axis_input.setStyleSheet(line_edit_style)
         layout.addWidget(x_axis_label)
         layout.addWidget(self.x_axis_input)
 
         self.add_x_axis_btn = QPushButton("Add X Axis Title", self)
         self.add_x_axis_btn.clicked.connect(self.addXAxis)
+        self.add_x_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.add_x_axis_btn)
 
         self.remove_x_axis_btn = QPushButton("Remove X Axis Title", self)
         self.remove_x_axis_btn.clicked.connect(self.removeXAxis)
+        self.remove_x_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.remove_x_axis_btn)
+
+        # Edytowanie skoku osi X
+        x_tick_step_label = QLabel("X-axis Tick Step:")
+        self.x_tick_step_input = QLineEdit(self)
+        self.x_tick_step_input.setPlaceholderText("Enter tick step (e.g., 1, 0.5) 0.08333333... = 1month")
+        self.x_tick_step_input.setStyleSheet(line_edit_style)
+        layout.addWidget(x_tick_step_label)
+        layout.addWidget(self.x_tick_step_input)
+
+        x_tick_step_btn = QPushButton("Apply X-axis Tick Step", self)
+        x_tick_step_btn.clicked.connect(self.applyXAxisTickStep)
+        x_tick_step_btn.setStyleSheet(common_button_style)
+        layout.addWidget(x_tick_step_btn)
+
+        # Zakres osi X
+        x_range_label = QLabel("X-axis Range:")
+        self.x_range_min_input = QLineEdit(self)
+        self.x_range_min_input.setPlaceholderText("Enter min value (e.g., 5)")
+        self.x_range_min_input.setStyleSheet(line_edit_style)
+        self.x_range_max_input = QLineEdit(self)
+        self.x_range_max_input.setPlaceholderText("Enter max value (e.g., 10)")
+        self.x_range_max_input.setStyleSheet(line_edit_style)
+        layout.addWidget(x_range_label)
+        layout.addWidget(self.x_range_min_input)
+        layout.addWidget(self.x_range_max_input)
+
+        x_range_btn = QPushButton("Apply X-axis Range", self)
+        x_range_btn.clicked.connect(self.applyXAxisRange)
+        x_range_btn.setStyleSheet(common_button_style)
+        layout.addWidget(x_range_btn)
 
         # Sekcja legendy
         legend_label = QLabel("Legend:")
         self.toggle_legend_btn = QPushButton("Toggle Legend", self)
         self.toggle_legend_btn.clicked.connect(self.toggleLegend)
+        self.toggle_legend_btn.setStyleSheet(common_button_style)
         layout.addWidget(legend_label)
         layout.addWidget(self.toggle_legend_btn)
 
         # Widocznosc napisow
         self.toggle_text_btn = QPushButton("Toggle Patient Numbers Visibility", self)
         self.toggle_text_btn.clicked.connect(self.toggle_patients_visibility)
+        self.toggle_text_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.toggle_text_btn)
 
         # Sekcja stylów
         style_label = QLabel("Style:")
         self.black_white_btn = QPushButton("Set Black & White Style", self)
         self.black_white_btn.clicked.connect(self.setBlackAndWhiteStyle)
+        self.black_white_btn.setStyleSheet(common_button_style)
         layout.addWidget(style_label)
         layout.addWidget(self.black_white_btn)
 
         self.color_btn = QPushButton("Restore Original Style", self)
         self.color_btn.clicked.connect(self.restoreColorStyle)
+        self.color_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.color_btn)
-        self.color_btn.setEnabled(False)
 
         # Zamknięcie okna
         close_btn = QPushButton("Close Chart Editor", self)
         close_btn.clicked.connect(self.close)
+        close_btn.setStyleSheet(common_button_style)
         layout.addWidget(close_btn)
 
-        self.setLayout(layout)
+        scroll_area.setWidget(scroll_content)
+
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(scroll_area)
+        self.setLayout(main_layout)
+
 
     def toggle_patients_visibility(self, force_hide=False):
         """Przełącz widoczność liczb nad wykresem lub wymuś ich ukrycie."""
@@ -250,6 +337,13 @@ class ChartEditorDialog(QWidget):
         self.black_white_btn.setEnabled(False)
         self.original_colors = [line.get_color() for ax in self.figure.axes for line in ax.get_lines()]
         self.original_styles = [line.get_linestyle() for ax in self.figure.axes for line in ax.get_lines()]
+        # Zapisz oryginalne shaded areas
+        self.original_shaded_areas = []
+        for ax in self.figure.axes:
+            collections = [child for child in ax.get_children() if
+                           isinstance(child, matplotlib.collections.PolyCollection)]
+            self.original_shaded_areas.append(collections)
+
         line_styles = ['-', '--', '-.', ':', (0, (5, 10)), (0, (5, 1)), (0, (3, 5, 1, 5)), (0, (1, 1))]  # Różne style linii
         for ax in self.figure.axes:
             for idx, line in enumerate(ax.get_lines()):
@@ -257,29 +351,58 @@ class ChartEditorDialog(QWidget):
                 line.set_linestyle(line_styles[idx % len(line_styles)])  # Unikalny styl linii dla każdej krzywej
             ax.legend()  # Aktualizuj legendę
             # Usuń zakres min-max (shaded areas)
-            collections = [child for child in ax.get_children() if
-                           isinstance(child, matplotlib.collections.PolyCollection)]
-            for collection in collections:
+            for collection in self.original_shaded_areas[-1]:
                 collection.remove()
 
         self.toggle_patients_visibility(force_hide=True)
         self.figure.canvas.draw()
 
+    def applyXAxisTickStep(self):
+        """Zastosuj skok osi X."""
+        tick_step = self.x_tick_step_input.text()
+        try:
+            tick_step = float(tick_step)
+            for ax in self.figure.axes:
+                start, end = ax.get_xlim()
+                start = 0  # Ustaw zawsze początkowy punkt na 0
+                ticks = [round(start + i * tick_step, 10) for i in range(int((end - start) / tick_step) + 1)]
+                ax.set_xticks(ticks)
+            self.figure.canvas.draw()
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid tick step.")
+
+    def applyXAxisRange(self):
+        """Ustaw zakres osi X."""
+        try:
+            x_min = float(self.x_range_min_input.text())
+            x_max = float(self.x_range_max_input.text())
+            if x_min >= x_max:
+                QMessageBox.warning(self, "Input Error", "Min value must be less than max value.")
+                return
+            for ax in self.figure.axes:
+                ax.set_xlim(x_min, x_max)
+            self.figure.canvas.draw()
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter valid numerical values for the range.")
+
     def restoreColorStyle(self):
         """Przywraca kolorowy styl wykresu i aktualizuje legendę."""
         self.toggle_text_btn.setEnabled(True)
         self.black_white_btn.setEnabled(True)
+        self.toggle_patients_visibility()
         if not self.original_colors or not self.original_styles:
             QMessageBox.warning(self, "Error", "Original styles or colors are not stored!")
             return
         i = 0
-        for ax in self.figure.axes:
+        for ax, collections in zip(self.figure.axes, self.original_shaded_areas):
             for line in ax.get_lines():
                 if i < len(self.original_colors) and i < len(self.original_styles):
                     line.set_color(self.original_colors[i])  # Przywraca oryginalny kolor
                     line.set_linestyle(self.original_styles[i])  # Przywraca oryginalny styl
                     i += 1
             ax.legend()  # Aktualizuj legendę
+            for collection in collections:
+                ax.add_collection(collection)
         self.figure.canvas.draw()
 
     def addXAxis(self):
