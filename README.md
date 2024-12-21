@@ -14,3 +14,11 @@ pip3 install PySide6; pip3 install matplotlib; pip3 install pyarrow; pip3 instal
 **How to execute?**
 
 python pomoka.py
+
+**How to build .exe?**
+
+pip install cx_Freeze
+
+python3 setup.py build 
+
+<build> = output folder
