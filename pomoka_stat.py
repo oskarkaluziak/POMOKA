@@ -18,6 +18,7 @@ from scipy.interpolate import interp1d
 from scipy.stats import mannwhitneyu
 
 # Matplotlib for plotting
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.patheffects import withStroke
@@ -178,6 +179,7 @@ class ChartEditorDialog(QWidget):
         self.color_btn = QPushButton("Restore Original Style", self)
         self.color_btn.clicked.connect(self.restoreColorStyle)
         layout.addWidget(self.color_btn)
+        self.color_btn.setEnabled(False)
 
         # Zamknięcie okna
         close_btn = QPushButton("Close Chart Editor", self)
@@ -186,9 +188,12 @@ class ChartEditorDialog(QWidget):
 
         self.setLayout(layout)
 
-    def toggle_patients_visibility(self):
-        """Przełącz widoczność liczb nad wykresem."""
-        self.text_visible = not self.text_visible
+    def toggle_patients_visibility(self, force_hide=False):
+        """Przełącz widoczność liczb nad wykresem lub wymuś ich ukrycie."""
+        if force_hide:
+            self.text_visible = False
+        else:
+            self.text_visible = not self.text_visible
 
         # Usuń istniejące liczby, jeśli flaga jest False
         for ax in self.figure.axes:
@@ -240,6 +245,9 @@ class ChartEditorDialog(QWidget):
 
     def setBlackAndWhiteStyle(self):
         """Ustawia tryb czarno-biały na wykresie i aktualizuje legendę."""
+        self.toggle_text_btn.setEnabled(False)
+        self.color_btn.setEnabled(True)
+        self.black_white_btn.setEnabled(False)
         self.original_colors = [line.get_color() for ax in self.figure.axes for line in ax.get_lines()]
         self.original_styles = [line.get_linestyle() for ax in self.figure.axes for line in ax.get_lines()]
         line_styles = ['-', '--', '-.', ':', (0, (5, 10)), (0, (5, 1)), (0, (3, 5, 1, 5)), (0, (1, 1))]  # Różne style linii
@@ -248,10 +256,19 @@ class ChartEditorDialog(QWidget):
                 line.set_color("black")
                 line.set_linestyle(line_styles[idx % len(line_styles)])  # Unikalny styl linii dla każdej krzywej
             ax.legend()  # Aktualizuj legendę
+            # Usuń zakres min-max (shaded areas)
+            collections = [child for child in ax.get_children() if
+                           isinstance(child, matplotlib.collections.PolyCollection)]
+            for collection in collections:
+                collection.remove()
+
+        self.toggle_patients_visibility(force_hide=True)
         self.figure.canvas.draw()
 
     def restoreColorStyle(self):
         """Przywraca kolorowy styl wykresu i aktualizuje legendę."""
+        self.toggle_text_btn.setEnabled(True)
+        self.black_white_btn.setEnabled(True)
         if not self.original_colors or not self.original_styles:
             QMessageBox.warning(self, "Error", "Original styles or colors are not stored!")
             return
