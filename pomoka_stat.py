@@ -32,6 +32,7 @@ from scipy.stats import ks_2samp
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
 from fpdf import FPDF
+from PIL import Image
 
 
 class TestResultsStorage:
@@ -1160,8 +1161,6 @@ class POMOKAstat(QWidget):
         self.output_dir = os.path.join("plots", timestamp)
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-        self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"), dpi=300)
-        print(self.canvas.figure.get_dpi())
 
         self.generateReportBtn.setEnabled(True)
         self.editChartBtn.setEnabled(True)
@@ -1374,7 +1373,6 @@ class POMOKAstat(QWidget):
 
         # Ścieżki do zapisu raportu i wykresu
         report_path = os.path.join(self.output_dir, f"{report_name}.{output_format}")
-        chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
 
         # Generowanie raportu w formacie PDF
         if output_format == "pdf":
@@ -1400,7 +1398,12 @@ class POMOKAstat(QWidget):
 
             # Dodanie wykresu do raportu PDF
             chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
-            self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=300)
+            self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=301)
+            # Odczytaj DPI z pliku PNG
+            file_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
+            with Image.open(file_path) as img:
+                print("DPI zapisane w pliku PNG:", img.info.get('dpi'))
+
             if save_chart_separately:
                 pdf.cell(200, 10, txt=f"Chart included in report and saved as: {chart_image_path}", ln=True)
             pdf.image(chart_image_path, x=10, y=pdf.get_y() + 10, w=190)
@@ -1515,10 +1518,6 @@ class POMOKAstat(QWidget):
         self.resultEdt.setText(
             f"AUC test: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
         )
-        text = f"AUC test: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus},Roznica = {formatted_auc_diff}"
-
-        # Przesyłanie tekstu do funkcji `time`
-        self.time(text)
 
         # Informacja w okienku dialogowym
         QMessageBox.information(self, "AUC test",
@@ -1569,8 +1568,6 @@ class POMOKAstat(QWidget):
         self.resultEdt.setText(
             f"AUC test interpolated: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
         )
-        text = f"AUC test interpolated: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus},Roznica = {formatted_auc_diff}"
-        self.time(text)
         QMessageBox.information(self, "AUC test",
                                 "Wykonano test AUC po interpolacji, kliknij OK aby przejsc do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
@@ -1587,8 +1584,6 @@ class POMOKAstat(QWidget):
 
         self.resultEdt.setText(
             f"Kolomorow Smirnow test: Statystyka KS = {ks_stat}, p-value = {p_value}")
-        text = f"Kolomorow Smirnow test: Statystyka KS = {ks_stat}, p-value = {p_value}"
-        self.time(text)
         QMessageBox.information(self, "Kolomorow Smirnow test",
                                 "Wykonano test Kolomorow Smirnow, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
@@ -1610,8 +1605,6 @@ class POMOKAstat(QWidget):
 
         self.resultEdt.setText(
             f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}")
-        text = f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}"
-        self.time(text)
         QMessageBox.information(self, "Kolomorow Smirnow test interpolated",
                                 "Wykonano test Kolomorow Smirnow po interpolacji, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
@@ -1633,8 +1626,6 @@ class POMOKAstat(QWidget):
 
         self.resultEdt.setText(
             f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}")
-        text = f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}"
-        self.time(text)
         QMessageBox.information(self, "Srednia roznica pomiedzy ppunktami wykresu",
                                 "Obliczono srednia roznice pomiedzy ppunktami wykresu, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
@@ -1663,8 +1654,7 @@ class POMOKAstat(QWidget):
 
         self.resultEdt.setText(
             f"Test Manna-Whitneya U: Statystyka U = {stat}, P-value = {p_value}")
-        text = f"Test Manna-Whitneya U: Statystyka U = {stat}, P-value = {p_value}"
-        self.time(text)
+
         QMessageBox.information(self, "Test Manna-Whitneya U",
                                 "Wykonano Test Manna-Whitneya U, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
@@ -1696,22 +1686,12 @@ class POMOKAstat(QWidget):
         result = multivariate_logrank_test(data['time'], data['group'], data['event'], weightings="wilcoxon")
 
         self.resultEdt.setText(f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
-        text = f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}"
-        self.time(text)
         QMessageBox.information(self, "Gehan-Wilcoxon test", "Wykonano test Gehan-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
 
     def run_log_rank(self):
         result = logrank_test(self.T_ill, self.x_data_trimmed, event_observed_A=self.E_ill, event_observed_B=self.y_data_probability_trimmed)
         self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
-        text = f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}"
-        self.time(text)
         QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank, kliknij OK aby przejść do wyniku kolejnego testu")
-
-    def time(self, text):
-        filename = os.path.join(self.output_dir, f"test_result.txt")
-        with open(filename, "w") as file:
-            file.write(text)
-            file.write(f"\nfor the ill curve was used {self.filtered_patient_count} patients")
 
     def toggleExecution(self):
         if self.isExecuting:
