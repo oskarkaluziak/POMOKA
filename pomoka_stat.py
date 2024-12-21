@@ -91,11 +91,13 @@ class ReportOptionsDialog(QDialog):
 
 
 class ChartEditorDialog(QWidget):
-    def __init__(self, figure, parent=None):
+    def __init__(self, figure, pomoka_stat, parent=None):
         super().__init__(parent)
         self.figure = figure  # Przekazujemy obiekt wykresu
         self.original_colors = []  # Przechowuje oryginalne kolory linii
         self.original_styles = []  # Przechowuje oryginalne style linii
+        self.pomoka_stat = pomoka_stat  # Przechowaj instancję POMOKAstat
+        self.text_visible = True
         self.initUI()
 
     def initUI(self):
@@ -161,6 +163,11 @@ class ChartEditorDialog(QWidget):
         layout.addWidget(legend_label)
         layout.addWidget(self.toggle_legend_btn)
 
+        # Widocznosc napisow
+        self.toggle_text_btn = QPushButton("Toggle Patient Numbers Visibility", self)
+        self.toggle_text_btn.clicked.connect(self.toggle_patients_visibility)
+        layout.addWidget(self.toggle_text_btn)
+
         # Sekcja stylów
         style_label = QLabel("Style:")
         self.black_white_btn = QPushButton("Set Black & White Style", self)
@@ -179,6 +186,19 @@ class ChartEditorDialog(QWidget):
 
         self.setLayout(layout)
 
+    def toggle_patients_visibility(self):
+        """Przełącz widoczność liczb nad wykresem."""
+        self.text_visible = not self.text_visible
+
+        # Usuń istniejące liczby, jeśli flaga jest False
+        for ax in self.figure.axes:
+            for text in ax.texts:
+                text.set_visible(self.text_visible)
+
+        self.figure.canvas.draw_idle()
+
+        # Zaktualizuj wykres w POMOKAstat
+        self.pomoka_stat.canvas.draw()
     def toggleTitle(self):
         """Włącz lub wyłącz tytuł wykresu."""
         for ax in self.figure.axes:
@@ -980,7 +1000,7 @@ class POMOKAstat(QWidget):
         self.canvas.draw()
 
         self.legend_text.append(label_text)
-        #ax.get_legend().remove() ###TO WYLACZA LEGENDE Z WYKRESU - WYSTARCZY TO USUNAC I BEDZIE LEGENDA NA WYKRESIE
+        ax.get_legend().remove() ###TO WYLACZA LEGENDE Z WYKRESU - WYSTARCZY TO USUNAC I BEDZIE LEGENDA NA WYKRESIE
         self.update_legend_widget()
 
 
@@ -1298,7 +1318,7 @@ class POMOKAstat(QWidget):
     def openEditChartWindow(self):
         self.openstatusEditChartWindow = 1
         if hasattr(self, 'canvas') and self.canvas is not None:
-            self.editChartWindow = ChartEditorDialog(self.canvas.figure)
+            self.editChartWindow = ChartEditorDialog(self.canvas.figure, self)
             self.editChartWindow.show()
         else:
             QMessageBox.warning(self, "Error", "No chart available for editing.")
