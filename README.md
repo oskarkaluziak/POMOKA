@@ -21,4 +21,4 @@ pip install cx_Freeze
 
 python3 setup.py build 
 
-<build> = output folder
+build = output folder
