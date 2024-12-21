@@ -261,6 +261,7 @@ class ChartEditorDialog(QWidget):
         self.color_btn.clicked.connect(self.restoreColorStyle)
         self.color_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.color_btn)
+        self.color_btn.setEnabled(False)
 
         # Zamknięcie okna
         close_btn = QPushButton("Close Chart Editor", self)
@@ -387,6 +388,7 @@ class ChartEditorDialog(QWidget):
 
     def restoreColorStyle(self):
         """Przywraca kolorowy styl wykresu i aktualizuje legendę."""
+        self.color_btn.setEnabled(False)
         self.toggle_text_btn.setEnabled(True)
         self.black_white_btn.setEnabled(True)
         self.toggle_patients_visibility()
@@ -529,7 +531,16 @@ class POMOKAstat(QWidget):
 
         self.ukladV.addWidget(shutdownBtn)
 
-        self.setLayout(self.ukladV)
+        mainWidget = QWidget()
+        mainWidget.setLayout(self.ukladV)
+
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setWidget(mainWidget)
+
+        mainLayout = QVBoxLayout(self)
+        mainLayout.addWidget(scrollArea)
+        self.setLayout(mainLayout)
 
         # Połączenia sygnałów z funkcjami
         shutdownBtn.clicked.connect(self.shutdown)
@@ -547,7 +558,7 @@ class POMOKAstat(QWidget):
         self.generateReportBtn.setEnabled(False)
         self.editChartBtn.setEnabled(False)
 
-        self.resize(600, 270)
+        self.resize(800, 400)
         self.setWindowTitle("POMOKA")
         self.setWindowIcon(QIcon('images/icon.png'))
 
