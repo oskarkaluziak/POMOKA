@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 
-# PyQt5 imports
+# PySide6 imports
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
     QVBoxLayout, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
 from PySide6.QtGui import QPixmap, QPainter, QIcon

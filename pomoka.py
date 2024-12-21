@@ -4,6 +4,8 @@ from PySide6.QtCore import Qt
 from pomoka_stat import POMOKAstat
 from pomoka_model import POMOKAmodel
 
+
+
 class POMOKAstartup(QWidget):
     def __init__(self):
         super().__init__()

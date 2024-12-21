@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 
-# PyQt5 imports
+# PySide6 imports
 from PySide6.QtWidgets import (QWidget, QLabel, QRadioButton, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
     QVBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QDialog, QVBoxLayout, QCheckBox, QComboBox)
 from PySide6.QtGui import QIcon, QPalette, QColor, QGuiApplication
@@ -14,7 +14,6 @@ import numpy as np
 import re
 from scipy import stats
 from scipy.interpolate import interp1d
-#from numpy import trapz
 from scipy.stats import mannwhitneyu
 
 # Matplotlib for plotting
@@ -34,6 +33,7 @@ from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRa
 from fpdf import FPDF
 from PIL import Image
 
+os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 class TestResultsStorage:
     def __init__(self):
@@ -871,6 +871,18 @@ class POMOKAstat(QWidget):
         if e.key() == Qt.Key_Escape:
             self.close()
 
+    def resource_path(self, relative_path):
+        """
+        Zwraca absolutną ścieżkę do zasobu względem lokalizacji pliku .exe lub skryptu.
+        """
+        # Dla aplikacji zamrożonej przez cx_Freeze
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+        else:
+            # Dla środowiska deweloperskiego lub niezależnego uruchomienia
+            base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+        return os.path.join(base_path, relative_path)
+
     def gus(self, ax, last_time_km):  # TODO
         # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
         ##DEBUG
@@ -882,6 +894,7 @@ class POMOKAstat(QWidget):
         #print(f"Selected option: {self.selected_option}")
         #print(f"Last time KM: {last_time_km}")
         #print("=====================================")
+        os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
         sex = self.selected_sex
 
@@ -894,10 +907,13 @@ class POMOKAstat(QWidget):
 
         # te dwie plus sex generuje wykres dla zakresu rocznikow
         opcja = self.selected_option #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
-        file_path = 'data/tablice_trwania_zycia_w_latach_1990-2022.xlsx'
-        file_path_men = 'data/dane_mezczyzni.xlsx'
-        file_path_women = 'data/dane_kobiety.xlsx'
-        file_path_all = 'data/dane_ogolne.xlsx'
+        print("Base Path:", os.path.dirname(os.path.abspath(sys.argv[0])))
+        print("Pełna ścieżka do magicdata.xlsx:", self.resource_path("data/magicdata.xlsx"))
+        print("Pełna ścieżka do dane_ogolne.xlsx:", self.resource_path("data/dane_ogolne.xlsx"))
+        file_path = self.resource_path("data/magicdata.xlsx")
+        file_path_men = self.resource_path("data/dane_mezczyzni.xlsx")
+        file_path_women = self.resource_path("data/dane_kobiety.xlsx")
+        file_path_all = self.resource_path("data/dane_ogolne.xlsx")
         #print(f"koncowy_gus:{self.selected_sex}")
         if sex == 0:
             sextext = 'men'
@@ -1784,7 +1800,7 @@ class POMOKAstat(QWidget):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
-                self.resize(400, 270)
+                self.resize(800, 440)
                 self.center()
 
         self.executeBtn.setText("Execute")
