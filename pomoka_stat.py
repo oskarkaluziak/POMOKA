@@ -873,14 +873,14 @@ class POMOKAstat(QWidget):
     def gus(self, ax, last_time_km):  # TODO
         # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
         ##DEBUG
-        print("=== DEBUG: START OF FUNCTION 'gus' ===")
-        print(f"Selected sex: {self.selected_sex}")
+        #print("=== DEBUG: START OF FUNCTION 'gus' ===")
+        #print(f"Selected sex: {self.selected_sex}")
         #print(f"Selected age: {self.selected_age}")
-        print(f"Selected age start: {self.selected_age_start}")
-        print(f"Selected age end: {self.selected_age_end}")
-        print(f"Selected option: {self.selected_option}")
-        print(f"Last time KM: {last_time_km}")
-        print("=====================================")
+        #print(f"Selected age start: {self.selected_age_start}")
+        #print(f"Selected age end: {self.selected_age_end}")
+        #print(f"Selected option: {self.selected_option}")
+        #print(f"Last time KM: {last_time_km}")
+        #print("=====================================")
 
         sex = self.selected_sex
 
@@ -897,7 +897,7 @@ class POMOKAstat(QWidget):
         file_path_men = 'data/dane_mezczyzni.xlsx'
         file_path_women = 'data/dane_kobiety.xlsx'
         file_path_all = 'data/dane_ogolne.xlsx'
-        print(f"koncowy_gus:{self.selected_sex}")
+        #print(f"koncowy_gus:{self.selected_sex}")
         if sex == 0:
             sextext = 'men'
         if sex == 1:
@@ -929,8 +929,8 @@ class POMOKAstat(QWidget):
 
             # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             agetext = 2022 - year
-            print (f'{self.selected_sex}')
-            print (f'{sex}')
+            #print (f'{self.selected_sex}')
+            #print (f'{sex}')
             ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
                     label=f'HEALTHY (age: {agetext}; sex: {sextext})',
                     linestyle='-', color='orange')
@@ -1160,7 +1160,8 @@ class POMOKAstat(QWidget):
         self.output_dir = os.path.join("plots", timestamp)
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-        self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"))
+        self.canvas.figure.savefig(os.path.join(self.output_dir, f"full_plot.png"), dpi=300)
+        print(self.canvas.figure.get_dpi())
 
         self.generateReportBtn.setEnabled(True)
         self.editChartBtn.setEnabled(True)
@@ -1218,7 +1219,7 @@ class POMOKAstat(QWidget):
             return
 
         self.filtered_patient_count = len(df_filtered)
-        print(f"Additional curve - patients considered: {self.filtered_patient_count}")
+        #print(f"Additional curve - patients considered: {self.filtered_patient_count}")
 
         if 'time' in df_filtered.columns:
             T_additional = df_filtered['time']
@@ -1400,13 +1401,11 @@ class POMOKAstat(QWidget):
             # Dodanie wykresu do raportu PDF
             chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
             self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=300)
-            pdf.cell(200, 10, txt=f"Chart included in report and saved as: {chart_image_path}", ln=True)
+            if save_chart_separately:
+                pdf.cell(200, 10, txt=f"Chart included in report and saved as: {chart_image_path}", ln=True)
             pdf.image(chart_image_path, x=10, y=pdf.get_y() + 10, w=190)
             pdf.ln(90)  # Przesunięcie po wykresie
 
-            # Zapisanie wykresu jako osobnego pliku, jeśli opcja została zaznaczona
-            if save_chart_separately:
-                pdf.cell(200, 10, txt=f"Chart also saved separately at: {chart_image_path}", ln=True)
 
             # Zapisanie raportu PDF
             pdf.output(report_path)
@@ -1464,7 +1463,6 @@ class POMOKAstat(QWidget):
         msg_box.setStandardButtons(QMessageBox.Ok)
         msg_box.setGeometry(100, 100, 300, 100)  # Zapewnienie, że wiadomość otworzy się na ekranie
         msg_box.exec()
-        QMessageBox.information(self, "Report", f"Report saved at: {report_path}")
 
     def openEditChartWindow(self):
         self.openstatusEditChartWindow = 1
@@ -1527,7 +1525,7 @@ class POMOKAstat(QWidget):
                                 "Wykonano test AUC, kliknij OK aby przejść do wyniku kolejnego testu")
 
         all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
+        #print("Wszystkie wyniki:", all_results)
 
     def run_AUC_interpolated(self, curve_id):  # porównanie pól pod krzywymi
         time_points_ill = self.time_points  # wiecej puntkow
@@ -1540,20 +1538,20 @@ class POMOKAstat(QWidget):
         survival_probabilities_gus_interpolated = interpolator(time_points_ill)
 
         # Opcjonalnie: sprawdzenie długości tablic
-        print("Length of Time Points (ILL):", len(time_points_ill))
-        print("Length of Survival Probabilities (ILL):", len(survival_probabilities_ill))
+        #print("Length of Time Points (ILL):", len(time_points_ill))
+        #print("Length of Survival Probabilities (ILL):", len(survival_probabilities_ill))
 
-        print("Length of Time Points (ILL):", len(time_points_gus))
-        print("Length of Survival Probabilities (ILL):", len(survival_probabilities_gus))
+        #print("Length of Time Points (ILL):", len(time_points_gus))
+        #print("Length of Survival Probabilities (ILL):", len(survival_probabilities_gus))
 
         # print("Length of Time Points (gus_inter):", len(survival_probabilities_gus_interpolated))
         # print("Length of Survival Probabilities (gus_inter):", len(survival_probabilities_gus_interpolated))
 
-        print("AUC - Time Points ILL:", time_points_ill)
-        print("AUC - Survival Probabilities ILL:", survival_probabilities_ill)
+        #print("AUC - Time Points ILL:", time_points_ill)
+        #print("AUC - Survival Probabilities ILL:", survival_probabilities_ill)
 
-        print("AUC - Time Points GUS (interpolated):", time_points_ill)
-        print("AUC - Survival Probabilities GUS (interpolated):", survival_probabilities_gus_interpolated)
+        #print("AUC - Time Points GUS (interpolated):", time_points_ill)
+        #print("AUC - Survival Probabilities GUS (interpolated):", survival_probabilities_gus_interpolated)
 
         auc_ill = np.trapz(survival_probabilities_ill, x=time_points_ill)
         auc_gus = np.trapz(survival_probabilities_gus_interpolated, x=time_points_ill)
@@ -1576,7 +1574,7 @@ class POMOKAstat(QWidget):
         QMessageBox.information(self, "AUC test",
                                 "Wykonano test AUC po interpolacji, kliknij OK aby przejsc do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
+        #print("Wszystkie wyniki:", all_results)
 
     def run_KS_test(self, curve_id):
 
@@ -1594,7 +1592,7 @@ class POMOKAstat(QWidget):
         QMessageBox.information(self, "Kolomorow Smirnow test",
                                 "Wykonano test Kolomorow Smirnow, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
+        #print("Wszystkie wyniki:", all_results)
 
     def run_KS_test_interpolated(self, curve_id):
 
@@ -1617,7 +1615,7 @@ class POMOKAstat(QWidget):
         QMessageBox.information(self, "Kolomorow Smirnow test interpolated",
                                 "Wykonano test Kolomorow Smirnow po interpolacji, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
+        #print("Wszystkie wyniki:", all_results)
 
     def run_mean_diff(self, curve_id):
         time_points_ill = self.time_points  # wiecej puntkow
@@ -1640,23 +1638,23 @@ class POMOKAstat(QWidget):
         QMessageBox.information(self, "Srednia roznica pomiedzy ppunktami wykresu",
                                 "Obliczono srednia roznice pomiedzy ppunktami wykresu, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
+        #print("Wszystkie wyniki:", all_results)
 
     def run_mann_whitney_u(self, curve_id):
         time_points_ill = self.time_points  # wiecej puntkow
         survival_probabilities_ill = self.survival_probabilities
-        print(f"Time_points_ill: {time_points_ill}")
-        print(f"Survival_probabilities_ill: {survival_probabilities_ill}")
+        #print(f"Time_points_ill: {time_points_ill}")
+        #print(f"Survival_probabilities_ill: {survival_probabilities_ill}")
 
         time_points_gus = self.x_data_trimmed  # mniej punktow
         survival_probabilities_gus = self.y_data_probability_trimmed
 
-        print(f"time_points_gus: {time_points_gus}")
-        print(f"survival_probabilities_gus: {survival_probabilities_gus}")
+        #print(f"time_points_gus: {time_points_gus}")
+        #print(f"survival_probabilities_gus: {survival_probabilities_gus}")
 
         interpolator = interp1d(time_points_gus, survival_probabilities_gus, kind='linear', fill_value="extrapolate")
         survival_probabilities_gus_interpolated = interpolator(time_points_ill)
-        print(f"Suv_gur_interpolated = {survival_probabilities_gus_interpolated}")
+        #print(f"Suv_gur_interpolated = {survival_probabilities_gus_interpolated}")
 
         stat, p_value = mannwhitneyu(survival_probabilities_gus_interpolated, survival_probabilities_ill,
                                      alternative='two-sided')
@@ -1670,17 +1668,17 @@ class POMOKAstat(QWidget):
         QMessageBox.information(self, "Test Manna-Whitneya U",
                                 "Wykonano Test Manna-Whitneya U, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
-        print("Wszystkie wyniki:", all_results)
+        #print("Wszystkie wyniki:", all_results)
 
     def run_gehan_wilcoxon(self):  # TODO
         self.survival_gus_interpolated = np.interp(self.time_points, self.x_data_trimmed, self.y_data_probability_trimmed)
 
-        print(f"T_ill type: {type(self.time_points)}, value: {self.time_points}")
-        print(f"x_data_trimmed type: {type(self.x_data_trimmed)}, value: {self.x_data_trimmed}")
-        print(f"y_data_trimmed type: {type(self.y_data_probability_trimmed)}, value: {self.y_data_probability_trimmed}")
-        print(f"self.survival_gus_interpolated: {type(self.survival_gus_interpolated)}, value: {self.survival_gus_interpolated}")
-        print(f"E_ill type: {type(self.survival_probabilities)}, value: {self.survival_probabilities}")
-        print(f"E_ill type: {type(self.T_ill)}, value: {self.survival_probabilities}")
+        #print(f"T_ill type: {type(self.time_points)}, value: {self.time_points}")
+        #print(f"x_data_trimmed type: {type(self.x_data_trimmed)}, value: {self.x_data_trimmed}")
+        #print(f"y_data_trimmed type: {type(self.y_data_probability_trimmed)}, value: {self.y_data_probability_trimmed}")
+        #print(f"self.survival_gus_interpolated: {type(self.survival_gus_interpolated)}, value: {self.survival_gus_interpolated}")
+        #print(f"E_ill type: {type(self.survival_probabilities)}, value: {self.survival_probabilities}")
+        #print(f"E_ill type: {type(self.T_ill)}, value: {self.survival_probabilities}")
         #time = list(self.T_ill) + list(self.x_data_trimmed)
         #event = list(self.E_ill) + list(self.y_data_probability_trimmed)
         #group = ['ill'] * len(self.T_ill) + ['gus'] * len(self.x_data_trimmed)
