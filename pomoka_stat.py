@@ -933,24 +933,30 @@ class POMOKAstat(QWidget):
             gus_ax = gus_chart.axes[0]
 
             # pobranie danych z osi wykresu GUS
-            x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
-            y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
-
+            self.x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
+            self.y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
+            self.y_data = self.y_data / 100
             # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
-            y_data_probability = y_data / 100
+            y_data_probability = self.y_data / 100
 
-            #przycinanie osi X do dlugosci kmf
-            valid_indices = x_data <= last_time_km
-            self.x_data_trimmed = x_data[valid_indices]
+            #przycinanie osi X do dlugosci kmf (tylko dla testów)
+            valid_indices = self.x_data <= last_time_km
+            self.x_data_trimmed = self.x_data[valid_indices]
             self.y_data_probability_trimmed = y_data_probability[valid_indices]
 
             # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             agetext = 2022 - year
             #print (f'{self.selected_sex}')
             #print (f'{sex}')
-            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
+            ax.step(self.x_data, self.y_data, where='post',
                     label=f'HEALTHY (age: {agetext}; sex: {sextext})',
                     linestyle='-', color='orange')
+
+            # Ustaw widoczny zakres osi X za pomocą ChartEditorDialog
+            chart_editor = ChartEditorDialog(ax.get_figure(), self)
+            chart_editor.x_range_min_input.setText("-0.5")
+            chart_editor.x_range_max_input.setText(str(last_time_km + 0.5))
+            chart_editor.applyXAxisRange()
             self.guslegend = f'HEALTHY (age: {agetext}; sex: {sextext})'
             ax.legend()
 
@@ -961,23 +967,29 @@ class POMOKAstat(QWidget):
             gus_ax = gus_chart.axes[0]
 
             # pobranie danych z osi wykresu GUS
-            x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
-            y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
-
+            self.x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
+            self.y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
+            self.y_data = self.y_data / 100
             # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
-            y_data_probability = y_data / 100
+            y_data_probability = self.y_data / 100
 
-            # przycinanie osi X do dlugosci kmf
-            valid_indices = x_data <= last_time_km
-            self.x_data_trimmed = x_data[valid_indices]
+            # przycinanie osi X do dlugosci kmf (tylko dla testów)
+            valid_indices = self.x_data <= last_time_km
+            self.x_data_trimmed = self.x_data[valid_indices]
             self.y_data_probability_trimmed = y_data_probability[valid_indices]
 
             #dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             agetextstart = 2022 - year_start
             agetextend = 2022 - year_end
-            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
+            ax.step(self.x_data, self.y_data, where='post',
                     label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
                     linestyle='-', color='orange')
+
+            # Ustaw widoczny zakres osi X za pomocą ChartEditorDialog
+            chart_editor = ChartEditorDialog(ax.get_figure(), self)
+            chart_editor.x_range_min_input.setText("-0.5")
+            chart_editor.x_range_max_input.setText(str(last_time_km + 0.5))
+            chart_editor.applyXAxisRange()
             self.guslegend = f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})'
             ax.legend()
     def update_legend_widget(self):
@@ -1302,6 +1314,12 @@ class POMOKAstat(QWidget):
         self.legend_text.append(label_text)
         self.update_legend_widget()
         last_time_km = kmf_additional.survival_function_.index[-1]
+
+        # Sprawdź aktualny zakres osi X i przedłuż go w razie potrzeby
+        current_xlim = ax.get_xlim()
+        if last_time_km > current_xlim[1]:
+            ax.set_xlim(current_xlim[0], last_time_km + 0.5)  # Przedłuż zakres osi X o 0.5
+            print(f"Extended X-axis range: {current_xlim[0]} to {last_time_km + 0.5}")
 
         time_intervals = range(0, int(last_time_km) + 1, 2)  # zakres co 2 lata
         survival_values = kmf_additional.survival_function_['KM_estimate']
