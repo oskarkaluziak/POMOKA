@@ -1199,6 +1199,21 @@ class POMOKAstat(QWidget):
             while adjusted_y <= survival_at_t + step:
                 adjusted_y += step
 
+            # rysowanie prostokąta jako obramowanie dla tekstu
+            '''bbox_width = 0.5  # Szerokość prostokąta
+            bbox_height = 0.1  # Wysokość prostokąta
+            rect = plt.Rectangle(
+                (adjusted_x - bbox_width / 2, adjusted_y - bbox_height / 2),  # Lewy dolny róg prostokąta
+                bbox_width,  # Szerokość
+                bbox_height,  # Wysokość
+                linewidth=1,  # Grubość linii
+                edgecolor='red',  # Kolor linii
+                facecolor='none',  # Bez wypełnienia
+                alpha=0.9  # Przezroczystość
+            )
+            ax.add_patch(rect)'''
+            #
+
             ax.text(adjusted_x, adjusted_y,
                 str(patients_at_t),
                 ha='center', fontsize=8, fontweight='bold',  # Grubszy tekst
@@ -1373,7 +1388,7 @@ class POMOKAstat(QWidget):
         global is_first_call, global_iteration_offset_y  # Użycie globalnej zmiennej
         drawn_text_positions = []
         offset_step_y = 0.2
-        initial_offset_x = -0.5
+        initial_offset_x = -0.3
 
         for t in time_intervals:
             closest_time = min(n_at_risk.index, key=lambda x: abs(x - t))
@@ -1383,10 +1398,31 @@ class POMOKAstat(QWidget):
             # Specjalne przesunięcie dla timeline = 0
             adjusted_x = t + initial_offset_x  # Pozycja w osi X pozostaje bez zmian
             adjusted_y = survival_at_t - self.global_iteration_offset  # Przesunięcie w pionie dla kolejnych iteracji
-
-                # Sprawdzenie kolizji z wcześniej dodanym tekstem
+            # Sprawdzenie kolizji z wcześniej dodanym tekstem
             while any(abs(adjusted_x - x) < 0.5 and abs(adjusted_y - y) < 0.05 for x, y in drawn_text_positions):
-                adjusted_y += 0.02  # Standardowy krok przesunięcia w osi Y
+                adjusted_y += 0.01  # Standardowy krok przesunięcia w osi Y
+
+            # Odbicie tekstu i prostokąta, jeśli Y jest poniżej 0.05
+            if adjusted_y < 0.05:
+                adjusted_y = abs(adjusted_y)
+                if adjusted_y > 0.15:
+                    adjusted_y -= 0.10  # Odbicie w osi Y
+                adjusted_x += 0.60  # Przesunięcie w osi X
+
+            # rysowanie prostokąta jako obramowanie dla tekstu
+            '''bbox_width = 0.5  # Szerokość prostokąta
+            bbox_height = 0.1  # Wysokość prostokąta
+            rect = plt.Rectangle(
+            (adjusted_x - bbox_width / 2, adjusted_y - bbox_height / 2),  # Lewy dolny róg prostokąta
+                bbox_width,  # Szerokość
+                bbox_height,  # Wysokość
+                linewidth=1,  # Grubość linii
+                edgecolor='red',  # Kolor linii
+                facecolor='none',  # Bez wypełnienia
+                alpha=0.1  # Przezroczystość
+            )
+            ax.add_patch(rect)'''
+            #
 
             # Rysowanie tekstu
             ax.text(adjusted_x, adjusted_y,
