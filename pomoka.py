@@ -71,7 +71,7 @@ class POMOKAstartup(QWidget):
         self.reportBtn = QPushButton("GIVE YOUR FEEDBACK", self)
         self.reportBtn.setCursor(Qt.PointingHandCursor)
 
-        self.instructionsBtn = QPushButton("INSTRUCTIONS", self)
+        self.instructionsBtn = QPushButton("INSTRUCTION", self)
         self.instructionsBtn.setCursor(Qt.PointingHandCursor)
 
         # Button style customization
@@ -108,10 +108,10 @@ class POMOKAstartup(QWidget):
         self.instructionsBtn.setStyleSheet(button_style)
 
         # Button Actions
-        self.statBtn.setToolTip("Launch the Statistical Program")
+        self.statBtn.setToolTip("Launch POMOKA")
         self.modelBtn.setToolTip("This feature is under development")
         self.reportBtn.setToolTip("Report an issue to administrator")
-        self.instructionsBtn.setToolTip("View instructions for using POMOKA")
+        self.instructionsBtn.setToolTip("View instruction for using POMOKA")
 
         self.statBtn.clicked.connect(self.openStatApp)
         self.modelBtn.clicked.connect(self.openModelApp)
@@ -208,7 +208,7 @@ class POMOKAstartup(QWidget):
 class InstructionsWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Instructions")
+        self.setWindowTitle("Instruction")
         self.setWindowIcon(QIcon('images/icon.png'))
         self.setFixedSize(600, 400)
 
