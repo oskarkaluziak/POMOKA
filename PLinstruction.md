@@ -1,3 +1,5 @@
+**PL version only**
+
 **Instrukcja obsługi aplikacji POMOKA**
 
 **Wstęp**

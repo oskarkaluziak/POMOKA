@@ -1,10 +1,10 @@
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
-from PySide6.QtGui import QIcon, QPalette, QColor
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QTextEdit
+from PySide6.QtGui import QIcon, QPalette, QColor, QFont, QPixmap
+from PySide6.QtCore import Qt, QUrl, QTimer
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
+from PySide6.QtGui import QDesktopServices
 from pomoka_stat import POMOKAstat
 from pomoka_model import POMOKAmodel
-
-
 
 class POMOKAstartup(QWidget):
     def __init__(self):
@@ -12,57 +12,147 @@ class POMOKAstartup(QWidget):
         self.setupUI()
 
     def setupUI(self):
-        self.setWindowTitle("POMOKA menu")
+        self.setWindowTitle("POMOKA")
         self.setWindowIcon(QIcon('images/icon.png'))
-        self.setAutoFillBackground(True)
-        palette = QPalette()
-        palette.setColor(QPalette.Window, QColor("#ECECED"))  # Używamy QPalette.Window zamiast QPalette.Background
-        self.setPalette(palette)
+        self.setFixedSize(900, 500)
 
-        self.resize(700, 270)
+        # Set gradient background
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #f9fafb;
+                font-family: Arial;
+            }
+        """)
 
-        self.label = QLabel("<b>Welcome to POMOKA<b>", self)
-        self.label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
-        self.label.setStyleSheet("font-size: 20px; margin-top: 5px;")
+        # Header Container with Stylish Font
+        self.header_label = QLabel(self)
+        self.header_label.setText("POMOKA")
+        self.header_label.setStyleSheet("""
+            color: #202124;
+            font-size: 48px;
+            font-weight: bold;
+            font-family: 'Georgia', serif;
+            text-align: center;
+            margin-top: 40px;
+        """)
+        self.header_label.setAlignment(Qt.AlignCenter)
 
-        self.statBtn = QPushButton("POMOKA stat", self)
-        #self.modelBtn = QPushButton("POMOKA model (in progress)", self)
-        common_button_style = """
-                            QPushButton {
-                                color: black;            /* Kolor tekstu */
-                                background-color: white; /* Tło prostokąta */
-                                border: 2px solid black; /* Ramka prostokąta */
-                                padding: 25px;            /* Wewnętrzny margines */
-                                border-radius: 10px; 
-                                font-size: 14px;
-                                width: 600px;
-                            }
-                            QPushButton:hover {
-                                background-color: #f0f0f0; /* Jaśniejsze tło po najechaniu */
-                            }
-                            QPushButton:pressed {
-                                background-color: #e0e0e0; /* Jeszcze ciemniejsze tło po kliknięciu */
-                            }
-                            QPushButton:disabled {
-                            background-color: #f5f5f5; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
-                            color: #b0b0b0;            /* Delikatnie wyblakły tekst */
-                            border: 2px solid #d0d0d0; /* Subtelna ramka */
-                        }
-                        """
-        self.statBtn.setStyleSheet(common_button_style)
-        #self.modelBtn.setStyleSheet(common_button_style)
-        #self.modelBtn.setEnabled(False)
+        # Header Subtitle
+        self.subtitle_label = QLabel(self)
+        self.subtitle_label.setText("Your gateway to powerful analytical tools.")
+        self.subtitle_label.setStyleSheet("""
+            color: #5f6368;
+            font-size: 16px;
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 20px;
+        """)
+        self.subtitle_label.setAlignment(Qt.AlignCenter)
+
+        # Decorative Image (Logo)
+        self.image_label = QLabel(self)
+        pixmap = QPixmap('images/logo.png')  # Replace with your transparent logo
+        if not pixmap.isNull():
+            pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.image_label.setPixmap(pixmap)
+            self.image_label.setAlignment(Qt.AlignCenter)
+        else:
+            self.image_label.hide()  # Hide the label if no logo is found
+
+        # Buttons
+        self.statBtn = QPushButton("OPEN", self)
+        self.statBtn.setCursor(Qt.PointingHandCursor)
+
+        self.modelBtn = QPushButton("MODEL PROGRAM (coming soon)", self)
+        self.modelBtn.setCursor(Qt.PointingHandCursor)
+        self.modelBtn.setEnabled(False)  # Disabled for now
+        self.modelBtn.hide()
+
+        self.reportBtn = QPushButton("GIVE YOUR FEEDBACK", self)
+        self.reportBtn.setCursor(Qt.PointingHandCursor)
+
+        self.instructionsBtn = QPushButton("INSTRUCTIONS", self)
+        self.instructionsBtn.setCursor(Qt.PointingHandCursor)
+
+        # Button style customization
+        button_style = """
+                    QPushButton {
+                        color: #000000;
+                        background-color: white;
+                        border: 2px solid #4285f4;
+                        padding: 13px;
+                        min-width: 400px;
+                        max-width: 400px;
+                        height: 25px;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        font-family: 'Georgia', serif;
+                        font-weight: 570;
+                        margin: 10px 0;
+                    }
+                    QPushButton:hover {
+                        background-color: #e8f0fe;
+                    }
+                    QPushButton:pressed {
+                        background-color: #d2e3fc;
+                    }
+                    QPushButton:disabled {
+                        border-color: #e8eaed;
+                        color: #9aa0a6;
+                    }
+                """
+
+        self.statBtn.setStyleSheet(button_style)
+        self.modelBtn.setStyleSheet(button_style.replace("#4285f4", "#5f6368"))
+        self.reportBtn.setStyleSheet(button_style)
+        self.instructionsBtn.setStyleSheet(button_style)
+
+        # Button Actions
+        self.statBtn.setToolTip("Launch the Statistical Program")
+        self.modelBtn.setToolTip("This feature is under development")
+        self.reportBtn.setToolTip("Report an issue to administrator")
+        self.instructionsBtn.setToolTip("View instructions for using POMOKA")
 
         self.statBtn.clicked.connect(self.openStatApp)
-        #self.modelBtn.clicked.connect(self.openModelApp)
+        self.modelBtn.clicked.connect(self.openModelApp)
+        self.reportBtn.clicked.connect(self.reportToAdmin)
+        self.instructionsBtn.clicked.connect(self.openInstructions)
 
+        # Add glowing border effect
+        self.addGlowEffect(self.reportBtn)
+        self.addGlowEffect(self.instructionsBtn)
+        self.addGlowEffect(self.statBtn)
+
+        # Layout
         layout = QVBoxLayout()
-        layout.addWidget(self.label, alignment=Qt.AlignTop)
+        layout.addWidget(self.header_label, alignment=Qt.AlignTop)
+        layout.addWidget(self.subtitle_label, alignment=Qt.AlignTop)
+        layout.addWidget(self.image_label, alignment=Qt.AlignCenter)
         layout.addStretch()
         layout.addWidget(self.statBtn, alignment=Qt.AlignCenter)
-        #layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
+        layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
+        layout.addWidget(self.instructionsBtn, alignment=Qt.AlignCenter)
+        layout.addWidget(self.reportBtn, alignment=Qt.AlignCenter)
         layout.addStretch()
+
+        # Footer
+        self.footer_label = QLabel(self)
+        self.footer_label.setText("Version 1.0 | © 2025 POMOKA")
+        self.footer_label.setStyleSheet("""
+            color: #5f6368;
+            font-size: 12px;
+            text-align: center;
+            margin: 0px 0;
+        """)
+        layout.addWidget(self.footer_label, alignment=Qt.AlignBottom)
         self.setLayout(layout)
+
+    def addShadowEffect(self, widget):
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(12)
+        shadow.setOffset(0, 4)
+        shadow.setColor(QColor(0, 0, 0, 50))
+        widget.setGraphicsEffect(shadow)
 
     def openStatApp(self):
         self.StatApp = POMOKAstat()
@@ -82,8 +172,66 @@ class POMOKAstartup(QWidget):
             self.ModelApp.show()
             self.close()
 
+    def addGlowEffect(self, button):
+        """Add glowing border effect with a timer for dynamic color changes."""
+        self.shadow = QGraphicsDropShadowEffect(button)
+        self.shadow.setBlurRadius(20)
+        self.shadow.setOffset(0, 0)
+        button.setGraphicsEffect(self.shadow)
+
+        # Kolory do animacji
+        self.colors = [QColor(52, 168, 255)]  # Blue, Red, Green
+        self.current_color_index = 0
+
+        # Ustaw timer, aby odświeżać kolor cienia co 500ms
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.updateShadowColor)
+        self.timer.start(1)
+
+    def updateShadowColor(self):
+        # Ustaw nowy kolor dla cienia
+        self.shadow.setColor(self.colors[self.current_color_index])
+        self.current_color_index = (self.current_color_index + 1) % len(self.colors)  # Przejdź do następnego koloru
+
+    def reportToAdmin(self):
+        QDesktopServices.openUrl(QUrl("mailto:oskar@kaluziak.pl"))
+
+    def openInstructions(self):
+        if not hasattr(self, 'instructions_window') or not self.instructions_window:
+            self.instructions_window = InstructionsWindow()
+        if not self.instructions_window.isVisible():
+            self.instructions_window.show()
+        else:
+            self.instructions_window.raise_()
+            self.instructions_window.activateWindow()
+
+class InstructionsWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Instructions")
+        self.setWindowIcon(QIcon('images/icon.png'))
+        self.setFixedSize(600, 400)
+
+        layout = QVBoxLayout()
+        self.instructions_text = QTextEdit(self)
+        self.instructions_text.setReadOnly(True)
+
+        try:
+            with open("PLinstruction.md", "r", encoding="utf-8") as file:
+                content = file.read()
+                self.instructions_text.setMarkdown(content)  # Interpretuj jako Markdown
+        except FileNotFoundError:
+            self.instructions_text.setPlainText("Instructions file not found.")
+
+        layout.addWidget(self.instructions_text)
+        self.setLayout(layout)
+
 if __name__ == "__main__":
     app = QApplication([])
+
+    # Set global font
+    app.setFont(QFont("Arial", 14))
+
     startup = POMOKAstartup()
     startup.show()
     app.exec()
