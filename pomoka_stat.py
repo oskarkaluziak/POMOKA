@@ -101,6 +101,7 @@ class ChartEditorDialog(QWidget):
         self.pomoka_stat = pomoka_stat  # Przechowaj instancję POMOKAstat
         self.text_visible = True
         self.initUI()
+        self.tick_step = 2
 
     def initUI(self):
         self.setWindowTitle("Chart Editor")
@@ -409,11 +410,25 @@ class ChartEditorDialog(QWidget):
                         text.set_visible(True)  # Pokaż tekst, jeśli mieści się w zakresie
                     else:
                         text.set_visible(False)  # Ukryj tekst, jeśli jest poza zakresem
+            self.reapplyXAxisTickStep()
 
             self.figure.canvas.draw()
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Please enter valid numerical values for the range.")
 
+    def reapplyXAxisTickStep(self):
+        """Ponownie zastosuj bieżący krok osi X."""
+        self.tick_step = self.x_tick_step_input.text()
+        try:
+            tick_step = float(self.tick_step)
+            for ax in self.figure.axes:
+                start, end = ax.get_xlim()
+                if start < 0:
+                    start = 0  # Ustaw zawsze początkowy punkt na 0
+                ticks = [round(start + i * tick_step, 10) for i in range(int((end - start) / tick_step) + 1)]
+                ax.set_xticks(ticks)
+        except ValueError:
+            return
     def restoreColorStyle(self):
         """Przywraca kolorowy styl wykresu i aktualizuje legendę."""
         self.color_btn.setEnabled(False)
