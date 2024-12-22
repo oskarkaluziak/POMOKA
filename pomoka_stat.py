@@ -219,6 +219,11 @@ class ChartEditorDialog(QWidget):
         x_tick_step_btn.setStyleSheet(common_button_style)
         layout.addWidget(x_tick_step_btn)
 
+        auto_month_range_btn = QPushButton("Set Monthly Range (1/12 year)", self)
+        auto_month_range_btn.clicked.connect(self.setMonthlyRange)
+        auto_month_range_btn.setStyleSheet(common_button_style)
+        layout.addWidget(auto_month_range_btn)
+
         # Zakres osi X
         x_range_label = QLabel("X-axis Range:")
         self.x_range_min_input = QLineEdit(self)
@@ -359,6 +364,17 @@ class ChartEditorDialog(QWidget):
         self.toggle_patients_visibility(force_hide=True)
         self.figure.canvas.draw()
 
+    def setMonthlyRange(self):
+        """Ustaw automatyczny zakres miesięczny."""
+        monthly_tick_step = 1 / 12  # Skok odpowiadający miesiącowi
+        for ax in self.figure.axes:
+            start, end = ax.get_xlim()
+            if start < 0:
+                start = 0  # Ustaw zawsze początkowy punkt na 0
+            ticks = [round(start + i * monthly_tick_step, 10) for i in
+                     range(int((end - start) / monthly_tick_step) + 1)]
+            ax.set_xticks(ticks)
+        self.figure.canvas.draw()
     def applyXAxisTickStep(self):
         """Zastosuj skok osi X."""
         tick_step = self.x_tick_step_input.text()
@@ -366,7 +382,8 @@ class ChartEditorDialog(QWidget):
             tick_step = float(tick_step)
             for ax in self.figure.axes:
                 start, end = ax.get_xlim()
-                start = 0  # Ustaw zawsze początkowy punkt na 0
+                if start < 0:
+                    start = 0  # Ustaw zawsze początkowy punkt na 0
                 ticks = [round(start + i * tick_step, 10) for i in range(int((end - start) / tick_step) + 1)]
                 ax.set_xticks(ticks)
             self.figure.canvas.draw()
@@ -374,7 +391,7 @@ class ChartEditorDialog(QWidget):
             QMessageBox.warning(self, "Input Error", "Please enter a valid tick step.")
 
     def applyXAxisRange(self):
-        """Ustaw zakres osi X."""
+        """Ustaw zakres osi X i przytnij liczby pacjentów."""
         try:
             x_min = float(self.x_range_min_input.text())
             x_max = float(self.x_range_max_input.text())
@@ -382,7 +399,17 @@ class ChartEditorDialog(QWidget):
                 QMessageBox.warning(self, "Input Error", "Min value must be less than max value.")
                 return
             for ax in self.figure.axes:
+                # Ustaw zakres osi X
                 ax.set_xlim(x_min, x_max)
+
+                # Przytnij liczby pacjentów
+                for text in ax.texts:
+                    x, y = text.get_position()  # Pobierz pozycję tekstu
+                    if x_min <= x <= x_max:
+                        text.set_visible(True)  # Pokaż tekst, jeśli mieści się w zakresie
+                    else:
+                        text.set_visible(False)  # Ukryj tekst, jeśli jest poza zakresem
+
             self.figure.canvas.draw()
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Please enter valid numerical values for the range.")
@@ -1365,7 +1392,7 @@ class POMOKAstat(QWidget):
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
 
-        self.canvas.figure.savefig(os.path.join(self.output_dir, f"updated_plot_{existing_lines + 1}.png"))
+        #self.canvas.figure.savefig(os.path.join(self.output_dir, f"updated_plot_{existing_lines + 1}.png"))
         self.preferencesList.clearSelection()
         self.preferencesList.setEnabled(True)
         self.setRangeBtn.setEnabled(True)
