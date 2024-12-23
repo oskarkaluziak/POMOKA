@@ -105,42 +105,84 @@ class ChartEditorDialog(QWidget):
 
     def initUI(self):
         self.setWindowTitle("Chart Editor")
-
+        self.setWindowIcon(QIcon('images/icon.png'))
+        self.setFixedSize(300, 800)
+        self.setStyleSheet("""
+                    QWidget {
+                        background-color: #f9fafb;
+                        font-family: Arial;
+                    }
+                """)
         # Styl przycisków
         common_button_style = """
-            QPushButton {
-                color: black;            /* Kolor tekstu */
-                background-color: white; /* Tło prostokąta */
-                border: 1px solid black; /* Ramka prostokąta */
-                padding: 2px;            /* Wewnętrzny margines */
-                border-radius: 5px;      /* Zaokrąglone rogi */
-            }
-            QPushButton:hover {
-                background-color: #f0f0f0; /* Jaśniejsze tło po najechaniu */
-            }
-            QPushButton:pressed {
-                background-color: #e0e0e0; /* Jeszcze ciemniejsze tło po kliknięciu */
-            }
-            QPushButton:disabled {
-                background-color: #f5f5f5; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
-                color: #b0b0b0;            /* Delikatnie wyblakły tekst */
-                border: 2px solid #d0d0d0; /* Subtelna ramka */
-            }
-        """
+                    QPushButton {
+                        color: #000000;
+                        background-color: white;
+                        border: 2px solid #0077B6;
+                        padding: 7px;
+                        min-width: 200px;
+                        max-width: 200px;
+                        height: 15px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        margin: 0px 0;
+                    }
+                    QPushButton:hover {
+                        background-color: #e8f0fe;
+                    }
+                    QPushButton:pressed {
+                        background-color: #d2e3fc;
+                    }
+                    QPushButton:disabled {
+                        border-color: #e8eaed;
+                        color: #9aa0a6;
+                    }
+                """
 
         # Styl pól tekstowych
         line_edit_style = """
             QLineEdit {
                 color: black;            /* Kolor tekstu */
                 background-color: white; /* Tło prostokąta */
-                border: 1px solid black; /* Ramka prostokąta */
-                padding: 3px;            /* Wewnętrzny margines */
-                border-radius: 5px;      /* Zaokrąglone rogi */
+                border: 1px solid #0077B6; /* Ramka prostokąta */
+                padding: 7px;            /* Wewnętrzny margines */
+                border-radius: 8px;      /* Zaokrąglone rogi */
+                font-size: 14px
             }
         """
 
         # Dodanie scrollowalnego widżetu
+        scroll_area_style = """
+                    QScrollArea {
+                        border: none;
+                    }
+                    QScrollBar:vertical {
+                        background: #f9fafb;
+                        width: 12px;
+                        border: 2px solid #0077B6;
+                        border-radius: 0px;
+                    }
+                    QScrollBar::handle:vertical {
+                        background: #e8f0fe;
+                        min-height: 20px;
+                    }
+                    QScrollBar::handle:vertical:hover {
+                        background: #d2e3fc;
+                    }
+                    QScrollBar::handle:vertical:pressed {
+                        background: #0077B6;
+                    }
+                    QScrollBar::sub-line, QScrollBar::add-line {
+                        background: none;
+                        border: none;
+                        height: 0px;
+                    }
+                    QScrollBar::add-page, QScrollBar::sub-page {
+                        background: none;
+                    }
+                """
         scroll_area = QScrollArea(self)
+        scroll_area.setStyleSheet(scroll_area_style)
         scroll_area.setWidgetResizable(True)
         scroll_content = QWidget()
         layout = QVBoxLayout(scroll_content)
@@ -271,9 +313,12 @@ class ChartEditorDialog(QWidget):
         self.color_btn.setEnabled(False)
 
         # Zamknięcie okna
+        # Sekcja stylów
+        close_label = QLabel("")
         close_btn = QPushButton("Close Chart Editor", self)
         close_btn.clicked.connect(self.close)
         close_btn.setStyleSheet(common_button_style)
+        layout.addWidget(close_label)
         layout.addWidget(close_btn)
 
         scroll_area.setWidget(scroll_content)
