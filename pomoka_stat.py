@@ -110,7 +110,7 @@ class ChartEditorDialog(QWidget):
         self.setStyleSheet("""
                     QWidget {
                         background-color: #f9fafb;
-                        font-family: Arial;
+                        font-family: 'Lato';
                     }
                 """)
         # Styl przycisków
@@ -252,7 +252,7 @@ class ChartEditorDialog(QWidget):
         # Edytowanie skoku osi X
         x_tick_step_label = QLabel("X-axis Tick Step:")
         self.x_tick_step_input = QLineEdit(self)
-        self.x_tick_step_input.setPlaceholderText("Enter tick step (e.g., 1, 0.5) 0.08333333... = 1month")
+        self.x_tick_step_input.setPlaceholderText("Enter tick step (e.g., 1, 0.5)")
         self.x_tick_step_input.setStyleSheet(line_edit_style)
         layout.addWidget(x_tick_step_label)
         layout.addWidget(self.x_tick_step_input)

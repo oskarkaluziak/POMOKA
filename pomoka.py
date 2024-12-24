@@ -20,7 +20,7 @@ class POMOKAstartup(QWidget):
         self.setStyleSheet("""
             QWidget {
                 background-color: #f9fafb;
-                font-family: Arial;
+                font-family: 'Lato';
             }
         """)
 
@@ -31,7 +31,7 @@ class POMOKAstartup(QWidget):
             color: #202124;
             font-size: 48px;
             font-weight: bold;
-            font-family: 'Georgia', serif;
+            font-family: 'Lato';
             text-align: center;
             margin-top: 40px;
         """)
@@ -60,7 +60,7 @@ class POMOKAstartup(QWidget):
             self.image_label.hide()  # Hide the label if no logo is found
 
         # Buttons
-        self.statBtn = QPushButton("OPEN", self)
+        self.statBtn = QPushButton("OPEN APP", self)
         self.statBtn.setCursor(Qt.PointingHandCursor)
 
         self.modelBtn = QPushButton("MODEL PROGRAM (coming soon)", self)
@@ -79,14 +79,14 @@ class POMOKAstartup(QWidget):
                     QPushButton {
                         color: #000000;
                         background-color: white;
-                        border: 2px solid #4285f4;
+                        border: 2px solid #0077B6;
                         padding: 13px;
                         min-width: 400px;
                         max-width: 400px;
                         height: 25px;
                         border-radius: 8px;
                         font-size: 16px;
-                        font-family: 'Georgia', serif;
+                        font-family: 'Lato';
                         font-weight: 570;
                         margin: 10px 0;
                     }
@@ -117,11 +117,6 @@ class POMOKAstartup(QWidget):
         self.modelBtn.clicked.connect(self.openModelApp)
         self.reportBtn.clicked.connect(self.reportToAdmin)
         self.instructionsBtn.clicked.connect(self.openInstructions)
-
-        # Add glowing border effect
-        self.addGlowEffect(self.reportBtn)
-        self.addGlowEffect(self.instructionsBtn)
-        self.addGlowEffect(self.statBtn)
 
         # Layout
         layout = QVBoxLayout()
@@ -157,7 +152,7 @@ class POMOKAstartup(QWidget):
     def openStatApp(self):
         self.StatApp = POMOKAstat()
         self.StatApp.show()
-        self.close()
+        #self.close()
 
     def openModelApp(self):
         reply = QMessageBox.question(
@@ -171,22 +166,6 @@ class POMOKAstartup(QWidget):
             self.ModelApp = POMOKAmodel()
             self.ModelApp.show()
             self.close()
-
-    def addGlowEffect(self, button):
-        """Add glowing border effect with a timer for dynamic color changes."""
-        self.shadow = QGraphicsDropShadowEffect(button)
-        self.shadow.setBlurRadius(20)
-        self.shadow.setOffset(0, 0)
-        button.setGraphicsEffect(self.shadow)
-
-        # Kolory do animacji
-        self.colors = [QColor(52, 168, 255)]  # Blue, Red, Green
-        self.current_color_index = 0
-
-        # Ustaw timer, aby odświeżać kolor cienia co 500ms
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.updateShadowColor)
-        self.timer.start(1)
 
     def updateShadowColor(self):
         # Ustaw nowy kolor dla cienia
@@ -212,10 +191,59 @@ class InstructionsWindow(QWidget):
         self.setWindowIcon(QIcon('images/icon.png'))
         self.setFixedSize(600, 400)
 
+        # Styl okna
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #f9fafb;
+                font-family: 'Lato';
+                color: #202124;
+            }
+
+            QTextEdit {
+                background-color: white;
+                border: 2px solid #0077B6;
+                border-radius: 8px;
+                padding: 10px;
+                color: #202124;
+                font-size: 14px;
+                font-family: 'Lato';
+            }
+
+            QScrollArea {
+                border: none;
+            }
+            QScrollBar:vertical {
+                background: #f9fafb;
+                width: 12px;
+                border: 2px solid #0077B6;
+                border-radius: 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #e8f0fe;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #d2e3fc;
+            }
+            QScrollBar::handle:vertical:pressed {
+                background: #0077B6;
+            }
+            QScrollBar::sub-line, QScrollBar::add-line {
+                background: none;
+                border: none;
+                height: 0px;
+            }
+            QScrollBar::add-page, QScrollBar::sub-page {
+                background: none;
+            }
+        """)
+
+        # Ustawienie layoutu
         layout = QVBoxLayout()
         self.instructions_text = QTextEdit(self)
         self.instructions_text.setReadOnly(True)
 
+        # Próba załadowania treści instrukcji
         try:
             with open("PLinstruction.md", "r", encoding="utf-8") as file:
                 content = file.read()
@@ -230,7 +258,7 @@ if __name__ == "__main__":
     app = QApplication([])
 
     # Set global font
-    app.setFont(QFont("Arial", 14))
+    app.setFont(QFont("Lato", 14))
 
     startup = POMOKAstartup()
     startup.show()
