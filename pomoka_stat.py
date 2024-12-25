@@ -3,9 +3,8 @@ import sys
 from datetime import datetime
 
 # PySide6 imports
-from PySide6.QtWidgets import (QWidget, QLabel, QRadioButton, QPushButton, QLineEdit, QMessageBox, QHBoxLayout,
-    QVBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QDialog, QVBoxLayout, QCheckBox, QComboBox)
-from PySide6.QtGui import QIcon, QPalette, QColor, QGuiApplication
+from PySide6.QtWidgets import (QWidget, QRadioButton, QMessageBox, QHBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
+from PySide6.QtGui import QIcon, QGuiApplication
 from PySide6.QtCore import Qt
 
 # Data handling and analysis
@@ -24,7 +23,7 @@ from matplotlib.patheffects import withStroke
 
 # Lifelines for survival analysis
 from lifelines import KaplanMeierFitter
-from lifelines.statistics import logrank_test, multivariate_logrank_test #(delete when new tests come in)
+from lifelines.statistics import logrank_test, multivariate_logrank_test
 from scipy.stats import ks_2samp
 
 # Custom imports
@@ -539,11 +538,36 @@ class POMOKAstat(QWidget):
 
     def interface(self):  # interface apki
         self.setAutoFillBackground(True)
-        palette = QPalette()
-        palette.setColor(QPalette.Window, QColor("#ECECED"))
-        self.setPalette(palette)
+        self.setStyleSheet("""
+                    QWidget {
+                        background-color: #f9fafb;
+                        font-family: 'Lato';
+                    }
+                """)
 
-        self.label1 = QLabel("<b>Be sure to read the detailed instructions for using the program!<b>", self)
+        self.label1 = QLabel(self)
+        self.label1.setText("POMOKA")
+        self.label1.setStyleSheet("""
+                    color: #202124;
+                    font-size: 48px;
+                    font-weight: bold;
+                    font-family: 'Lato';
+                    text-align: center;
+                    margin-top: 10px;
+                """)
+        self.label1.setAlignment(Qt.AlignCenter)
+        self.subtitle_label = QLabel(self)
+        self.subtitle_label.setText("Your gateway to powerful analytical tools.")
+        self.subtitle_label.setStyleSheet("""
+                    color: #5f6368;
+                    font-size: 16px;
+                    font-style: italic;
+                    text-align: center;
+                    margin-bottom: 10px;
+                """)
+        self.subtitle_label.setAlignment(Qt.AlignCenter)
+
+
         self.label2 = QLabel("<b>Results:<b>", self)
 
         self.filePathEdt = QLineEdit()
@@ -556,27 +580,25 @@ class POMOKAstat(QWidget):
         self.addCurveBtn = QPushButton("&Add next curve", self)
         self.generateReportBtn = QPushButton("&Generate Report", self)
         self.editChartBtn = QPushButton("&Edit Chart", self)
-        shutdownBtn = QPushButton("&Close the POMOKA app", self)
 
         # Styl przycisków
         common_button_style = """
             QPushButton {
                 color: black;            /* Kolor tekstu */
                 background-color: white; /* Tło prostokąta */
-                border: 1px solid black; /* Ramka prostokąta */
+                border: 2px solid #0077B6; /* Ramka prostokąta */
                 padding: 2px;            /* Wewnętrzny margines */
-                border-radius: 5px;      /* Zaokrąglone rogi */
+                border-radius: 8px;      /* Zaokrąglone rogi */
             }
             QPushButton:hover {
-                background-color: #f0f0f0; /* Jaśniejsze tło po najechaniu */
+                background-color: #e8f0fe; /* Jaśniejsze tło po najechaniu */
             }
             QPushButton:pressed {
-                background-color: #e0e0e0; /* Jeszcze ciemniejsze tło po kliknięciu */
+                background-color: #d2e3fc; /* Jeszcze ciemniejsze tło po kliknięciu */
             }
             QPushButton:disabled {
-                background-color: #f5f5f5; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
-                color: #b0b0b0;            /* Delikatnie wyblakły tekst */
-                border: 2px solid #d0d0d0; /* Subtelna ramka */
+                border-color: #e8eaed;
+                color: #9aa0a6;          
             }
         """
         self.uploadBtn.setStyleSheet(common_button_style)
@@ -585,13 +607,13 @@ class POMOKAstat(QWidget):
         self.addCurveBtn.setStyleSheet(common_button_style)
         self.generateReportBtn.setStyleSheet(common_button_style)
         self.editChartBtn.setStyleSheet(common_button_style)
-        shutdownBtn.setStyleSheet(common_button_style)
 
         # Układ przycisków
         self.ukladV = QVBoxLayout()
         self.ukladH = QHBoxLayout()
 
         self.ukladV.addWidget(self.label1)
+        self.ukladV.addWidget(self.subtitle_label)
 
         # Sekcja dla wyników
         horizontalLayoutForLabel2AndResult = QHBoxLayout()
@@ -600,9 +622,9 @@ class POMOKAstat(QWidget):
             QLineEdit {
                 color: black;            /* Kolor tekstu */
                 background-color: white; /* Tło prostokąta */
-                border: 1px solid black; /* Ramka prostokąta */
+                border: 1px solid #0077B6; /* Ramka prostokąta */
                 padding: 3px;            /* Wewnętrzny margines */
-                border-radius: 5px;      /* Zaokrąglone rogi */
+                border-radius: 8px;      /* Zaokrąglone rogi */
             }
         """)
         horizontalLayoutForLabel2AndResult.addWidget(self.resultEdt)
@@ -616,13 +638,44 @@ class POMOKAstat(QWidget):
         self.ukladV.addLayout(self.ukladH)
         self.ukladV.addWidget(self.generateReportBtn)
         self.ukladV.addWidget(self.editChartBtn)
-
-        self.ukladV.addWidget(shutdownBtn)
+        self.editChartBtn.hide()
 
         mainWidget = QWidget()
         mainWidget.setLayout(self.ukladV)
 
+        # dodanie scrollowalnego widżetu
+        scroll_area_style = """
+                            QScrollArea {
+                                border: none;
+                            }
+                            QScrollBar:vertical {
+                                background: #f9fafb;
+                                width: 12px;
+                                border: 2px solid #0077B6;
+                                border-radius: 0px;
+                            }
+                            QScrollBar::handle:vertical {
+                                background: #e8f0fe;
+                                min-height: 20px;
+                            }
+                            QScrollBar::handle:vertical:hover {
+                                background: #d2e3fc;
+                            }
+                            QScrollBar::handle:vertical:pressed {
+                                background: #0077B6;
+                            }
+                            QScrollBar::sub-line, QScrollBar::add-line {
+                                background: none;
+                                border: none;
+                                height: 0px;
+                            }
+                            QScrollBar::add-page, QScrollBar::sub-page {
+                                background: none;
+                            }
+                        """
+
         scrollArea = QScrollArea()
+        scrollArea.setStyleSheet(scroll_area_style)
         scrollArea.setWidgetResizable(True)
         scrollArea.setWidget(mainWidget)
 
@@ -631,7 +684,6 @@ class POMOKAstat(QWidget):
         self.setLayout(mainLayout)
 
         # Połączenia sygnałów z funkcjami
-        shutdownBtn.clicked.connect(self.shutdown)
         self.uploadBtn.clicked.connect(self.uploadCSV)
         self.setRangeBtn.clicked.connect(self.setRanges)
         self.addCurveBtn.clicked.connect(self.addCurve)
@@ -645,10 +697,20 @@ class POMOKAstat(QWidget):
         self.addCurveBtn.setEnabled(False)
         self.generateReportBtn.setEnabled(False)
         self.editChartBtn.setEnabled(False)
+        self.executeBtn.setEnabled(False)
+        self.setRangeBtn.setEnabled(False)
 
-        self.resize(800, 400)
+        self.resize(900, 500)
         self.setWindowTitle("POMOKA")
         self.setWindowIcon(QIcon('images/icon.png'))
+
+        # pref i tests
+        self.CBpreferences()
+        self.CBtests()
+        self.preferencesList.clear()
+        self.testsList.clear()
+        self.preferencesList.setEnabled(False)
+        self.testsList.setEnabled(False)
 
     def center(self):
         # Pobranie głównego ekranu
@@ -730,9 +792,11 @@ class POMOKAstat(QWidget):
                 #self.adjustSize()
 
             self.executeBtn.setEnabled(True)
+            self.setRangeBtn.setEnabled(True)
             self.CBpreferences()
             self.CBtests()
             self.uploadBtn.hide()
+            self.editChartBtn.show()
             self.center()
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
@@ -769,9 +833,13 @@ class POMOKAstat(QWidget):
                     QListWidget {
                         color: black;            /* Kolor tekstu */
                         background-color: white; /* Tło prostokąta */
-                        border: 1px solid black; /* Ramka prostokąta */
+                        border: 2px solid #0077B6; /* Ramka prostokąta */
                         padding: 3px;           /* Wewnętrzny margines */
-                        border-radius: 5px;      /* Zaokrąglone rogi */
+                        border-radius: 8px;      /* Zaokrąglone rogi */
+                        min-width: 400px;       /* Minimalna szerokość */
+                        max-width: 500px; 
+                        min-height: 100px;      /* Minimalna wysokość */
+                        max-height: 100px; 
                     }
                     QListWidget::item {
                         padding: 3px;           /* Wewnętrzny margines elementów */
@@ -781,9 +849,9 @@ class POMOKAstat(QWidget):
                         color: black;               /* Kolor tekstu wybranego elementu */
                     }
                     QListWidget:disabled {
-                        background-color: #f5f5f5; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
-                        color: #b0b0b0;            /* Delikatnie wyblakły tekst */
-                        border: 2px solid #d0d0d0; /* Subtelna ramka */
+                        background-color: white; /* Subtelne jasnoszare tło dla wyłączonego przycisku */
+                        color: #9aa0a6;            /* Delikatnie wyblakły tekst */
+                        border-color: #e8eaed; /* Subtelna ramka */
                     }
                 """
         self.preferencesList.setStyleSheet(common_style)
@@ -807,10 +875,6 @@ class POMOKAstat(QWidget):
         self.selected_age_start = 0
         self.selected_age_end = 100
         self.selected_option = 2
-
-
-        self.setRangeBtn.setEnabled(True)
-        self.addCurveBtn.setEnabled
 
     def setRanges(self):
         self.selected_sex = 2
@@ -939,9 +1003,6 @@ class POMOKAstat(QWidget):
                         "Input Error",
                         "Invalid input. Please enter a valid numeric range or a comma-separated list of values."
                     )
-
-    def shutdown(self):  # zamykanie aplikacji poprzez przycisk
-        self.close()
 
     def closeEvent(self, event):  # zapytanie przed zamknieciem aplikacji
         odp = QMessageBox.question(
@@ -1131,11 +1192,11 @@ class POMOKAstat(QWidget):
         self.text_widget.setWordWrap(True)
         self.text_widget.setStyleSheet("""
                     QLabel {
-                        color: black;            /* Kolor tekstu */
+                        color: #000000;            /* Kolor tekstu */
                         background-color: white; /* Tło prostokąta */
-                        border: 1px solid black; /* Ramka prostokąta */
+                        border: 2px solid #0077B6; /* Ramka prostokąta */
                         padding: 3px;           /* Wewnętrzny margines */
-                        border-radius: 5px;      /* Zaokrąglone rogi */
+                        border-radius: 8px;      /* Zaokrąglone rogi */
                     }
                 """)
         if not self.text_widget in [self.ukladV.itemAt(i).widget() for i in range(self.ukladV.count())]:
@@ -1934,6 +1995,9 @@ class POMOKAstat(QWidget):
         self.addCurveBtn.setEnabled(False)
         self.setRangeBtn.setEnabled(False)
         self.executeBtn.setEnabled(False)
+        self.generateReportBtn.setEnabled(False)
+        self.editChartBtn.hide()
+        self.testsList.clear()
         self.uploadBtn.show()
         if self.openstatusEditChartWindow == 1:
             self.editChartWindow.hide()
@@ -1941,7 +2005,7 @@ class POMOKAstat(QWidget):
             widget = self.ukladV.itemAt(i).widget()
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
-                self.resize(800, 440)
+                self.resize(900, 500)
                 self.center()
 
         self.executeBtn.setText("Execute")

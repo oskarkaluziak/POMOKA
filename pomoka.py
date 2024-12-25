@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QTextEdit
-from PySide6.QtGui import QIcon, QPalette, QColor, QFont, QPixmap
-from PySide6.QtCore import Qt, QUrl, QTimer
+from PySide6.QtGui import QIcon, QColor, QFont, QPixmap
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtWidgets import QGraphicsDropShadowEffect
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QGuiApplication
 from pomoka_stat import POMOKAstat
 from pomoka_model import POMOKAmodel
 
@@ -141,7 +141,25 @@ class POMOKAstartup(QWidget):
         """)
         layout.addWidget(self.footer_label, alignment=Qt.AlignBottom)
         self.setLayout(layout)
+        self.center()
+    def center(self):
+        # Pobranie głównego ekranu
+        screen = QGuiApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
 
+        # Pobranie wymiarów okna
+        window_size = self.geometry()
+        window_width = window_size.width()
+        window_height = window_size.height()
+
+        # Obliczenie pozycji X i Y
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        # Ustawienie geometrii okna
+        self.setGeometry(x, y, window_width, window_height)
     def addShadowEffect(self, widget):
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(12)
@@ -183,6 +201,7 @@ class POMOKAstartup(QWidget):
         else:
             self.instructions_window.raise_()
             self.instructions_window.activateWindow()
+        self.center()
 
 class InstructionsWindow(QWidget):
     def __init__(self):
