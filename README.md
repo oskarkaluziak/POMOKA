@@ -5,7 +5,7 @@ An open-source application designed to assist physicians and researchers in crea
 
 **Co-authors**
 1. Oskar Kałuziak, Grzegorz Możdżyński (oskar@kaluziak.pl, grzegorz.mozdzynski@student.put.poznan.pl)
-2. prof. Piotr Formanowicz, prof. Bartłomiej Perek, Mikołaj Powalski
+2. prof. Piotr Formanowicz, prof. Bartłomiej Perek
 
 **How to install?**
 
