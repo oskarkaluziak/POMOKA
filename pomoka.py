@@ -60,13 +60,13 @@ class POMOKAstartup(QWidget):
             self.image_label.hide()  # Hide the label if no logo is found
 
         # Buttons
-        self.statBtn = QPushButton("OPEN APP", self)
+        self.statBtn = QPushButton("OPEN STAT APP", self)
         self.statBtn.setCursor(Qt.PointingHandCursor)
 
-        self.modelBtn = QPushButton("MODEL PROGRAM (coming soon)", self)
+        self.modelBtn = QPushButton("OPEN MODEL APP", self)
         self.modelBtn.setCursor(Qt.PointingHandCursor)
-        self.modelBtn.setEnabled(False)  # Disabled for now
-        self.modelBtn.hide()
+        #self.modelBtn.setEnabled(False)  # Disabled for now
+        #self.modelBtn.hide()
 
         self.reportBtn = QPushButton("GIVE YOUR FEEDBACK", self)
         self.reportBtn.setCursor(Qt.PointingHandCursor)
