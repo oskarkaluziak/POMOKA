@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 # PySide6 imports
-from PySide6.QtWidgets import (QWidget, QRadioButton, QMessageBox, QHBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
+from PySide6.QtWidgets import (QWidget, QComboBox, QListView, QRadioButton, QMessageBox, QHBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
 from PySide6.QtGui import QIcon, QGuiApplication
 from PySide6.QtCore import Qt
 
@@ -523,6 +523,15 @@ class ChartEditorDialog(QWidget):
         """Zamyka okno dialogowe."""
         self.hide()
 
+class NonInteractiveComboBox(QComboBox):
+    def __init__(self):
+        super().__init__()
+
+        # Ustawienie widoku listy i zablokowanie interakcji
+        list_view = QListView(self)
+        list_view.setSelectionMode(QListView.NoSelection)  # Wyłączenie zaznaczania
+        self.setView(list_view)
+
 class POMOKAstat(QWidget):
     global_iteration_offset = 0
     is_first_call = True
@@ -572,8 +581,8 @@ class POMOKAstat(QWidget):
         self.label2 = QLabel("<b>Results:<b>", self)
 
         self.filePathEdt = QLineEdit()
-        self.resultEdt = QLineEdit()
-        self.resultEdt.setReadOnly(True)
+        self.resultCmb = NonInteractiveComboBox()
+        self.resultCmb.setEditable(False)  # Wyłączenie edycji ręcznej
 
         self.uploadBtn = QPushButton("&Upload data", self)
         self.setRangeBtn = QPushButton("&Set Range", self)
@@ -590,6 +599,7 @@ class POMOKAstat(QWidget):
                 border: 2px solid #0077B6; /* Ramka prostokąta */
                 padding: 2px;            /* Wewnętrzny margines */
                 border-radius: 8px;      /* Zaokrąglone rogi */
+                wei
             }
             QPushButton:hover {
                 background-color: #e8f0fe; /* Jaśniejsze tło po najechaniu */
@@ -619,17 +629,35 @@ class POMOKAstat(QWidget):
         # Sekcja dla wyników
         horizontalLayoutForLabel2AndResult = QHBoxLayout()
         horizontalLayoutForLabel2AndResult.addWidget(self.label2)
-        self.resultEdt.setStyleSheet("""
-            QLineEdit {
-                color: black;            /* Kolor tekstu */
-                background-color: white; /* Tło prostokąta */
-                border: 1px solid #0077B6; /* Ramka prostokąta */
-                padding: 3px;            /* Wewnętrzny margines */
-                border-radius: 8px;      /* Zaokrąglone rogi */
+        self.resultCmb.setStyleSheet("""
+            QComboBox {
+                color: black;                /* Kolor tekstu */
+                background-color: white;     /* Tło prostokąta */
+                border: 1px solid #0077B6;   /* Ramka prostokąta */
+                padding: 3px;                /* Wewnętrzny margines */
+                border-radius: 8px;          /* Zaokrąglone rogi */
+                min-width: 770px;       /* Minimalna szerokość */
+                max-width: 770px; 
                 font-family: 'Lato';
             }
+            
+            QComboBox::drop-down {
+                border: none;                /* Usuń ramkę przycisku rozwijania */
+            }
+        
+            QComboBox::down-arrow {
+                image: url(no_arrow.png);    /* Możesz podać ścieżkę do własnej strzałki lub usunąć */
+                width: 12px;                 /* Szerokość strzałki */
+                height: 12px;                /* Wysokość strzałki */
+            }
+        
+            QComboBox QAbstractItemView {
+                border: 1px solid #0077B6;   /* Ramka listy rozwijanej */
+                selection-background-color: #0077B6; /* Kolor tła zaznaczonego elementu */
+                selection-color: white;      /* Kolor tekstu zaznaczonego elementu */
+            }
         """)
-        horizontalLayoutForLabel2AndResult.addWidget(self.resultEdt)
+        horizontalLayoutForLabel2AndResult.addWidget(self.resultCmb)
         self.ukladV.addLayout(horizontalLayoutForLabel2AndResult)
 
         # Dodanie przycisków do układu
@@ -1350,6 +1378,34 @@ class POMOKAstat(QWidget):
         self.editChartBtn.setEnabled(True)
 
         self.resize(self.width() + 200, self.height() + 500)
+        self.resultCmb.setStyleSheet("""
+                    QComboBox {
+                        color: black;                /* Kolor tekstu */
+                        background-color: white;     /* Tło prostokąta */
+                        border: 1px solid #0077B6;   /* Ramka prostokąta */
+                        padding: 3px;                /* Wewnętrzny margines */
+                        border-radius: 8px;          /* Zaokrąglone rogi */
+                        min-width: 960px;       /* Minimalna szerokość */
+                        max-width: 960px; 
+                        font-family: 'Lato';
+                    }
+
+                    QComboBox::drop-down {
+                        border: none;                /* Usuń ramkę przycisku rozwijania */
+                    }
+
+                    QComboBox::down-arrow {
+                        image: url(no_arrow.png);    /* Możesz podać ścieżkę do własnej strzałki lub usunąć */
+                        width: 12px;                 /* Szerokość strzałki */
+                        height: 12px;                /* Wysokość strzałki */
+                    }
+
+                    QComboBox QAbstractItemView {
+                        border: 1px solid #0077B6;   /* Ramka listy rozwijanej */
+                        selection-background-color: #0077B6; /* Kolor tła zaznaczonego elementu */
+                        selection-color: white;      /* Kolor tekstu zaznaczonego elementu */
+                    }
+                """)
         self.center()
         self.ill_correct = 1
 
@@ -1550,7 +1606,7 @@ class POMOKAstat(QWidget):
         curve_id = preferences_description
         selected_tests = [item.text() for item in self.testsList.selectedItems()]
         # results_storage = TestResultsStorage()
-        for test in selected_tests:
+        '''for test in selected_tests:
             if test == "Gehan-Wilcoxon test":
                 self.run_gehan_wilcoxon()
             elif test == "Log-rank test":
@@ -1566,7 +1622,9 @@ class POMOKAstat(QWidget):
             elif test == "Average difference Interpolated":
                 self.run_mean_diff(curve_id)
             elif test == "Mann-Whitney U test":
-                self.run_mann_whitney_u(curve_id)
+                self.run_mann_whitney_u(curve_id)'''
+        QMessageBox.information(self, "test",
+                                "Execution Completed")
 
     def generateReport(self):
         # Wyświetlenie dialogu do ustawień raportu
@@ -1724,13 +1782,10 @@ class POMOKAstat(QWidget):
                                                           "AUC_DIFF": formatted_auc_diff})
 
         # Ustawianie tekstu z poprawnym formatowaniem
-        self.resultEdt.setText(
-            f"AUC test: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
-        )
+        self.resultCmb.addItem(f"AUC test: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}")
+
 
         # Informacja w okienku dialogowym
-        QMessageBox.information(self, "AUC test",
-                                "Wykonano test AUC, kliknij OK aby przejść do wyniku kolejnego testu")
 
         all_results = self.results_storage.get_all_results()
         #print("Wszystkie wyniki:", all_results)
@@ -1774,11 +1829,9 @@ class POMOKAstat(QWidget):
                                         {"AUC_ILL": formatted_auc_ill, "AUC_GUS": formatted_auc_gus,
                                          "AUC_DIFF": formatted_auc_diff})
 
-        self.resultEdt.setText(
-            f"AUC test interpolated: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
+
+        self.resultCmb.addItem(f"AUC test interpolated: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}"
         )
-        QMessageBox.information(self, "AUC test",
-                                "Wykonano test AUC po interpolacji, kliknij OK aby przejsc do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
         #print("Wszystkie wyniki:", all_results)
 
@@ -1791,10 +1844,8 @@ class POMOKAstat(QWidget):
 
         self.results_storage.add_result("KS test", curve_id, {"KS_stat": ks_stat, "P-value": p_value})
 
-        self.resultEdt.setText(
-            f"Kolomorow Smirnow test: Statystyka KS = {ks_stat}, p-value = {p_value}")
-        QMessageBox.information(self, "Kolomorow Smirnow test",
-                                "Wykonano test Kolomorow Smirnow, kliknij OK aby przejść do wyniku kolejnego testu")
+        self.resultCmb.addItem(f"Kolomorow Smirnow test: Statystyka KS = {ks_stat}, p-value = {p_value}")
+
         all_results = self.results_storage.get_all_results()
         #print("Wszystkie wyniki:", all_results)
 
@@ -1812,10 +1863,8 @@ class POMOKAstat(QWidget):
 
         self.results_storage.add_result("KS test", curve_id, {"KS_stat": ks_stat, "P-value": p_value})
 
-        self.resultEdt.setText(
-            f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}")
-        QMessageBox.information(self, "Kolomorow Smirnow test interpolated",
-                                "Wykonano test Kolomorow Smirnow po interpolacji, kliknij OK aby przejść do wyniku kolejnego testu")
+        self.resultCmb.addItem(f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}")
+
         all_results = self.results_storage.get_all_results()
         #print("Wszystkie wyniki:", all_results)
 
@@ -1833,10 +1882,9 @@ class POMOKAstat(QWidget):
 
         self.results_storage.add_result("Mean diff test", curve_id, {"Mean_diff": diff})
 
-        self.resultEdt.setText(
-            f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}")
-        QMessageBox.information(self, "Srednia roznica pomiedzy ppunktami wykresu",
-                                "Obliczono srednia roznice pomiedzy ppunktami wykresu, kliknij OK aby przejść do wyniku kolejnego testu")
+        self.resultCmb.addItem(f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}")
+
+
         all_results = self.results_storage.get_all_results()
         #print("Wszystkie wyniki:", all_results)
 
@@ -1861,11 +1909,9 @@ class POMOKAstat(QWidget):
 
         self.results_storage.add_result("Mann-Whitney U", curve_id, {"Statystyka U": stat, "P-value": p_value})
 
-        self.resultEdt.setText(
+        self.resultCmb.addItem(
             f"Test Manna-Whitneya U: Statystyka U = {stat}, P-value = {p_value}")
 
-        QMessageBox.information(self, "Test Manna-Whitneya U",
-                                "Wykonano Test Manna-Whitneya U, kliknij OK aby przejść do wyniku kolejnego testu")
         all_results = self.results_storage.get_all_results()
         #print("Wszystkie wyniki:", all_results)
 
@@ -1894,13 +1940,11 @@ class POMOKAstat(QWidget):
 
         result = multivariate_logrank_test(data['time'], data['group'], data['event'], weightings="wilcoxon")
 
-        self.resultEdt.setText(f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
-        QMessageBox.information(self, "Gehan-Wilcoxon test", "Wykonano test Gehan-Wilcoxon, kliknij OK aby przejść do wyniku kolejnego testu")
+        self.resultCmb.addItem(f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
 
     def run_log_rank(self):
         result = logrank_test(self.T_ill, self.x_data_trimmed, event_observed_A=self.E_ill, event_observed_B=self.y_data_probability_trimmed)
-        self.resultEdt.setText(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
-        QMessageBox.information(self, "Log-rank test", "Wykonano test Log-rank, kliknij OK aby przejść do wyniku kolejnego testu")
+        self.resultCmb.addItem(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
 
     def toggleExecution(self):
         if self.isExecuting:
@@ -1973,6 +2017,8 @@ class POMOKAstat(QWidget):
                     self.run_mean_diff(curve_id)
                 elif test == "Mann-Whitney U test":
                     self.run_mann_whitney_u(curve_id)
+            QMessageBox.information(self, "test",
+                                    "Execution Completed")
 
     def breakExecution(self):
         self.testsList.clearSelection()
@@ -1980,7 +2026,7 @@ class POMOKAstat(QWidget):
         self.preferencesList.clearSelection()
         self.preferencesList.clear()
         self.preferencesList.setEnabled(False)
-        self.resultEdt.clear()
+        self.resultCmb.clear()
         self.text_widget.close()
         self.legend_text.clear()
         self.addCurveBtn.setEnabled(False)
@@ -1997,6 +2043,34 @@ class POMOKAstat(QWidget):
             if isinstance(widget, FigureCanvas):
                 widget.setParent(None)
                 self.resize(900, 500)
+                self.resultCmb.setStyleSheet("""
+                            QComboBox {
+                                color: black;                /* Kolor tekstu */
+                                background-color: white;     /* Tło prostokąta */
+                                border: 1px solid #0077B6;   /* Ramka prostokąta */
+                                padding: 3px;                /* Wewnętrzny margines */
+                                border-radius: 8px;          /* Zaokrąglone rogi */
+                                min-width: 770px;       /* Minimalna szerokość */
+                                max-width: 770px; 
+                                font-family: 'Lato';
+                            }
+
+                            QComboBox::drop-down {
+                                border: none;                /* Usuń ramkę przycisku rozwijania */
+                            }
+
+                            QComboBox::down-arrow {
+                                image: url(no_arrow.png);    /* Możesz podać ścieżkę do własnej strzałki lub usunąć */
+                                width: 12px;                 /* Szerokość strzałki */
+                                height: 12px;                /* Wysokość strzałki */
+                            }
+
+                            QComboBox QAbstractItemView {
+                                border: 1px solid #0077B6;   /* Ramka listy rozwijanej */
+                                selection-background-color: #0077B6; /* Kolor tła zaznaczonego elementu */
+                                selection-color: white;      /* Kolor tekstu zaznaczonego elementu */
+                            }
+                        """)
                 self.center()
 
         self.executeBtn.setText("Execute")
