@@ -1,5 +1,3 @@
-**PL version only**
-
 **Instrukcja obsługi aplikacji POMOKA**
 
 **Wstęp**
@@ -28,27 +26,27 @@ POMOKA to aplikacja służąca do analizy statystycznej danych medycznych oraz w
 
 - Określ, w której linii znajdują się nagłówki kolumn (domyślnie w pierwszej linii).
 
-- Aplikacja wyświetli informację o liczbie wierszy i kolumn wczytanego pliku.
+Aplikacja wyświetli informację o liczbie wierszy i kolumn wczytanego pliku.
 
 **Wybór preferencji i zakresów**
 
-- Ustawienia preferencji
+Ustawienia preferencji
 
 - Po wczytaniu danych pojawi się lista kolumn wczytanego pliku.
 
 - Zaznacz interesujące Cię kolumny w sekcji preferencji.
 
-**Ustawianie zakresów**
+Ustawianie zakresów
 
 - Kliknij przycisk Set Range.
 
 - Dla każdej wybranej kolumny określ zakres danych (np. 1-10 dla wartości liczbowych lub SVG, MVG dla wartości tekstowych).
 
-- Jeśli wybierzesz kolumnę age lub sex, program automatycznie rozpozna ich specjalne właściwości.
+Jeśli wybierzesz kolumnę age lub sex, program automatycznie rozpozna ich specjalne właściwości.
 
 **Analiza danych**
 
-- Wybór testów statystycznych
+Wybór testów statystycznych
 
 - W sekcji Tests zaznacz testy, które chcesz przeprowadzić. 
 
@@ -70,7 +68,7 @@ Dostępne opcje:
 
 - Kliknij przycisk Execute, aby rozpocząć analizę.
 
-- Wyniki testów zostaną wyświetlone w polu wyników oraz zapisane w systemie aplikacji.
+Wyniki testów zostaną wyświetlone w polu wyników oraz zapisane w systemie aplikacji.
 
 **Dodawanie kolejnych krzywych**
 
@@ -80,13 +78,13 @@ Dostępne opcje:
 
 **Generowanie wykresów**
 
-- Tworzenie wykresów
+Tworzenie wykresów
 
 - Po wykonaniu analizy program automatycznie wygeneruje wykres krzywej przeżycia.
 
 - Możesz dostosować jego wygląd, korzystając z funkcji edycji wykresu.
 
-**Edytowanie wykresu**
+Edytowanie wykresu
 
 - Kliknij przycisk Edit Chart, aby otworzyć narzędzie edycji wykresu.
 
@@ -104,7 +102,7 @@ Opcje edycji obejmują:
 
 **Generowanie raportów**
 
-- Tworzenie raportu
+Tworzenie raportu
 
 - Kliknij przycisk Generate Report.
 
@@ -138,16 +136,16 @@ Zamykanie aplikacji:
 
 - Aplikacja zapyta o potwierdzenie przed zamknięciem.
 
-**Zerowanie ustawień**
+Zerowanie ustawień
 
-Jeśli chcesz rozpocząć nową analizę bez zamykania aplikacji, kliknij przycisk Break w sekcji wykonania.
+- Jeśli chcesz rozpocząć nową analizę bez zamykania aplikacji, kliknij przycisk Break w sekcji wykonania.
 
-Program wyczyści wszystkie bieżące ustawienia i wyniki.
+- Program wyczyści wszystkie bieżące ustawienia i wyniki.
 
 **Uwagi końcowe**
 
-Upewnij się, że dane wejściowe są poprawnie sformatowane i zawierają wszystkie wymagane kolumny.
+- Upewnij się, że dane wejściowe są poprawnie sformatowane i zawierają wszystkie wymagane kolumny.
 
-Przed generowaniem raportu upewnij się, że wykres został wygenerowany i dane zostały przeanalizowane.
+- Przed generowaniem raportu upewnij się, że wykres został wygenerowany i dane zostały przeanalizowane.
 
-**W razie problemów z działaniem aplikacji skontaktuj się z administratorem.**
+- **W razie problemów z działaniem aplikacji skontaktuj się z administratorem.**

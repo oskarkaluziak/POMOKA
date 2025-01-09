@@ -209,6 +209,7 @@ class InstructionsWindow(QWidget):
         self.setWindowTitle("Instruction")
         self.setWindowIcon(QIcon('images/icon.png'))
         self.setFixedSize(600, 400)
+        self.instructions_text = QTextEdit()
 
         # Styl okna
         self.setStyleSheet("""
@@ -226,6 +227,10 @@ class InstructionsWindow(QWidget):
                 color: #202124;
                 font-size: 14px;
                 font-family: 'Lato';
+                min-width: 536px;       /* Minimalna szerokość */
+                max-width: 536px; 
+                min-height: 300px;      /* Minimalna wysokość */
+                max-height: 300px; 
             }
 
             QScrollArea {
@@ -257,21 +262,78 @@ class InstructionsWindow(QWidget):
             }
         """)
 
+        button_style = """
+                            QPushButton {
+                                color: #000000;
+                                background-color: white;
+                                border: 2px solid #0077B6;
+                                padding: 3px;
+                                min-width: 30px;
+                                max-width: 30px;
+                                height: 15px;
+                                border-radius: 8px;
+                                font-family: 'Lato';
+                                font-weight: 570;
+                                margin: 5px 0;
+                            }
+                            QPushButton:hover {
+                                background-color: #e8f0fe;
+                            }
+                            QPushButton:pressed {
+                                background-color: #d2e3fc;
+                            }
+                            QPushButton:disabled {
+                                border-color: #e8eaed;
+                                color: #9aa0a6;
+                            }
+                        """
+
         # Ustawienie layoutu
         layout = QVBoxLayout()
+        self.languageBtn = QPushButton("PL", self)
+        self.languageBtn.setStyleSheet(button_style)
+        self.languageBtn.setToolTip("Change language")
+        self.currentLanguage = 0
+        self.languageBtn.clicked.connect(self.checkLanguage)
+        layout.addWidget(self.languageBtn, alignment=Qt.AlignRight)
+
+
         self.instructions_text = QTextEdit(self)
         self.instructions_text.setReadOnly(True)
 
-        # Próba załadowania treści instrukcji
-        try:
-            with open("PLinstruction.md", "r", encoding="utf-8") as file:
-                content = file.read()
-                self.instructions_text.setMarkdown(content)  # Interpretuj jako Markdown
-        except FileNotFoundError:
-            self.instructions_text.setPlainText("Instructions file not found.")
-
+        # open instruction
+        self.changeLanguage(0)
         layout.addWidget(self.instructions_text)
         self.setLayout(layout)
+
+    def checkLanguage(self):
+        if self.currentLanguage == 0:
+            self.languageBtn.setText("EN")
+            self.changeLanguage(1)
+            self.currentLanguage = 1
+            print(self.currentLanguage)
+
+        elif self.currentLanguage == 1:
+            self.languageBtn.setText("PL")
+            self.changeLanguage(0)
+            self.currentLanguage = 0
+            print(self.currentLanguage)
+    def changeLanguage(self, language):
+
+        # standard value = 0
+        # 0 = EN
+        if language == 0:
+            with open("ENinstruction.md", "r", encoding="utf-8") as file:
+                content = file.read()
+                self.instructions_text.clear()
+                self.instructions_text.setMarkdown(content)  # as markdown
+        # 1 = PL
+        if language == 1:
+            with open("PLinstruction.md", "r", encoding="utf-8") as file:
+                content = file.read()
+                self.instructions_text.clear()
+                self.instructions_text.setMarkdown(content)
+
 
 if __name__ == "__main__":
     app = QApplication([])
