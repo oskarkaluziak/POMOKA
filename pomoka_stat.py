@@ -295,6 +295,7 @@ class ChartEditorDialog(QWidget):
         # Widocznosc napisow
         self.toggle_text_btn = QPushButton("Toggle Patient Numbers Visibility", self)
         self.toggle_text_btn.clicked.connect(self.toggle_patients_visibility)
+        self.toggle_text_btn.setToolTip("Active only in Color Mode")
         self.toggle_text_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.toggle_text_btn)
 
@@ -433,6 +434,8 @@ class ChartEditorDialog(QWidget):
                 ticks = [round(start + i * tick_step, 10) for i in range(int((end - start) / tick_step) + 1)]
                 ax.set_xticks(ticks)
             self.figure.canvas.draw()
+            if not self.black_white_btn.isEnabled():
+                self.toggle_patients_visibility(force_hide=True)
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Please enter a valid tick step.")
 
@@ -456,8 +459,9 @@ class ChartEditorDialog(QWidget):
                     else:
                         text.set_visible(False)  # Ukryj tekst, jeśli jest poza zakresem
             self.reapplyXAxisTickStep()
-
             self.figure.canvas.draw()
+            if not self.black_white_btn.isEnabled():
+                self.toggle_patients_visibility(force_hide=True)
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Please enter valid numerical values for the range.")
 
