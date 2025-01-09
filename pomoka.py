@@ -136,6 +136,7 @@ class POMOKAstartup(QWidget):
         self.footer_label.setStyleSheet("""
             color: #5f6368;
             font-size: 12px;
+            font-family: 'Lato';
             text-align: center;
             margin: 0px 0;
         """)

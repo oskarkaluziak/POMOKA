@@ -124,6 +124,7 @@ class ChartEditorDialog(QWidget):
                         height: 15px;
                         border-radius: 8px;
                         font-size: 14px;
+                        font-family: 'Lato';
                         margin: 0px 0;
                     }
                     QPushButton:hover {
@@ -625,6 +626,7 @@ class POMOKAstat(QWidget):
                 border: 1px solid #0077B6; /* Ramka prostokąta */
                 padding: 3px;            /* Wewnętrzny margines */
                 border-radius: 8px;      /* Zaokrąglone rogi */
+                font-family: 'Lato';
             }
         """)
         horizontalLayoutForLabel2AndResult.addWidget(self.resultEdt)
@@ -815,11 +817,6 @@ class POMOKAstat(QWidget):
         self.testsList.addItem("Kolomorow Smirnow")
         self.testsList.addItem("Kolomorow Smirnow Interpolated")
         self.testsList.addItem("Srednia roznica interpolated")
-        #self.testsList.addItem("Gehan-Wilcoxon test")
-        #self.testsList.addItem("Cox-Mantel test")
-        #self.testsList.addItem("F Cox test")
-        #self.testsList.addItem("Log-rank test")
-        #self.testsList.addItem("Peto-Peto-Wilcoxon test")
         self.testsList.setFixedSize(300, 75)
 
         default_item = self.testsList.findItems("Mann-Whitney U test", Qt.MatchExactly)[0]
@@ -1055,9 +1052,6 @@ class POMOKAstat(QWidget):
 
         # te dwie plus sex generuje wykres dla zakresu rocznikow
         opcja = self.selected_option #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
-        print("Base Path:", os.path.dirname(os.path.abspath(sys.argv[0])))
-        print("Pełna ścieżka do magicdata.xlsx:", self.resource_path("data/magicdata.xlsx"))
-        print("Pełna ścieżka do dane_ogolne.xlsx:", self.resource_path("data/dane_ogolne.xlsx"))
         file_path = self.resource_path("data/magicdata.xlsx")
         file_path_men = self.resource_path("data/dane_mezczyzni.xlsx")
         file_path_women = self.resource_path("data/dane_kobiety.xlsx")
@@ -1197,6 +1191,7 @@ class POMOKAstat(QWidget):
                         border: 2px solid #0077B6; /* Ramka prostokąta */
                         padding: 3px;           /* Wewnętrzny margines */
                         border-radius: 8px;      /* Zaokrąglone rogi */
+                        font-family: 'Lato';
                     }
                 """)
         if not self.text_widget in [self.ukladV.itemAt(i).widget() for i in range(self.ukladV.count())]:
@@ -1234,8 +1229,6 @@ class POMOKAstat(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
-        self.filtered_patient_count = len(df_filtered)  # liczba pacjentow wzietych pod uwage do pliku
-        print(f"pacjentów wziętych pod uwage: {self.filtered_patient_count}")
 
         # sprawdzamy, czy kolumny 'time' i 'event' istnieją
         if 'time' in df_filtered.columns:
@@ -1408,8 +1401,6 @@ class POMOKAstat(QWidget):
             QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
             return
 
-        self.filtered_patient_count = len(df_filtered)
-        #print(f"Additional curve - patients considered: {self.filtered_patient_count}")
 
         if 'time' in df_filtered.columns:
             T_additional = df_filtered['time']
