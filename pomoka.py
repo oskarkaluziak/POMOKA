@@ -311,13 +311,11 @@ class InstructionsWindow(QWidget):
             self.languageBtn.setText("EN")
             self.changeLanguage(1)
             self.currentLanguage = 1
-            print(self.currentLanguage)
 
         elif self.currentLanguage == 1:
             self.languageBtn.setText("PL")
             self.changeLanguage(0)
             self.currentLanguage = 0
-            print(self.currentLanguage)
     def changeLanguage(self, language):
 
         # standard value = 0
