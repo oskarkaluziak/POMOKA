@@ -982,9 +982,12 @@ class POMOKAstat(QWidget):
         scrollArea.setStyleSheet(scroll_area_style)
         scrollArea.setWidgetResizable(True)
         scrollArea.setWidget(mainWidget)
+        scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         mainLayout = QVBoxLayout(self)
         mainLayout.addWidget(scrollArea)
+
+
         self.setLayout(mainLayout)
 
         # Połączenia sygnałów z funkcjami
