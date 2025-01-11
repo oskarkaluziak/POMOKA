@@ -51,6 +51,239 @@ class TestResultsStorage:
 
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QCheckBox, QPushButton, QLabel
 
+class CustomDialogs:
+    @staticmethod
+    def showWarning(parent, title, message):
+        msg_box = QMessageBox(parent)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(message)
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.setStyleSheet(CustomDialogs._getMessageBoxStyle())
+        return msg_box.exec()
+
+    @staticmethod
+    def showInformation(parent, title, message):
+        msg_box = QMessageBox(parent)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(message)
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.setStyleSheet(CustomDialogs._getMessageBoxStyle())
+        return msg_box.exec()
+
+    @staticmethod
+    def showQuestion(parent, title, message):
+        msg_box = QMessageBox(parent)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(message)
+        msg_box.setIcon(QMessageBox.Question)
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setStyleSheet(CustomDialogs._getMessageBoxStyle())
+        return msg_box.exec()
+
+    @staticmethod
+    def getTextInput(parent, title, label, default_text=""):
+        dialog = QInputDialog(parent)
+        dialog.setInputMode(QInputDialog.TextInput)
+        dialog.setTextValue(default_text)
+        dialog.setWindowTitle(title)
+        dialog.setLabelText(label)
+        dialog.setStyleSheet("""
+                QInputDialog {
+                    background-color: #f9fafb;
+                    border: none; /* Usunięcie obramowania zewnętrznego */
+                    padding: 10px;
+                }
+                QDialog {
+                }
+                QInputDialog QLabel {
+                    font-family: 'Lato';
+                    font-size: 14px;
+                    color: #202124;
+                }
+                QMessageBox QPushButton, QDialogButtonBox QPushButton {
+                    color: #000000;
+                    background-color: white;
+                    border: 2px solid #0077B6;
+                    padding: 5px 10px;
+                    border-radius: 8px;
+                    font-family: 'Lato';
+                    font-weight: 570;
+                }
+                QInputDialog QPushButton:hover {
+                    background-color: #e8f0fe;
+                }
+                QInputDialog QPushButton:pressed {
+                    background-color: #d2e3fc;
+                }
+                QInputDialog QLineEdit {
+                    border: 2px solid #0077B6;
+                    border-radius: 4px;
+                    padding: 5px;
+                }
+            """)
+        ok = dialog.exec() == QDialog.Accepted
+        return dialog.textValue(), ok
+
+    def getIntInput(parent, title, label, value=0, min_val=0, max_val=100, step=1):
+        dialog = QInputDialog(parent)
+        dialog.setInputMode(QInputDialog.IntInput)
+        dialog.setIntRange(min_val, max_val)
+        dialog.setIntStep(step)
+        dialog.setIntValue(value)
+        dialog.setWindowTitle(title)
+        dialog.setLabelText(label)
+        dialog.setStyleSheet("""
+            QInputDialog {
+                background-color: #f9fafb;
+                padding: 10px;
+            }
+            QInputDialog QLabel {
+                font-family: 'Lato';
+                font-size: 14px;
+                color: #202124;
+            }
+            QInputDialog QPushButton {
+                color: #000000;
+                background-color: white;
+                border: 2px solid #0077B6;
+                padding: 5px 10px; /* Zmniejszenie wysokości przycisków */
+                border-radius: 8px;
+                font-family: 'Lato';
+            }
+            QInputDialog QPushButton:hover {
+                background-color: #e8f0fe;
+            }
+            QInputDialog QPushButton:pressed {
+                background-color: #d2e3fc;
+            }
+            QInputDialog QLineEdit {
+                border: 2px solid #0077B6;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
+        ok = dialog.exec() == QDialog.Accepted
+        return dialog.intValue(), ok
+    @staticmethod
+    def getItemSelection(parent, title, label, items, current=0):
+        dialog = QInputDialog(parent)
+        dialog.setInputMode(QInputDialog.TextInput)
+        dialog.setComboBoxItems(items)
+        dialog.setComboBoxEditable(False)
+        dialog.setWindowTitle(title)
+        dialog.setLabelText(label)
+        dialog.setStyleSheet("""
+            QInputDialog {
+                background-color: #f9fafb;
+                border: none; 
+                padding: 10px;
+            }
+            QDialog {
+            }
+            QInputDialog QLabel {
+                font-family: 'Lato';
+                font-size: 14px;
+                color: #202124;
+            }
+            QMessageBox QPushButton, QDialogButtonBox QPushButton {
+                color: #000000;
+                background-color: white;
+                border: 2px solid #0077B6;
+                padding: 5px 10px;
+                border-radius: 8px;
+                font-family: 'Lato';
+                font-weight: 570;
+            }
+            QInputDialog QPushButton:hover {
+                background-color: #e8f0fe;
+            }
+            QInputDialog QPushButton:pressed {
+                background-color: #d2e3fc;
+            }
+            QInputDialog QLineEdit {
+                border: 2px solid #0077B6;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
+        ok = dialog.exec() == QDialog.Accepted
+        return dialog.textValue(), ok
+
+    @staticmethod
+    def getFileName(parent, title="Select File", file_filter="All Files (*.*)"):
+        options = QFileDialog.Options()
+        dialog = QFileDialog(parent)
+        dialog.setWindowTitle(title)
+        dialog.setNameFilter(file_filter)
+        dialog.setOptions(options)
+        dialog.setStyleSheet("""
+                QFileDialog {
+                    background-color: #f9fafb;
+                    padding: 10px;
+                }
+                QFileDialog QLabel {
+                    font-family: 'Lato';
+                    font-size: 14px;
+                    color: #202124;
+                }
+                QMessageBox QPushButton, QDialogButtonBox QPushButton {
+                    color: #000000;
+                    background-color: white;
+                    border: 2px solid #0077B6;
+                    padding: 5px 10px;
+                    border-radius: 8px;
+                    font-family: 'Lato';
+                    font-weight: 570;
+                }
+                QFileDialog QPushButton:hover {
+                    background-color: #e8f0fe;
+                }
+                QFileDialog QPushButton:pressed {
+                    background-color: #d2e3fc;
+                }
+            """)
+        if dialog.exec() == QDialog.Accepted:
+            file_name = dialog.selectedFiles()[0]
+        else:
+            file_name = ""
+        return file_name
+
+    @staticmethod
+    @staticmethod
+    def _getMessageBoxStyle():
+        return """
+            QMessageBox {
+                background-color: #f9fafb;
+                border: none;
+                padding: 10px;
+            }
+            QDialog {
+            }
+            QMessageBox QLabel {
+                font-size: 14px;
+                font-family: 'Lato';
+                color: #202124;
+            }
+            QMessageBox QPushButton, QDialogButtonBox QPushButton {
+                color: #000000;
+                background-color: white;
+                border: 2px solid #0077B6;
+                padding: 5px 10px;
+                border-radius: 8px;
+                font-family: 'Lato';
+                font-weight: 570;
+            }
+            QMessageBox QPushButton:hover, QDialogButtonBox QPushButton:hover {
+                background-color: #e8f0fe;
+            }
+            QMessageBox QPushButton:pressed, QDialogButtonBox QPushButton:pressed {
+                background-color: #d2e3fc;
+            }
+        """
+
+
 class ReportOptionsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -74,14 +307,54 @@ class ReportOptionsDialog(QDialog):
         self.png_option = QRadioButton("PNG")
         self.layout.addWidget(self.pdf_option)
         self.layout.addWidget(self.png_option)
+
         # Buttons
         self.okButton = QPushButton("OK", self)
         self.cancelButton = QPushButton("Cancel", self)
         self.okButton.clicked.connect(self.accept)
         self.cancelButton.clicked.connect(self.reject)
 
-        self.layout.addWidget(self.okButton)
-        self.layout.addWidget(self.cancelButton)
+        # Button layout
+        button_layout = QVBoxLayout()
+        button_layout.addWidget(self.okButton)
+        button_layout.addWidget(self.cancelButton)
+        self.layout.addLayout(button_layout)
+
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #f9fafb;
+                padding: 10px;
+            }
+            QLabel {
+                font-family: 'Lato';
+                font-size: 14px;
+                color: #202124;
+            }
+            QLineEdit {
+                border: 2px solid #0077B6;
+                border-radius: 4px;
+                padding: 5px;
+            }
+            QCheckBox, QRadioButton {
+                font-family: 'Lato';
+                font-size: 14px;
+                color: #202124;
+            }
+            QPushButton {
+                color: #000000;
+                background-color: white;
+                border: 2px solid #0077B6;
+                padding: 5px 10px;
+                border-radius: 8px;
+                font-family: 'Lato';
+            }
+            QPushButton:hover {
+                background-color: #e8f0fe;
+            }
+            QPushButton:pressed {
+                background-color: #d2e3fc;
+            }
+        """)
 
     def getOptions(self):
         return {
@@ -89,8 +362,6 @@ class ReportOptionsDialog(QDialog):
             "save_chart_separately": self.saveChartCheckbox.isChecked(),
             "output_format": "pdf" if self.pdf_option.isChecked() else "png",
         }
-
-
 class ChartEditorDialog(QWidget):
     def __init__(self, figure, pomoka_stat, parent=None):
         super().__init__(parent)
@@ -361,8 +632,7 @@ class ChartEditorDialog(QWidget):
                     label.set_fontsize(font_size)
             self.figure.canvas.draw()
         else:
-            QMessageBox.warning(self, "Input Error", "Please enter a valid font size.")
-
+            CustomDialogs.showWarning(self, "Input Error", "Please enter a valid font size.")
     def toggleAxisTitles(self):
         """Włącz lub wyłącz tytuły osi."""
         for ax in self.figure.axes:
@@ -437,7 +707,7 @@ class ChartEditorDialog(QWidget):
             if not self.black_white_btn.isEnabled():
                 self.toggle_patients_visibility(force_hide=True)
         except ValueError:
-            QMessageBox.warning(self, "Input Error", "Please enter a valid tick step.")
+            CustomDialogs.showWarning(self, "Input Error", "Please enter a valid tick step.")
 
     def applyXAxisRange(self):
         """Ustaw zakres osi X i przytnij liczby pacjentów."""
@@ -445,7 +715,7 @@ class ChartEditorDialog(QWidget):
             x_min = float(self.x_range_min_input.text())
             x_max = float(self.x_range_max_input.text())
             if x_min >= x_max:
-                QMessageBox.warning(self, "Input Error", "Min value must be less than max value.")
+                CustomDialogs.showWarning(self, "Input Error", "Min value must be less than max value.")
                 return
             for ax in self.figure.axes:
                 # Ustaw zakres osi X
@@ -463,7 +733,7 @@ class ChartEditorDialog(QWidget):
             if not self.black_white_btn.isEnabled():
                 self.toggle_patients_visibility(force_hide=True)
         except ValueError:
-            QMessageBox.warning(self, "Input Error", "Please enter valid numerical values for the range.")
+            CustomDialogs.showWarning(self, "Input Error", "Please enter valid numerical values for the range.")
 
     def reapplyXAxisTickStep(self):
         """Ponownie zastosuj bieżący krok osi X."""
@@ -485,7 +755,7 @@ class ChartEditorDialog(QWidget):
         self.black_white_btn.setEnabled(True)
         self.toggle_patients_visibility()
         if not self.original_colors or not self.original_styles:
-            QMessageBox.warning(self, "Error", "Original styles or colors are not stored!")
+            CustomDialogs.showWarning(self, "Error", "Original styles or colors are not stored!")
             return
         i = 0
         for ax, collections in zip(self.figure.axes, self.original_shaded_areas):
@@ -765,26 +1035,19 @@ class POMOKAstat(QWidget):
         # Ustawienie geometrii okna
         self.setGeometry(x, y, window_width, window_height)
     def uploadCSV(self):  # funkcja do opcji z wgraniem pliku
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(
-            self,
-            "Wybierz plik CSV lub XLSX",
-            "",
-            "CSV i Excel Files (*.csv *.xlsx *.xls);;CSV Files (*.csv);;Excel Files (*.xlsx *.xls);;All Files (*)",
-            options=options
-        )
+        fileName = CustomDialogs.getFileName(self, "Select File", "All Files (*.*)")
         if fileName:
             self.filePathEdt.setText(fileName)
             self.askHeaderRow(fileName)
 
     def askHeaderRow(self, fileName):  # funkcja pytająca o header kolumne
-        row, ok = QInputDialog.getInt(self, "Header Row", "Enter the row number containing column headers:", 1, 1, 100,
-                                      1)
+        row, ok = CustomDialogs.getIntInput(self, "Header Row", "Enter the row number containing column headers:", 1, 1, 100, 1)
+
         if ok:
             if self.verifyHeaderRow(fileName, row):
                 self.readCSV(fileName, row)
             else:
-                QMessageBox.warning(self, "Warning",
+                CustomDialogs.showWarning(self, "Warning",
                                     "The selected row does not seem to contain valid headers. Please try again.")
 
     def verifyHeaderRow(self, fileName, headerRow):  # funkcja weryfikująca nagłówki
@@ -802,7 +1065,7 @@ class POMOKAstat(QWidget):
             else:
                 return False
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Unable to verify header row: {str(e)}")
+            CustomDialogs.showWarning(self, "Error", f"Unable to verify header row: {str(e)}")
             return False
 
     def readCSV(self, fileName, headerRow):  # funkcja do wczytania csv/xlsx/xls
@@ -815,7 +1078,7 @@ class POMOKAstat(QWidget):
                 raise ValueError("Unsupported file format")
 
             self.df = df
-            QMessageBox.information(self, "File loaded",
+            CustomDialogs.showInformation(self, "File loaded",
                                     f"Number of rows: {df.shape[0]}\nNumber of columns: {df.shape[1]}")
 
             if hasattr(self, 'preferencesList'):
@@ -833,7 +1096,7 @@ class POMOKAstat(QWidget):
             self.editChartBtn.show()
             self.center()
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Unable to load file: {str(e)}")
+            CustomDialogs.showWarning(self, "Error", f"Unable to load file: {str(e)}")
 
     def CBtests(self):  # wybor testow
         if hasattr(self, 'testsList') and self.testsList is not None:
@@ -923,7 +1186,7 @@ class POMOKAstat(QWidget):
             values = [str(value) for value in values]
 
             while True:  # Loop to allow retry on invalid input
-                value_range, ok = QInputDialog.getText(
+                value_range, ok = CustomDialogs.getTextInput(
                     self,
                     f"Select range for {column}",
                     f"Enter the range for column {column} (e.g., '1-10' or 'SVG,MVG'):"
@@ -937,7 +1200,7 @@ class POMOKAstat(QWidget):
                     if '-' in value_range:
                         # Ensure the format is strictly numeric (e.g., "min-max")
                         if not re.match(r"^\d+-\d+$", value_range.strip()):
-                            QMessageBox.warning(
+                            CustomDialogs.showWarning(
                                 self,
                                 "Format Error",
                                 f"Invalid range format for column '{column}'. Please enter a valid numeric range: MINIMUM-MAXIMUM."
@@ -948,7 +1211,7 @@ class POMOKAstat(QWidget):
 
                         # Check if lower bound is less than or equal to upper bound
                         if lower > upper:
-                            QMessageBox.warning(
+                            CustomDialogs.showWarning(
                                 self,
                                 "Range Error",
                                 f"Invalid range: the lower bound ({lower}) cannot be greater than the upper bound ({upper})."
@@ -961,7 +1224,7 @@ class POMOKAstat(QWidget):
                         filtered_values = column_values[(column_values >= lower) & (column_values <= upper)]
 
                         if filtered_values.empty:
-                            QMessageBox.warning(
+                            CustomDialogs.showWarning(
                                 self,
                                 "Range Error",
                                 f"No values found in column '{column}' for the range: {lower}-{upper}."
@@ -1008,7 +1271,7 @@ class POMOKAstat(QWidget):
 
                         # Verify if all entered values exist in the column
                         if not set(value_list).issubset(set(values)):
-                            QMessageBox.warning(
+                            CustomDialogs.showWarning(
                                 self,
                                 "Value Error",
                                 f"Some values in '{value_range}' do not exist in column '{column}'."
@@ -1019,7 +1282,7 @@ class POMOKAstat(QWidget):
                         break
 
                     else:
-                        QMessageBox.warning(
+                        CustomDialogs.showWarning(
                             self,
                             "Input Error",
                             "Please enter a valid range (e.g., 'MINIMUM-MAXIMUM' or 'value1,value2,...')."
@@ -1027,18 +1290,17 @@ class POMOKAstat(QWidget):
                         continue
 
                 except ValueError:
-                    QMessageBox.warning(
+                    CustomDialogs.showWarning(
                         self,
                         "Input Error",
                         "Invalid input. Please enter a valid numeric range or a comma-separated list of values."
                     )
 
     def closeEvent(self, event):  # zapytanie przed zamknieciem aplikacji
-        odp = QMessageBox.question(
+        odp = CustomDialogs.showQuestion(
             self, 'Komunikat',
-            "Are you sure you want to close?",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-
+            "Are you sure you want to close?"
+        )
         if odp == QMessageBox.Yes:
             event.accept()
         else:
@@ -1232,7 +1494,7 @@ class POMOKAstat(QWidget):
     def ill(self):
         self.ill_correct = 0
         if not hasattr(self, 'df'):
-            QMessageBox.warning(self, "Error", "Data is not loaded.")
+            CustomDialogs.showWarning(self, "Error", "Data is not loaded.")
             return
 
         # wymagaj wybranie zakresu preferencji
@@ -1242,7 +1504,7 @@ class POMOKAstat(QWidget):
         for item in self.preferencesList.selectedItems():
             if item.text() != "no preferences":
                 if not selected_preferences:
-                    QMessageBox.warning(self, "Error", "No preferences selected.")
+                    CustomDialogs.showWarning(self, "Error", "No preferences selected.")
                     return
 
         df_filtered = self.df.copy()
@@ -1258,7 +1520,7 @@ class POMOKAstat(QWidget):
                 df_filtered = df_filtered[df_filtered[column].isin(values)]
 
         if df_filtered.empty:
-            QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
+            CustomDialogs.showWarning(self, "Error", "No data matching the selected ranges.")
             return
 
 
@@ -1268,12 +1530,12 @@ class POMOKAstat(QWidget):
         else:
             # jeśli nie znajdzie 'time', prosi użytkownika o wybór kolumny
             column_names = df_filtered.columns.tolist()
-            selected_column, ok = QInputDialog.getItem(self, "Select column for 'time'",
+            selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'time'",
                                                        "Available columns:", column_names, 0, False)
             if ok and selected_column:
                 self.T_ill = df_filtered[selected_column]
             else:
-                QMessageBox.warning(self, "Error", "No column selected for 'time'.")
+                CustomDialogs.showWarning(self, "Error", "No column selected for 'time'.")
                 return
 
         if 'event' in df_filtered.columns:
@@ -1281,12 +1543,12 @@ class POMOKAstat(QWidget):
         else:
             # jeśli nie znajdzie 'event', poproś użytkownika o wybór kolumny
             column_names = df_filtered.columns.tolist()
-            selected_column, ok = QInputDialog.getItem(self, "Select column for 'event'",
+            selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'event'",
                                                        "Available columns:", column_names, 0, False)
             if ok and selected_column:
                 self.E_ill = df_filtered[selected_column]
             else:
-                QMessageBox.warning(self, "Error", "No column selected for 'event'.")
+                CustomDialogs.showWarning(self, "Error", "No column selected for 'event'.")
                 return
 
         kmf_ill = KaplanMeierFitter()
@@ -1417,24 +1679,24 @@ class POMOKAstat(QWidget):
 
     def addCurve(self):
         if not hasattr(self, 'df'):
-            QMessageBox.warning(self, "Error", "Data is not loaded.")
+            CustomDialogs.showWarning(self, "Error", "Data is not loaded.")
             return
         if not hasattr(self, 'preferencesList') or self.preferencesList is None:
-            QMessageBox.warning(self, "Warning", "Preferences list is missing or invalid.")
+            CustomDialogs.showWarning(self, "Warning", "Preferences list is missing or invalid.")
             return
             # Próbuj odczytać selectedItems() tylko, jeśli preferencesList nie zostało usunięte
         try:
             if not self.preferencesList.selectedItems():
-                QMessageBox.warning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
+                CustomDialogs.showWarning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
                 return
         except RuntimeError:
-            QMessageBox.warning(self, "Warning", "Preferences list has been deleted.")
+            CustomDialogs.showWarning(self, "Warning", "Preferences list has been deleted.")
             return
 
         for index in range(self.preferencesList.count()):
             item = self.preferencesList.item(index)
             if item.isSelected() and item.text() != "no preferences" and item.text() not in self.column_ranges:
-                QMessageBox.warning(self, "Warning", f"Please set range for {item.text()} before executing.")
+                CustomDialogs.showWarning(self, "Warning", f"Please set range for {item.text()} before executing.")
                 return
 
         selected_preferences = [item.text() for item in self.preferencesList.selectedItems() if
@@ -1443,7 +1705,7 @@ class POMOKAstat(QWidget):
         for item in self.preferencesList.selectedItems():
             if item.text() != "no preferences":
                 if not selected_preferences:
-                    QMessageBox.warning(self, "Error", "No preferences selected.")
+                    CustomDialogs.showWarning(self, "Error", "No preferences selected.")
                     return
 
         df_filtered = self.df.copy()
@@ -1458,7 +1720,7 @@ class POMOKAstat(QWidget):
                 df_filtered = df_filtered[df_filtered[column].isin(values)]
 
         if df_filtered.empty:
-            QMessageBox.warning(self, "Error", "No data matching the selected ranges.")
+            CustomDialogs.showWarning(self, "Error", "No data matching the selected ranges.")
             return
 
 
@@ -1466,30 +1728,30 @@ class POMOKAstat(QWidget):
             T_additional = df_filtered['time']
         else:
             column_names = df_filtered.columns.tolist()
-            selected_column, ok = QInputDialog.getItem(self, "Select column for 'time'",
+            selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'time'",
                                                        "Available columns:", column_names, 0, False)
             if ok and selected_column:
                 T_additional = df_filtered[selected_column]
             else:
-                QMessageBox.warning(self, "Error", "No column selected for 'time'.")
+                CustomDialogs.showWarning(self, "Error", "No column selected for 'time'.")
                 return
 
         if 'event' in df_filtered.columns:
             E_additional = df_filtered['event']
         else:
             column_names = df_filtered.columns.tolist()
-            selected_column, ok = QInputDialog.getItem(self, "Select column for 'event'",
+            selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'event'",
                                                        "Available columns:", column_names, 0, False)
             if ok and selected_column:
                 E_additional = df_filtered[selected_column]
             else:
-                QMessageBox.warning(self, "Error", "No column selected for 'event'.")
+                CustomDialogs.showWarning(self, "Error", "No column selected for 'event'.")
                 return
 
         kmf_additional = KaplanMeierFitter()
 
         if not hasattr(self, 'canvas') or self.canvas is None:
-            QMessageBox.warning(self, "Error", "No existing plot to add a curve.")
+            CustomDialogs.showWarning(self, "Error", "No existing plot to add a curve.")
             return
 
         ax = self.canvas.figure.axes[0]
@@ -1507,7 +1769,7 @@ class POMOKAstat(QWidget):
 
         existing_lines = len(ax.lines)
         if existing_lines >= len(predefined_colors):
-            QMessageBox.warning(self, "Error", "No more unique colors available.")
+            CustomDialogs.showWarning(self, "Error", "No more unique colors available.")
             return
 
         selected_color = predefined_colors[existing_lines]
@@ -1627,7 +1889,7 @@ class POMOKAstat(QWidget):
                 self.run_mean_diff(curve_id)
             elif test == "Mann-Whitney U test":
                 self.run_mann_whitney_u(curve_id)'''
-        QMessageBox.information(self, "test",
+        CustomDialogs.showInformation(self, "test",
                                 "Execution Completed")
 
     def generateReport(self):
@@ -1731,12 +1993,8 @@ class POMOKAstat(QWidget):
             fig.savefig(report_path, bbox_inches="tight", dpi=300)
 
         # Informacja o zakończeniu
-        msg_box = QMessageBox(self)
-        msg_box.setWindowTitle("Report")
-        msg_box.setText(f"Report saved at: {report_path}")
-        msg_box.setStandardButtons(QMessageBox.Ok)
-        msg_box.setGeometry(100, 100, 300, 100)  # Zapewnienie, że wiadomość otworzy się na ekranie
-        msg_box.exec()
+        CustomDialogs.showInformation(self, "Report",
+                                      f"Report saved at: {report_path}")
 
     def openEditChartWindow(self):
         self.openstatusEditChartWindow = 1
@@ -1744,7 +2002,7 @@ class POMOKAstat(QWidget):
             self.editChartWindow = ChartEditorDialog(self.canvas.figure, self)
             self.editChartWindow.show()
         else:
-            QMessageBox.warning(self, "Error", "No chart available for editing.")
+            CustomDialogs.showWarning(self, "Error", "No chart available for editing.")
 
     def run_AUC(self, curve_id):  # porównanie pól pod krzywymi
         time_points_ill = self.time_points
@@ -1958,27 +2216,27 @@ class POMOKAstat(QWidget):
 
     def startExecution(self):
         if not hasattr(self, 'testsList') or self.testsList is None or not self.testsList.selectedItems():
-            QMessageBox.warning(self, "Warning", "Please select a statistical test.")
+            CustomDialogs.showWarning(self, "Warning", "Please select a statistical test.")
             return
 
             # Sprawdź, czy preferencesList istnieje i jest poprawnym widgetem
         if not hasattr(self, 'preferencesList') or self.preferencesList is None:
-            QMessageBox.warning(self, "Warning", "Preferences list is missing or invalid.")
+            CustomDialogs.showWarning(self, "Warning", "Preferences list is missing or invalid.")
             return
 
             # Próbuj odczytać selectedItems() tylko, jeśli preferencesList nie zostało usunięte
         try:
             if not self.preferencesList.selectedItems():
-                QMessageBox.warning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
+                CustomDialogs.showWarning(self, "Warning", "Please select preferences or 'no preferences' when not needed.")
                 return
         except RuntimeError:
-            QMessageBox.warning(self, "Warning", "Preferences list has been deleted.")
+            CustomDialogs.showWarning(self, "Warning", "Preferences list has been deleted.")
             return
 
         for index in range(self.preferencesList.count()):
             item = self.preferencesList.item(index)
             if item.isSelected() and item.text() != "no preferences" and item.text() not in self.column_ranges:
-                QMessageBox.warning(self, "Warning", f"Please set range for {item.text()} before executing.")
+                CustomDialogs.showWarning(self, "Warning", f"Please set range for {item.text()} before executing.")
                 return
         curve_id = self.ill()
         if self.ill_correct == 1:
@@ -2021,7 +2279,7 @@ class POMOKAstat(QWidget):
                     self.run_mean_diff(curve_id)
                 elif test == "Mann-Whitney U test":
                     self.run_mann_whitney_u(curve_id)
-            QMessageBox.information(self, "test",
+            CustomDialogs.showInformation(self, "test",
                                     "Execution Completed")
 
     def breakExecution(self):
