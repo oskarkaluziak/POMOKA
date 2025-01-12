@@ -1544,10 +1544,10 @@ class POMOKAstat(QWidget):
         else:
             # jeśli nie znajdzie 'time', prosi użytkownika o wybór kolumny
             column_names = df_filtered.columns.tolist()
-            selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'time'",
+            self.selected_column_time, ok = CustomDialogs.getItemSelection(self, "Select column for 'time'",
                                                        "Available columns:", column_names, 0)
-            if ok and selected_column:
-                self.T_ill = df_filtered[selected_column]
+            if ok and self.selected_column_time:
+                self.T_ill = df_filtered[self.selected_column_time]
             else:
                 CustomDialogs.showWarning(self, "Error", "No column selected for 'time'.")
                 return
@@ -1557,10 +1557,10 @@ class POMOKAstat(QWidget):
         else:
             # jeśli nie znajdzie 'event', poproś użytkownika o wybór kolumny
             column_names = df_filtered.columns.tolist()
-            selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'event'",
+            self.selected_column_event, ok = CustomDialogs.getItemSelection(self, "Select column for 'event'",
                                                        "Available columns:", column_names, 0)
-            if ok and selected_column:
-                self.E_ill = df_filtered[selected_column]
+            if ok and self.selected_column_event:
+                self.E_ill = df_filtered[self.selected_column_event]
             else:
                 CustomDialogs.showWarning(self, "Error", "No column selected for 'event'.")
                 return
@@ -1741,11 +1741,8 @@ class POMOKAstat(QWidget):
         if 'time' in df_filtered.columns:
             T_additional = df_filtered['time']
         else:
-            column_names = df_filtered.columns.tolist()
-            selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'time'",
-                                                       "Available columns:", column_names, 0)
-            if ok and selected_column:
-                T_additional = df_filtered[selected_column]
+            if self.selected_column_time:
+                T_additional = df_filtered[self.selected_column_time]
             else:
                 CustomDialogs.showWarning(self, "Error", "No column selected for 'time'.")
                 return
@@ -1753,11 +1750,8 @@ class POMOKAstat(QWidget):
         if 'event' in df_filtered.columns:
             E_additional = df_filtered['event']
         else:
-            column_names = df_filtered.columns.tolist()
-            selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'event'",
-                                                       "Available columns:", column_names, 0)
-            if ok and selected_column:
-                E_additional = df_filtered[selected_column]
+            if self.selected_column_event:
+                E_additional = df_filtered[self.selected_column_event]
             else:
                 CustomDialogs.showWarning(self, "Error", "No column selected for 'event'.")
                 return
