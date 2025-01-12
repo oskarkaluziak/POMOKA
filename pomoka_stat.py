@@ -175,39 +175,50 @@ class CustomDialogs:
         dialog.setWindowTitle(title)
         dialog.setLabelText(label)
         dialog.setStyleSheet("""
-            QInputDialog {
-                background-color: #f9fafb;
-                border: none; 
-                padding: 10px;
-            }
-            QDialog {
-            }
-            QInputDialog QLabel {
-                font-family: 'Lato';
-                font-size: 14px;
-                color: #202124;
-            }
-            QMessageBox QPushButton, QDialogButtonBox QPushButton {
-                color: #000000;
-                background-color: white;
-                border: 2px solid #0077B6;
-                padding: 5px 10px;
-                border-radius: 8px;
-                font-family: 'Lato';
-                font-weight: 570;
-            }
-            QInputDialog QPushButton:hover {
-                background-color: #e8f0fe;
-            }
-            QInputDialog QPushButton:pressed {
-                background-color: #d2e3fc;
-            }
-            QInputDialog QLineEdit {
-                border: 2px solid #0077B6;
-                border-radius: 4px;
-                padding: 5px;
-            }
-        """)
+                    QInputDialog {
+                        background-color: #f9fafb;
+                        border: none; /* Usunięcie obramowania zewnętrznego */
+                        padding: 10px;
+                    }
+                    QDialog {
+                    }
+                    QInputDialog QLabel {
+                        font-family: 'Lato';
+                        font-size: 14px;
+                        color: #202124;
+                    }
+                    QInputDialog QPushButton {
+                        color: #000000;
+                        background-color: white;
+                        border: 2px solid #0077B6;
+                        padding: 5px 10px; /* Zmniejszenie wysokości przycisków */
+                        border-radius: 8px;
+                        font-family: 'Lato';
+                    }
+                    QInputDialog QPushButton:hover {
+                        background-color: #e8f0fe;
+                    }
+                    QInputDialog QPushButton:pressed {
+                        background-color: #d2e3fc;
+                    }
+                    QInputDialog QLineEdit {
+                        border: 2px solid #0077B6;
+                        border-radius: 4px;
+                        padding: 5px;
+                    }
+                    QComboBox {
+                        border: 2px solid #0077B6;
+                        border-radius: 4px;
+                        padding: 5px;
+                        font-family: 'Lato';
+                        font-size: 14px;
+                        color: #202124;
+                    }
+                    QComboBox QAbstractItemView {
+                        border: 2px solid #0077B6;
+                        selection-background-color: #e8f0fe;
+                    }
+                """)
         ok = dialog.exec() == QDialog.Accepted
         return dialog.textValue(), ok
 
@@ -1534,7 +1545,7 @@ class POMOKAstat(QWidget):
             # jeśli nie znajdzie 'time', prosi użytkownika o wybór kolumny
             column_names = df_filtered.columns.tolist()
             selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'time'",
-                                                       "Available columns:", column_names, 0, False)
+                                                       "Available columns:", column_names, 0)
             if ok and selected_column:
                 self.T_ill = df_filtered[selected_column]
             else:
@@ -1547,7 +1558,7 @@ class POMOKAstat(QWidget):
             # jeśli nie znajdzie 'event', poproś użytkownika o wybór kolumny
             column_names = df_filtered.columns.tolist()
             selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'event'",
-                                                       "Available columns:", column_names, 0, False)
+                                                       "Available columns:", column_names, 0)
             if ok and selected_column:
                 self.E_ill = df_filtered[selected_column]
             else:
@@ -1732,7 +1743,7 @@ class POMOKAstat(QWidget):
         else:
             column_names = df_filtered.columns.tolist()
             selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'time'",
-                                                       "Available columns:", column_names, 0, False)
+                                                       "Available columns:", column_names, 0)
             if ok and selected_column:
                 T_additional = df_filtered[selected_column]
             else:
@@ -1744,7 +1755,7 @@ class POMOKAstat(QWidget):
         else:
             column_names = df_filtered.columns.tolist()
             selected_column, ok = CustomDialogs.getItemSelection(self, "Select column for 'event'",
-                                                       "Available columns:", column_names, 0, False)
+                                                       "Available columns:", column_names, 0)
             if ok and selected_column:
                 E_additional = df_filtered[selected_column]
             else:
