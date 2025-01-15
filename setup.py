@@ -26,5 +26,5 @@ setup(
     version="1.0",
     description="POMOKA",
     options={"build_exe": build_exe_options},
-    executables=[Executable("pomoka.py", base=None)],
+    executables=[Executable("pomoka.py", base=None, icon="images/icon.ico")],
 )
