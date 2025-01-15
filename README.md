@@ -9,7 +9,7 @@ An open-source application designed to assist physicians and researchers in crea
 
 **How to install?**
 
-pip3 install PySide6; pip3 install matplotlib; pip3 install pyarrow; pip3 install numpy; pip3 install xlrd; pip3 install scipy statsmodels; pip3 install fpdf
+pip install PySide6, matplotlib, pyarrow, numpy, xlrd, scipy, statsmodels, lifelines, fpdf, openpyxl
 
 **How to execute?**
 
