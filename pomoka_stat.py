@@ -23,7 +23,6 @@ from matplotlib.patheffects import withStroke
 
 # Lifelines for survival analysis
 from lifelines import KaplanMeierFitter
-from lifelines.statistics import logrank_test, multivariate_logrank_test
 from scipy.stats import ks_2samp
 
 # Custom imports
@@ -1881,11 +1880,7 @@ class POMOKAstat(QWidget):
         selected_tests = [item.text() for item in self.testsList.selectedItems()]
         # results_storage = TestResultsStorage()
         '''for test in selected_tests:
-            if test == "Gehan-Wilcoxon test":
-                self.run_gehan_wilcoxon()
-            elif test == "Log-rank test":
-                self.run_log_rank()
-            elif test == "AUC":
+            if test == "AUC":
                 self.run_AUC(curve_id)
             elif test == "Kolomorow Smirnow":
                 self.run_KS_test(curve_id)
@@ -2185,37 +2180,6 @@ class POMOKAstat(QWidget):
         all_results = self.results_storage.get_all_results()
         #print("Wszystkie wyniki:", all_results)
 
-    def run_gehan_wilcoxon(self):  # TODO
-        self.survival_gus_interpolated = np.interp(self.time_points, self.x_data_trimmed, self.y_data_probability_trimmed)
-
-        #print(f"T_ill type: {type(self.time_points)}, value: {self.time_points}")
-        #print(f"x_data_trimmed type: {type(self.x_data_trimmed)}, value: {self.x_data_trimmed}")
-        #print(f"y_data_trimmed type: {type(self.y_data_probability_trimmed)}, value: {self.y_data_probability_trimmed}")
-        #print(f"self.survival_gus_interpolated: {type(self.survival_gus_interpolated)}, value: {self.survival_gus_interpolated}")
-        #print(f"E_ill type: {type(self.survival_probabilities)}, value: {self.survival_probabilities}")
-        #print(f"E_ill type: {type(self.T_ill)}, value: {self.survival_probabilities}")
-        #time = list(self.T_ill) + list(self.x_data_trimmed)
-        #event = list(self.E_ill) + list(self.y_data_probability_trimmed)
-        #group = ['ill'] * len(self.T_ill) + ['gus'] * len(self.x_data_trimmed)
-
-        time = list(self.time_points) + list(self.time_points)
-        event = list(self.survival_probabilities) + list(self.survival_gus_interpolated)
-        group = ['ill'] * len(self.time_points) + ['gus'] * len(self.time_points)
-
-        data = pd.DataFrame({
-            'time': time,
-            'event': event,
-            'group': group
-        })
-
-        result = multivariate_logrank_test(data['time'], data['group'], data['event'], weightings="wilcoxon")
-
-        self.resultCmb.addItem(f"Gehan-Wilcoxon test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
-
-    def run_log_rank(self):
-        result = logrank_test(self.T_ill, self.x_data_trimmed, event_observed_A=self.E_ill, event_observed_B=self.y_data_probability_trimmed)
-        self.resultCmb.addItem(f"Log-rank test: Z-statystyka = {result.test_statistic}, p-wartość = {result.p_value}")
-
     def toggleExecution(self):
         if self.isExecuting:
             self.breakExecution()
@@ -2265,17 +2229,7 @@ class POMOKAstat(QWidget):
             self.column_ranges = {}
             selected_tests = [item.text() for item in self.testsList.selectedItems()]
             for test in selected_tests:
-                if test == "Gehan-Wilcoxon test":
-                    self.run_gehan_wilcoxon()
-                elif test == "Cox-Mantel test":
-                    self.run_cox_mantel()
-                elif test == "F Cox test":
-                    self.run_f_cox()
-                elif test == "Log-rank test":
-                    self.run_log_rank()
-                elif test == "Peto-Peto-Wilcoxon test":
-                    self.run_peto_peto_wilcoxon()
-                elif test == "AUC":
+                if test == "AUC":
                     self.run_AUC(curve_id)
                 elif test == "Kolomorow Smirnow":
                     self.run_KS_test(curve_id)
