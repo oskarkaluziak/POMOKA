@@ -14,8 +14,8 @@ build_exe_options = {
         ("data/dane_kobiety.xlsx", "data/dane_kobiety.xlsx"),
         ("data/dane_ogolne.xlsx", "data/dane_ogolne.xlsx"),
         ("ENinstruction.md", "ENinstruction.md"),
-        ("PLinstruction.md", "PLinstruction.md")
-        ("images/icon.png", "images/icon.png"),
+        ("PLinstruction.md", "PLinstruction.md"),
+        ("images/icon.png", "images/icon.png")
     ],
     "excludes": ["tkinter"],  # Wyklucz nieużywane moduły
 }
