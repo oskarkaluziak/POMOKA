@@ -19,6 +19,6 @@ python pomoka.py
 
 pip install cx_Freeze
 
-python3 setup.py build 
+python setup.py build 
 
 build = output folder
