@@ -1,13 +1,11 @@
 from cx_Freeze import setup, Executable
 import sys
 
-# Zwiększ limit rekursji
 sys.setrecursionlimit(5000)
 
-# Opcje build_exe
 build_exe_options = {
     "packages": ["os", "pyarrow", "numpy", "scipy", "lifelines", "matplotlib"],
-    "includes": ["pyarrow._compute_docstrings", "numpy", "scipy.integrate", "lifelines.statistics", "lifelines.fitters", "matplotlib", "pandas.plotting._matplotlib"],  # Wymuś dołączenie
+    "includes": ["pyarrow._compute_docstrings", "numpy", "scipy.integrate", "lifelines.statistics", "lifelines.fitters", "matplotlib", "pandas.plotting._matplotlib"],
     "include_files": [
         ("data/magicdata.xlsx", "data/magicdata.xlsx"),
         ("data/dane_mezczyzni.xlsx", "data/dane_mezczyzni.xlsx"),
@@ -17,10 +15,9 @@ build_exe_options = {
         ("PLinstruction.md", "PLinstruction.md"),
         ("images/icon.png", "images/icon.png")
     ],
-    "excludes": ["tkinter"],  # Wyklucz nieużywane moduły
+    "excludes": ["tkinter"],
 }
 
-# Konfiguracja cx_Freeze
 setup(
     name="pomoka",
     version="1.0",
