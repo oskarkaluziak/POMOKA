@@ -50,8 +50,8 @@ class POMOKAstartup(QWidget):
 
         self.modelBtn = QPushButton("OPEN MODEL APP", self)
         self.modelBtn.setCursor(Qt.PointingHandCursor)
-        #self.modelBtn.setEnabled(False)  # disabled for now
-        #self.modelBtn.hide()
+        self.modelBtn.setEnabled(False)  # disabled for now
+        self.modelBtn.hide()
 
         self.reportBtn = QPushButton("GIVE YOUR FEEDBACK", self)
         self.reportBtn.setCursor(Qt.PointingHandCursor)
