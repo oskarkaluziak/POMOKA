@@ -1,7 +1,7 @@
 **POMOKA**
 
 
-An open-source application designed to assist physicians and researchers in creating plots from medical datasets.
+An open-source application designed to assist physicians and researchers in creating and analysing plots from medical datasets.
 
 **Co-authors**
 1. Oskar Kałuziak, Grzegorz Możdżyński (oskar@kaluziak.pl, grzegorz.mozdzynski@student.put.poznan.pl)
