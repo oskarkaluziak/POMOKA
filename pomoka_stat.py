@@ -97,7 +97,7 @@ class CustomDialogs:
                 QDialog {
                 }
                 QInputDialog QLabel {
-                    font-family: 'Lato';
+                    font-family: 'Roboto';
                     font-size: 14px;
                     color: #202124;
                 }
@@ -107,7 +107,7 @@ class CustomDialogs:
                     border: 2px solid #0077B6;
                     padding: 5px 10px;
                     border-radius: 8px;
-                    font-family: 'Lato';
+                    font-family: 'Roboto';
                     font-weight: 570;
                 }
                 QInputDialog QPushButton:hover {
@@ -139,7 +139,7 @@ class CustomDialogs:
                 padding: 10px;
             }
             QInputDialog QLabel {
-                font-family: 'Lato';
+                font-family: 'Roboto';
                 font-size: 14px;
                 color: #202124;
             }
@@ -149,7 +149,7 @@ class CustomDialogs:
                 border: 2px solid #0077B6;
                 padding: 5px 10px; /* Zmniejszenie wysokości przycisków */
                 border-radius: 8px;
-                font-family: 'Lato';
+                font-family: 'Roboto';
             }
             QInputDialog QPushButton:hover {
                 background-color: #e8f0fe;
@@ -182,7 +182,7 @@ class CustomDialogs:
                     QDialog {
                     }
                     QInputDialog QLabel {
-                        font-family: 'Lato';
+                        font-family: 'Roboto';
                         font-size: 14px;
                         color: #202124;
                     }
@@ -192,7 +192,7 @@ class CustomDialogs:
                         border: 2px solid #0077B6;
                         padding: 5px 10px; /* Zmniejszenie wysokości przycisków */
                         border-radius: 8px;
-                        font-family: 'Lato';
+                        font-family: 'Roboto';
                     }
                     QInputDialog QPushButton:hover {
                         background-color: #e8f0fe;
@@ -209,7 +209,7 @@ class CustomDialogs:
                         border: 2px solid #0077B6;
                         border-radius: 4px;
                         padding: 5px;
-                        font-family: 'Lato';
+                        font-family: 'Roboto';
                         font-size: 14px;
                         color: #202124;
                     }
@@ -234,7 +234,7 @@ class CustomDialogs:
                     padding: 10px;
                 }
                 QFileDialog QLabel {
-                    font-family: 'Lato';
+                    font-family: 'Roboto';
                     font-size: 14px;
                     color: #202124;
                 }
@@ -244,7 +244,7 @@ class CustomDialogs:
                     border: 2px solid #0077B6;
                     padding: 5px 10px;
                     border-radius: 8px;
-                    font-family: 'Lato';
+                    font-family: 'Roboto';
                     font-weight: 570;
                 }
                 QFileDialog QPushButton:hover {
@@ -273,7 +273,7 @@ class CustomDialogs:
             }
             QMessageBox QLabel {
                 font-size: 14px;
-                font-family: 'Lato';
+                font-family: 'Roboto';
                 color: #202124;
             }
             QMessageBox QPushButton, QDialogButtonBox QPushButton {
@@ -282,7 +282,7 @@ class CustomDialogs:
                 border: 2px solid #0077B6;
                 padding: 5px 10px;
                 border-radius: 8px;
-                font-family: 'Lato';
+                font-family: 'Roboto';
                 font-weight: 570;
             }
             QMessageBox QPushButton:hover, QDialogButtonBox QPushButton:hover {
@@ -336,7 +336,7 @@ class ReportOptionsDialog(QDialog):
                 padding: 10px;
             }
             QLabel {
-                font-family: 'Lato';
+                font-family: 'Roboto';
                 font-size: 14px;
                 color: #202124;
             }
@@ -346,7 +346,7 @@ class ReportOptionsDialog(QDialog):
                 padding: 5px;
             }
             QCheckBox, QRadioButton {
-                font-family: 'Lato';
+                font-family: 'Roboto';
                 font-size: 14px;
                 color: #202124;
             }
@@ -356,7 +356,7 @@ class ReportOptionsDialog(QDialog):
                 border: 2px solid #0077B6;
                 padding: 5px 10px;
                 border-radius: 8px;
-                font-family: 'Lato';
+                font-family: 'Roboto';
             }
             QPushButton:hover {
                 background-color: #e8f0fe;
@@ -390,7 +390,7 @@ class ChartEditorDialog(QWidget):
         self.setStyleSheet("""
                     QWidget {
                         background-color: #f9fafb;
-                        font-family: 'Lato';
+                        font-family: 'Roboto';
                     }
                 """)
         # Styl przycisków
@@ -405,7 +405,7 @@ class ChartEditorDialog(QWidget):
                         height: 15px;
                         border-radius: 8px;
                         font-size: 14px;
-                        font-family: 'Lato';
+                        font-family: 'Roboto';
                         margin: 0px 0;
                     }
                     QPushButton:hover {
@@ -835,7 +835,7 @@ class POMOKAstat(QWidget):
         self.setStyleSheet("""
                     QWidget {
                         background-color: #f9fafb;
-                        font-family: 'Lato';
+                        font-family: 'Roboto';
                     }
                 """)
 
@@ -845,7 +845,7 @@ class POMOKAstat(QWidget):
                     color: #202124;
                     font-size: 48px;
                     font-weight: bold;
-                    font-family: 'Lato';
+                    font-family: 'Roboto';
                     text-align: center;
                     margin-top: 10px;
                 """)
@@ -922,7 +922,7 @@ class POMOKAstat(QWidget):
                 border-radius: 8px;          /* Zaokrąglone rogi */
                 min-width: 770px;       /* Minimalna szerokość */
                 max-width: 770px; 
-                font-family: 'Lato';
+                font-family: 'Roboto';
             }
             
             QComboBox::drop-down {
@@ -1498,7 +1498,7 @@ class POMOKAstat(QWidget):
                         border: 2px solid #0077B6; /* Ramka prostokąta */
                         padding: 3px;           /* Wewnętrzny margines */
                         border-radius: 8px;      /* Zaokrąglone rogi */
-                        font-family: 'Lato';
+                        font-family: 'Roboto';
                     }
                 """)
         if not self.text_widget in [self.ukladV.itemAt(i).widget() for i in range(self.ukladV.count())]:
@@ -1666,7 +1666,7 @@ class POMOKAstat(QWidget):
                         border-radius: 8px;          /* Zaokrąglone rogi */
                         min-width: 960px;       /* Minimalna szerokość */
                         max-width: 960px; 
-                        font-family: 'Lato';
+                        font-family: 'Roboto';
                     }
 
                     QComboBox::drop-down {
@@ -2276,7 +2276,7 @@ class POMOKAstat(QWidget):
                                 border-radius: 8px;          /* Zaokrąglone rogi */
                                 min-width: 770px;       /* Minimalna szerokość */
                                 max-width: 770px; 
-                                font-family: 'Lato';
+                                font-family: 'Roboto';
                             }
 
                             QComboBox::drop-down {

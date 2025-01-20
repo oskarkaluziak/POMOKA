@@ -19,7 +19,7 @@ class POMOKAstartup(QWidget):
         self.setStyleSheet("""
                                 QWidget {
                                     background-color: #f9fafb;
-                                    font-family: 'Lato';
+                                    font-family: 'Roboto';
                                 }
                             """)
         self.header_label = QLabel(self)
@@ -28,7 +28,7 @@ class POMOKAstartup(QWidget):
                                             color: #202124;
                                             font-size: 48px;
                                             font-weight: bold;
-                                            font-family: 'Lato';
+                                            font-family: 'Roboto';
                                             text-align: center;
                                             margin-top: 40px;
                                         """)
@@ -70,8 +70,8 @@ class POMOKAstartup(QWidget):
                                 height: 25px;
                                 border-radius: 8px;
                                 font-size: 16px;
-                                font-family: 'Lato';
-                                font-weight: 570;
+                                font-family: 'Roboto';
+                                font-weight: 460;
                                 margin: 10px 0;
                             }
                             QPushButton:hover {
@@ -116,7 +116,7 @@ class POMOKAstartup(QWidget):
         self.footer_label.setStyleSheet("""
                                             color: #5f6368;
                                             font-size: 12px;
-                                            font-family: 'Lato';
+                                            font-family: 'Roboto';
                                             text-align: center;
                                             margin: 0px 0;
                                         """)
@@ -195,7 +195,7 @@ class InstructionsWindow(QWidget):
         self.setStyleSheet("""
                                 QWidget {
                                     background-color: #f9fafb;
-                                    font-family: 'Lato';
+                                    font-family: 'Roboto';
                                     color: #202124;
                                 }
                     
@@ -206,7 +206,7 @@ class InstructionsWindow(QWidget):
                                     padding: 10px;
                                     color: #202124;
                                     font-size: 14px;
-                                    font-family: 'Lato';
+                                    font-family: 'Roboto';
                                     min-width: 536px;       
                                     max-width: 536px; 
                                     min-height: 300px;      
@@ -250,7 +250,7 @@ class InstructionsWindow(QWidget):
                                 max-width: 30px;
                                 height: 15px;
                                 border-radius: 8px;
-                                font-family: 'Lato';
+                                font-family: 'Roboto';
                                 font-weight: 570;
                                 margin: 5px 0;
                             }
@@ -309,7 +309,7 @@ class InstructionsWindow(QWidget):
 if __name__ == "__main__":
 
     app = QApplication([])
-    app.setFont(QFont("Lato", 14))
+    app.setFont(QFont('Roboto', 14))
     startup = POMOKAstartup()
     startup.show()
     app.exec()
