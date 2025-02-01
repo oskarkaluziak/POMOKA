@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxL
 from PySide6.QtGui import QIcon, QFont, QDesktopServices, QGuiApplication
 from PySide6.QtCore import Qt, QUrl
 from pomoka_stat import POMOKAstat
-from pomoka_model import POMOKAmodel
 
 class POMOKAstartup(QWidget):
     def __init__(self):
@@ -48,11 +47,6 @@ class POMOKAstartup(QWidget):
         self.statBtn = QPushButton("OPEN STAT APP", self)
         self.statBtn.setCursor(Qt.PointingHandCursor)
 
-        self.modelBtn = QPushButton("OPEN MODEL APP", self)
-        self.modelBtn.setCursor(Qt.PointingHandCursor)
-        self.modelBtn.setEnabled(False)  # disabled for now
-        self.modelBtn.hide()
-
         self.reportBtn = QPushButton("GIVE YOUR FEEDBACK", self)
         self.reportBtn.setCursor(Qt.PointingHandCursor)
 
@@ -87,17 +81,14 @@ class POMOKAstartup(QWidget):
                         """
 
         self.statBtn.setStyleSheet(button_style)
-        self.modelBtn.setStyleSheet(button_style.replace("#4285f4", "#5f6368"))
         self.reportBtn.setStyleSheet(button_style)
         self.instructionsBtn.setStyleSheet(button_style)
 
         self.statBtn.setToolTip("Launch POMOKA")
-        self.modelBtn.setToolTip("This feature is under development")
         self.reportBtn.setToolTip("Report an issue to administrator")
         self.instructionsBtn.setToolTip("View instruction for using POMOKA")
 
         self.statBtn.clicked.connect(self.openStatApp)
-        self.modelBtn.clicked.connect(self.openModelApp)
         self.reportBtn.clicked.connect(self.reportToAdmin)
         self.instructionsBtn.clicked.connect(self.openInstructions)
 
@@ -106,7 +97,6 @@ class POMOKAstartup(QWidget):
         layout.addWidget(self.subtitle_label, alignment=Qt.AlignTop)
         layout.addStretch()
         layout.addWidget(self.statBtn, alignment=Qt.AlignCenter)
-        layout.addWidget(self.modelBtn, alignment=Qt.AlignCenter)
         layout.addWidget(self.instructionsBtn, alignment=Qt.AlignCenter)
         layout.addWidget(self.reportBtn, alignment=Qt.AlignCenter)
         layout.addStretch()
@@ -144,22 +134,6 @@ class POMOKAstartup(QWidget):
 
         self.StatApp = POMOKAstat()
         self.StatApp.show()
-
-    def openModelApp(self):
-
-        reply = QMessageBox.question(
-            self,
-            "Open Model App",
-            "Are you sure you want to open the model application? This version is in progress.",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
-
-        if reply == QMessageBox.Yes:
-
-            self.ModelApp = POMOKAmodel()
-            self.ModelApp.show()
-            self.close()
 
     def updateShadowColor(self):
 
