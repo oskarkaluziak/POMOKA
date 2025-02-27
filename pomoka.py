@@ -282,6 +282,7 @@ class InstructionsWindow(QWidget):
 
 if __name__ == "__main__":
 
+
     app = QApplication([])
     app.setFont(QFont('Roboto', 14))
     startup = POMOKAstartup()
