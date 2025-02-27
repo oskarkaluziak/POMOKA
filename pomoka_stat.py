@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 # PySide6 imports
-from PySide6.QtWidgets import (QWidget, QComboBox, QListView, QRadioButton, QMessageBox, QHBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog)
+from PySide6.QtWidgets import (QWidget, QComboBox, QListView, QRadioButton, QMessageBox, QHBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QTableWidget, QTableWidgetItem, QSizePolicy)
 from PySide6.QtGui import QIcon, QGuiApplication
 from PySide6.QtCore import Qt
 
@@ -20,10 +20,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.patheffects import withStroke
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 # Lifelines for survival analysis
 from lifelines import KaplanMeierFitter
 from scipy.stats import ks_2samp
+
+import seaborn as sns
 
 # Custom imports
 from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
@@ -47,6 +50,17 @@ class TestResultsStorage:
 
     def get_all_results(self):
         return self.results
+
+class DataResultsStorage:
+    def __init__(self):
+        self.results = {}
+
+    def add_data(self, curve_id, data):
+        self.results[curve_id] = data
+
+    def get_all_data(self):
+        return self.results
+
 
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QCheckBox, QPushButton, QLabel
 
@@ -829,6 +843,7 @@ class POMOKAstat(QWidget):
         self.curves_data = []
         self.legend_text = []
         self.results_storage = TestResultsStorage()
+        self.data_storage = DataResultsStorage()
 
     def interface(self):  # interface apki
         self.setAutoFillBackground(True)
@@ -1338,32 +1353,31 @@ class POMOKAstat(QWidget):
     def gus(self, ax, last_time_km):  # TODO
         # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
         ##DEBUG
-        #print("=== DEBUG: START OF FUNCTION 'gus' ===")
-        #print(f"Selected sex: {self.selected_sex}")
-        #print(f"Selected age: {self.selected_age}")
-        #print(f"Selected age start: {self.selected_age_start}")
-        #print(f"Selected age end: {self.selected_age_end}")
-        #print(f"Selected option: {self.selected_option}")
-        #print(f"Last time KM: {last_time_km}")
-        #print("=====================================")
+        # print("=== DEBUG: START OF FUNCTION 'gus' ===")
+        # print(f"Selected sex: {self.selected_sex}")
+        # print(f"Selected age: {self.selected_age}")
+        # print(f"Selected age start: {self.selected_age_start}")
+        # print(f"Selected age end: {self.selected_age_end}")
+        # print(f"Selected option: {self.selected_option}")
+        # print(f"Last time KM: {last_time_km}")
+        # print("=====================================")
         os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
         sex = self.selected_sex
 
-        #BACKLOG jak działa:
-        #self.selected_age = wiek pacjenta
-        #self.selected_age_start = wiek pacjenta dolny zakres
-        #self.selected_age_end = wiek pacjenta gorny zakres
-        #zakres 65-70 to wtedy start = 1952, a end = 1957, a wiec z tego powodu jest to na odwrot
-
+        # BACKLOG jak działa:
+        # self.selected_age = wiek pacjenta
+        # self.selected_age_start = wiek pacjenta dolny zakres
+        # self.selected_age_end = wiek pacjenta gorny zakres
+        # zakres 65-70 to wtedy start = 1952, a end = 1957, a wiec z tego powodu jest to na odwrot
 
         # te dwie plus sex generuje wykres dla zakresu rocznikow
-        opcja = self.selected_option #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
+        opcja = self.selected_option  # czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
         file_path = self.resource_path("data/magicdata.xlsx")
         file_path_men = self.resource_path("data/dane_mezczyzni.xlsx")
         file_path_women = self.resource_path("data/dane_kobiety.xlsx")
         file_path_all = self.resource_path("data/dane_ogolne.xlsx")
-        #print(f"koncowy_gus:{self.selected_sex}")
+        # print(f"koncowy_gus:{self.selected_sex}")
         if sex == 0:
             sextext = 'men'
         if sex == 1:
@@ -1371,7 +1385,8 @@ class POMOKAstat(QWidget):
         if sex == 2:
             sextext = 'men and women'
         # tworzenie plikow jesli nie istnieja (w przyszlosci przyda sie do aktualizacji danych)
-        if not os.path.exists(file_path_men) or not os.path.exists(file_path_women) or not os.path.exists(file_path_all):
+        if not os.path.exists(file_path_men) or not os.path.exists(file_path_women) or not os.path.exists(
+                file_path_all):
             tab_m, tab_k = prepare_data(file_path)
             save_data_to_excel(file_path_men, file_path_women, file_path_all, tab_m, tab_k)
 
@@ -1384,20 +1399,19 @@ class POMOKAstat(QWidget):
             # pobranie danych z osi wykresu GUS
             self.x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
             self.y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
-            self.y_data = self.y_data / 100
             # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
-            y_data_probability = self.y_data / 100
+            self.y_data_probability = self.y_data / 100
 
-            #przycinanie osi X do dlugosci kmf (tylko dla testów)
+            # przycinanie osi X do dlugosci kmf (tylko dla testów)
             valid_indices = self.x_data <= last_time_km
             self.x_data_trimmed = self.x_data[valid_indices]
-            self.y_data_probability_trimmed = y_data_probability[valid_indices]
+            self.y_data_probability_trimmed = self.y_data_probability[valid_indices]
 
             # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             agetext = 2022 - year
-            #print (f'{self.selected_sex}')
-            #print (f'{sex}')
-            ax.step(self.x_data, self.y_data, where='post',
+            # print (f'{self.selected_sex}')
+            # print (f'{sex}')
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
                     label=f'HEALTHY (age: {agetext}; sex: {sextext})',
                     linestyle='-', color='orange')
 
@@ -1418,19 +1432,18 @@ class POMOKAstat(QWidget):
             # pobranie danych z osi wykresu GUS
             self.x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
             self.y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
-            self.y_data = self.y_data / 100
             # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
-            y_data_probability = self.y_data / 100
+            self.y_data_probability = self.y_data / 100
 
             # przycinanie osi X do dlugosci kmf (tylko dla testów)
             valid_indices = self.x_data <= last_time_km
             self.x_data_trimmed = self.x_data[valid_indices]
-            self.y_data_probability_trimmed = y_data_probability[valid_indices]
+            self.y_data_probability_trimmed = self.y_data_probability[valid_indices]
 
-            #dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
+            # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             agetextstart = 2022 - year_start
             agetextend = 2022 - year_end
-            ax.step(self.x_data, self.y_data, where='post',
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
                     label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
                     linestyle='-', color='orange')
 
@@ -1441,6 +1454,9 @@ class POMOKAstat(QWidget):
             chart_editor.applyXAxisRange()
             self.guslegend = f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})'
             ax.legend()
+        curve_id="GUS"
+        self.data_storage.add_data(curve_id, self.y_data_probability_trimmed)
+
     def update_legend_widget(self):
         if not hasattr(self, 'text_widget'):
             self.text_widget = QLabel()
@@ -1638,9 +1654,69 @@ class POMOKAstat(QWidget):
         if hasattr(self, 'canvas') and self.canvas:
             self.canvas.setParent(None)
 
+
+
+        # 📌 Dodanie wykresu do interfejsu
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.canvas.draw()
+        # 📌 Etykiety kolumn (wartości osi X)
+        col_labels = [str(t) for t in time_intervals]
+
+        # 📌 Pobranie wartości liczby pacjentów na ryzyku w danym czasie
+        values_row = [str(n_at_risk.loc[min(n_at_risk.index, key=lambda x: abs(x - t))]) for t in time_intervals]
+
+        # 📌 Utworzenie tabeli (2 wiersze: Time + wartości)
+        num_columns = len(col_labels) + 1  # Liczba kolumn (dodatkowa na Time/Preferences)
+        table_widget = QTableWidget(2, num_columns)
+
+        # 📌 Ustawienie nagłówków pierwszej kolumny
+        table_widget.setItem(0, 0, QTableWidgetItem("Time"))
+        table_widget.setItem(1, 0, QTableWidgetItem(preferences_description))
+
+        # 📌 Ustawienie danych w tabeli
+        for col, value in enumerate(values_row):
+            table_widget.setItem(0, col + 1, QTableWidgetItem(col_labels[col]))  # Czas w górnym wierszu
+            table_widget.setItem(1, col + 1, QTableWidgetItem(value))  # Wartości w dolnym wierszu
+
+        # 📌 **Dostosowanie szerokości tabeli**
+        table_width = self.width() - 40  # Całkowita szerokość tabeli
+        table_height = 100  # Wysokość tabeli
+
+        table_widget.setFixedSize(table_width, table_height)  # Blokowanie rozmiaru
+        table_widget.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        # 📌 **Dopasowanie szerokości kolumn**
+        first_column_width = 100  # Ręczne dopasowanie szerokości pierwszej kolumny
+        remaining_width = table_width - first_column_width - 40  # Pozostała szerokość
+        column_width = remaining_width // (num_columns - 1)  # Równy podział na pozostałe kolumny
+
+        table_widget.setColumnWidth(0, first_column_width)  # Dopasowanie szerokości pierwszej kolumny
+
+        for col in range(1, num_columns):
+            table_widget.setColumnWidth(col, column_width)  # Pozostałe kolumny równo rozłożone
+
+        table_widget.setEditTriggers(QTableWidget.NoEditTriggers)
+        table_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        table_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        table_widget.setShowGrid(True)
+
+        # 📌 **Usunięcie numeracji wierszy i kolumn**
+        table_widget.verticalHeader().setVisible(False)
+        table_widget.horizontalHeader().setVisible(False)
+
+        # 📌 **Utworzenie kontenera do wyśrodkowania tabeli**
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.addWidget(table_widget, alignment=Qt.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        container.setLayout(layout)
+
+        # 📌 **Ustawienie rozmiaru kontenera**
+        container.setFixedSize(table_width, table_height + 20)  # Zapewnienie, że tabela będzie widoczna w całości
+
+        # 📌 **Dodanie tabeli do interfejsu**
+        self.ukladV.addWidget(container, 0, Qt.AlignCenter)
 
         self.legend_text.append(label_text)
         ax.get_legend().remove() ###TO WYLACZA LEGENDE Z WYKRESU - WYSTARCZY TO USUNAC I BEDZIE LEGENDA NA WYKRESIE
@@ -1689,6 +1765,8 @@ class POMOKAstat(QWidget):
         self.ill_correct = 1
 
         return preferences_description
+
+
 
     def addCurve(self):
         if not hasattr(self, 'df'):
@@ -1877,9 +1955,12 @@ class POMOKAstat(QWidget):
         self.center()
 
         curve_id = preferences_description
+        self.data_storage.add_data(curve_id, self.survival_probabilities)
+        data_result = self.data_storage.get_all_data()
+        print("Data reult:", data_result)
         selected_tests = [item.text() for item in self.testsList.selectedItems()]
         # results_storage = TestResultsStorage()
-        '''for test in selected_tests:
+        for test in selected_tests:
             if test == "AUC":
                 self.run_AUC(curve_id)
             elif test == "Kolomorow Smirnow":
@@ -1888,116 +1969,91 @@ class POMOKAstat(QWidget):
                 self.run_AUC_interpolated(curve_id)
             elif test == "Kolomorow Smirnow Interpolated":
                 self.run_KS_test_interpolated(curve_id)
-            elif test == "Average difference Interpolated":
+            elif test == "Srednia roznica interpolated":
                 self.run_mean_diff(curve_id)
             elif test == "Mann-Whitney U test":
-                self.run_mann_whitney_u(curve_id)'''
+                self.run_mann_whitney_u(curve_id)
+
+        # 📌 Wywołaj po wszystkim, ale przed komunikatem o zakończeniu
+
         CustomDialogs.showInformation(self, "test",
                                 "Execution Completed")
 
     def generateReport(self):
-        # Wyświetlenie dialogu do ustawień raportu
+        # 📌 **Wyświetlenie dialogu do ustawień raportu**
         dialog = ReportOptionsDialog(self)
         if dialog.exec() != QDialog.Accepted:
             return
 
-        # Pobranie opcji z dialogu
+        # 📌 **Pobranie opcji z dialogu**
         options = dialog.getOptions()
         report_name = options["report_name"] or "report"
         save_chart_separately = options["save_chart_separately"]
-        output_format = options["output_format"]  # Nowa opcja: 'pdf' lub 'png'
+        output_format = options["output_format"]
 
-        # Ścieżki do zapisu raportu i wykresu
-        report_path = os.path.join(self.output_dir, f"{report_name}.{output_format}")
+        # 📌 **Tworzenie jednego folderu na raport, wykresy i wyniki**
+        output_dir = os.path.join("plots", report_name)  # Teraz wszystko w jednym folderze
+        os.makedirs(output_dir, exist_ok=True)  # ✅ Tworzy folder, jeśli nie istnieje
 
-        # Generowanie raportu w formacie PDF
-        if output_format == "pdf":
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("Arial", size=12)
-            pdf.cell(200, 10, txt="Statistical Test Report", ln=True, align='C')
+        # 📌 **Ścieżki do plików**
+        report_path = os.path.join(output_dir,
+                                   f"{report_name}.{output_format}")  # Raport w folderze `plots/{report_name}`
+        chart_image_path = os.path.join(output_dir, f"{report_name}_chart.png")  # Wykres w tym samym folderze
+        heatmap_path = os.path.join(output_dir, f"{report_name}_heatmap.png")  # Heatmapa też
 
-            # Nagłówki i metadane
-            pdf.cell(200, 10, txt=f"Report Name: {report_name}", ln=True)
-            pdf.cell(200, 10, txt=f"Generated at: {self.output_dir}", ln=True)
-            pdf.ln(10)
+        # 📌 **Uruchomienie testów ANOVA + Tukeya**
+        anova_stat, anova_p_value, tukey_matrix, heatmap_path = self.run_anova_and_tukey_heatmap(self.data_storage,
+                                                                                                 heatmap_path)
 
-            # Wyniki testów statystycznych
-            results = self.results_storage.get_all_results()
-            for test, curves in results.items():
-                pdf.cell(200, 10, txt=f"Test: {test}", ln=True)
-                for curve_id, metrics in curves.items():
-                    pdf.cell(200, 10, txt=f"  Curve: {curve_id}", ln=True)
-                    for metric, value in metrics.items():
-                        pdf.cell(200, 10, txt=f"    {metric}: {value}", ln=True)
-                pdf.ln(5)
+        # 📌 **Zapisywanie wykresu**
+        try:
+            self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=150)
+            print(f"✅ Wykres zapisany w: {chart_image_path}")
+        except Exception as e:
+            print(f"❌ Błąd podczas zapisywania wykresu: {e}")
+            chart_image_path = None  # 🚨 Zapobiega błędowi FileNotFoundError
 
-            # Dodanie wykresu do raportu PDF
-            chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
-            self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=301)
-            # Odczytaj DPI z pliku PNG
-            file_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
-            with Image.open(file_path) as img:
-                print("DPI zapisane w pliku PNG:", img.info.get('dpi'))
+        # 📌 **Tworzenie PDF**
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt="Statistical Test Report", ln=True, align='C')
 
-            if save_chart_separately:
-                pdf.cell(200, 10, txt=f"Chart included in report and saved as: {chart_image_path}", ln=True)
+        # 📌 **Dodanie wyników testów statystycznych (wszystkie testy, nie tylko ANOVA!)**
+        pdf.cell(200, 10, txt="Wyniki testów statystycznych:", ln=True)
+        pdf.ln(5)
+        results = self.results_storage.get_all_results()  # Pobieramy WSZYSTKIE wyniki testów
+        for test, curves in results.items():
+            pdf.cell(200, 10, txt=f"Test: {test}", ln=True)
+            for curve_id, metrics in curves.items():
+                pdf.cell(200, 10, txt=f"  Krzywa: {curve_id}", ln=True)
+                for metric, value in metrics.items():
+                    pdf.cell(200, 10, txt=f"    {metric}: {value}", ln=True)
+            pdf.ln(5)
+
+        # 📌 **Dodanie wyników ANOVA**
+        pdf.cell(200, 10, txt="ANOVA Results:", ln=True)
+        pdf.cell(200, 10, txt=f"  ANOVA F-statistic: {anova_stat:.4f}", ln=True)
+        pdf.cell(200, 10, txt=f"  ANOVA p-value: {anova_p_value:.4f}", ln=True)
+        pdf.ln(10)
+
+        # 📌 **Nie dodajemy macierzy Tukeya do PDF, zapisujemy ją osobno!**
+        print(f"✅ Heatmapa zapisana osobno: {heatmap_path}")
+
+        # 📌 **Dodanie wykresu do PDF**
+        if chart_image_path and os.path.exists(chart_image_path):
+            if pdf.get_y() + 100 > 270:
+                pdf.add_page()
             pdf.image(chart_image_path, x=10, y=pdf.get_y() + 10, w=190)
-            pdf.ln(90)  # Przesunięcie po wykresie
+            pdf.ln(90)
+        else:
+            print("❌ Wykres nie został znaleziony, pomijam dodanie do PDF.")
 
+        # 📌 **Zapisanie raportu PDF**
+        pdf.output(report_path)
 
-            # Zapisanie raportu PDF
-            pdf.output(report_path)
-
-        # Generowanie raportu w formacie PNG
-        elif output_format == "png":
-            # Tworzenie figury raportu w formacie A4
-            fig = plt.figure(figsize=(8.27, 11.69))  # Rozmiar A4 w calach (210mm x 297mm)
-            ax = fig.add_subplot(111)
-            ax.axis('off')  # Ukrycie osi
-
-            # Dodanie tytułu raportu
-            fig.suptitle("Statistical Test Report", fontsize=16, weight='bold', y=0.95)
-
-            # Nagłówki i metadane
-            y_position = 0.85  # Pozycja startowa tekstu
-            line_height = 0.03  # Odstęp między liniami
-            report_content = [
-                f"Report Name: {report_name}",
-                f"Generated at: {self.output_dir}",
-                "",
-                "Results:"
-            ]
-
-            # Wyniki testów statystycznych
-            results = self.results_storage.get_all_results()
-            for test, curves in results.items():
-                report_content.append(f"Test: {test}")
-                for curve_id, metrics in curves.items():
-                    report_content.append(f"  Curve: {curve_id}")
-                    for metric, value in metrics.items():
-                        report_content.append(f"    {metric}: {value}")
-                report_content.append("")
-
-            # Renderowanie tekstu na obrazie
-            for line in report_content:
-                ax.text(0.1, y_position, line, fontsize=10, va='top')
-                y_position -= line_height
-
-            # Dodanie wykresu poniżej tekstu
-            chart_image_path = os.path.join(self.output_dir, f"{report_name}_chart.png")
-            self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=300)  # Zapisanie wykresu tymczasowo
-            chart_img = plt.imread(chart_image_path)  # Wczytanie wykresu
-
-            # Wyświetlenie wykresu w dolnej części strony
-            ax.imshow(chart_img, aspect='equal', extent=[0.1, 0.9, 0.1, 0.4])  # Ustawienie pozycji wykresu
-
-            # Zapisanie raportu jako pliku PNG
-            fig.savefig(report_path, bbox_inches="tight", dpi=300)
-
-        # Informacja o zakończeniu
-        CustomDialogs.showInformation(self, "Report",
-                                      f"Report saved at: {report_path}")
+        # 📌 **Informacja o zakończeniu**
+        CustomDialogs.showInformation(self, "Report", f"Raport i pliki zapisane w: {output_dir}")
 
     def openEditChartWindow(self):
         self.openstatusEditChartWindow = 1
@@ -2006,6 +2062,68 @@ class POMOKAstat(QWidget):
             self.editChartWindow.show()
         else:
             CustomDialogs.showWarning(self, "Error", "No chart available for editing.")
+
+    def run_anova_and_tukey_heatmap(self, data_results_storage, heatmap_path):
+        # 📌 **Pobranie danych**
+        data_groups = data_results_storage.get_all_data()
+        labels = list(data_groups.keys())
+        values = list(data_groups.values())
+
+        # 📌 **Wykonanie testu ANOVA**
+        anova_stat, anova_p_value = stats.f_oneway(*values)
+        print(f"ANOVA: Statystyka F = {anova_stat:.4f}, p-value = {anova_p_value:.4f}")
+
+        if anova_p_value >= 0.05:
+            print("Brak istotnych różnic między grupami.")
+            return anova_stat, anova_p_value, None, None  # ✅ Jeśli brak różnic, zwracamy None
+
+        # 📌 **Wykonanie testu Tukeya**
+        print("ANOVA wykazała istotne różnice – uruchamiam test Tukeya HSD...")
+        data = []
+        group_labels = []
+        for label, values in data_groups.items():
+            data.extend(values)
+            group_labels.extend([label] * len(values))
+
+        tukey = pairwise_tukeyhsd(np.array(data), np.array(group_labels), alpha=0.05)
+
+        print("Tabela wyników Tukeya:")
+        for result in tukey.summary().data:
+            print(result)  # Wyświetla każdą linię wyników
+
+        # 📌 **Tworzenie macierzy Tukeya**
+        tukey_matrix = pd.DataFrame(index=labels, columns=labels, dtype=float)
+        for result in tukey.summary().data[1:]:
+            g1, g2, _, p, _, *_ = result
+            tukey_matrix.loc[g1, g2] = p
+            tukey_matrix.loc[g2, g1] = p  # Teraz obie połowy są wypełnione
+
+        # 📌 **Zapisywanie heatmapy**
+        try:
+            plt.figure(figsize=(8, 6))
+            sns.heatmap(tukey_matrix, annot=True, cmap="coolwarm", center=0.05, linewidths=0.5, vmin=0, vmax=1)
+            plt.title("Macierz testu Tukeya (p-value)")
+            plt.savefig(heatmap_path, bbox_inches="tight", dpi=150)
+            plt.close()
+            print(f"✅ Heatmapa zapisana w: {heatmap_path}")
+        except Exception as e:
+            print(f"❌ Błąd podczas zapisywania heatmapy: {e}")
+            heatmap_path = None
+
+        return anova_stat, anova_p_value, tukey_matrix, heatmap_path
+
+        try:
+            plt.figure(figsize=(8, 6))
+            sns.heatmap(tukey_matrix, annot=True, cmap="coolwarm", center=0.05, linewidths=0.5, vmin=0, vmax=1)
+            plt.title("Macierz testu Tukeya (p-value)")
+            plt.savefig(heatmap_path, bbox_inches="tight", dpi=150)
+            plt.close()
+            print(f"✅ Heatmapa zapisana w: {heatmap_path}")
+        except Exception as e:
+            print(f"❌ Błąd podczas zapisywania heatmapy: {e}")
+            heatmap_path = None  # 🚨 Unikamy błędu FileNotFoundError
+
+        return anova_stat, anova_p_value, tukey_matrix, heatmap_path  # ✅ Teraz zawsze zwracamy poprawną ścieżkę
 
     def run_AUC(self, curve_id):  # porównanie pól pod krzywymi
         time_points_ill = self.time_points
@@ -2046,6 +2164,7 @@ class POMOKAstat(QWidget):
         self.results_storage.add_result("AUC", curve_id, {"AUC_ILL": formatted_auc_ill, "AUC_GUS": formatted_auc_gus,
                                                           "AUC_DIFF": formatted_auc_diff})
 
+
         # Ustawianie tekstu z poprawnym formatowaniem
         self.resultCmb.addItem(f"AUC test: Chorzy = {formatted_auc_ill},GUS = {formatted_auc_gus}, Roznica= {formatted_auc_diff}")
 
@@ -2053,7 +2172,7 @@ class POMOKAstat(QWidget):
         # Informacja w okienku dialogowym
 
         all_results = self.results_storage.get_all_results()
-        #print("Wszystkie wyniki:", all_results)
+        print("Wszystkie wyniki:", all_results)
 
     def run_AUC_interpolated(self, curve_id):  # porównanie pól pod krzywymi
         time_points_ill = self.time_points  # wiecej puntkow
@@ -2126,7 +2245,7 @@ class POMOKAstat(QWidget):
 
         ks_stat, p_value = ks_2samp(survival_probabilities_gus_interpolated, survival_probabilities_ill)
 
-        self.results_storage.add_result("KS test", curve_id, {"KS_stat": ks_stat, "P-value": p_value})
+        self.results_storage.add_result("KS test interpolated", curve_id, {"KS_stat": ks_stat, "P-value": p_value})
 
         self.resultCmb.addItem(f"Kolomorow Smirnow test interpolated: Statystyka KS = {ks_stat}, p-value = {p_value}")
 
@@ -2144,14 +2263,16 @@ class POMOKAstat(QWidget):
         survival_probabilities_gus_interpolated = interpolator(time_points_ill)
 
         diff = np.mean(np.abs(survival_probabilities_ill - survival_probabilities_gus_interpolated))
+        print("ID:", curve_id, "diff:", diff)
+        # Dodanie wyniku dla każdej krzywej
 
         self.results_storage.add_result("Mean diff test", curve_id, {"Mean_diff": diff})
 
-        self.resultCmb.addItem(f"Srednia roznica pomiedzy ppunktami wykresu: srednia roznica = {diff}")
+        self.resultCmb.addItem(f"Srednia roznica pomiedzy punktami wykresu: srednia roznica = {diff}")
 
 
         all_results = self.results_storage.get_all_results()
-        #print("Wszystkie wyniki:", all_results)
+        print("Wszystkie wyniki:", all_results)
 
     def run_mann_whitney_u(self, curve_id):
         time_points_ill = self.time_points  # wiecej puntkow
@@ -2227,6 +2348,10 @@ class POMOKAstat(QWidget):
             self.preferencesList.setEnabled(True)
             self.setRangeBtn.setEnabled(True)
             self.column_ranges = {}
+
+            self.data_storage.add_data(curve_id, self.survival_probabilities)
+            data_result = self.data_storage.get_all_data()
+            print("wyniki data:", data_result)
             selected_tests = [item.text() for item in self.testsList.selectedItems()]
             for test in selected_tests:
                 if test == "AUC":
