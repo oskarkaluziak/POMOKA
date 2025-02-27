@@ -1338,32 +1338,31 @@ class POMOKAstat(QWidget):
     def gus(self, ax, last_time_km):  # TODO
         # dwie zmienne podawane do funkcji generujacej wykres dla jednego rocznika
         ##DEBUG
-        #print("=== DEBUG: START OF FUNCTION 'gus' ===")
-        #print(f"Selected sex: {self.selected_sex}")
-        #print(f"Selected age: {self.selected_age}")
-        #print(f"Selected age start: {self.selected_age_start}")
-        #print(f"Selected age end: {self.selected_age_end}")
-        #print(f"Selected option: {self.selected_option}")
-        #print(f"Last time KM: {last_time_km}")
-        #print("=====================================")
+        # print("=== DEBUG: START OF FUNCTION 'gus' ===")
+        # print(f"Selected sex: {self.selected_sex}")
+        # print(f"Selected age: {self.selected_age}")
+        # print(f"Selected age start: {self.selected_age_start}")
+        # print(f"Selected age end: {self.selected_age_end}")
+        # print(f"Selected option: {self.selected_option}")
+        # print(f"Last time KM: {last_time_km}")
+        # print("=====================================")
         os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
         sex = self.selected_sex
 
-        #BACKLOG jak działa:
-        #self.selected_age = wiek pacjenta
-        #self.selected_age_start = wiek pacjenta dolny zakres
-        #self.selected_age_end = wiek pacjenta gorny zakres
-        #zakres 65-70 to wtedy start = 1952, a end = 1957, a wiec z tego powodu jest to na odwrot
-
+        # BACKLOG jak działa:
+        # self.selected_age = wiek pacjenta
+        # self.selected_age_start = wiek pacjenta dolny zakres
+        # self.selected_age_end = wiek pacjenta gorny zakres
+        # zakres 65-70 to wtedy start = 1952, a end = 1957, a wiec z tego powodu jest to na odwrot
 
         # te dwie plus sex generuje wykres dla zakresu rocznikow
-        opcja = self.selected_option #czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
+        opcja = self.selected_option  # czyli czy generujemy wykres dla jednego rocznika czy zakresu, 2 to zakres
         file_path = self.resource_path("data/magicdata.xlsx")
         file_path_men = self.resource_path("data/dane_mezczyzni.xlsx")
         file_path_women = self.resource_path("data/dane_kobiety.xlsx")
         file_path_all = self.resource_path("data/dane_ogolne.xlsx")
-        #print(f"koncowy_gus:{self.selected_sex}")
+        # print(f"koncowy_gus:{self.selected_sex}")
         if sex == 0:
             sextext = 'men'
         if sex == 1:
@@ -1371,7 +1370,8 @@ class POMOKAstat(QWidget):
         if sex == 2:
             sextext = 'men and women'
         # tworzenie plikow jesli nie istnieja (w przyszlosci przyda sie do aktualizacji danych)
-        if not os.path.exists(file_path_men) or not os.path.exists(file_path_women) or not os.path.exists(file_path_all):
+        if not os.path.exists(file_path_men) or not os.path.exists(file_path_women) or not os.path.exists(
+                file_path_all):
             tab_m, tab_k = prepare_data(file_path)
             save_data_to_excel(file_path_men, file_path_women, file_path_all, tab_m, tab_k)
 
@@ -1384,20 +1384,19 @@ class POMOKAstat(QWidget):
             # pobranie danych z osi wykresu GUS
             self.x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
             self.y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
-            self.y_data = self.y_data / 100
             # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
-            y_data_probability = self.y_data / 100
+            self.y_data_probability = self.y_data / 100
 
-            #przycinanie osi X do dlugosci kmf (tylko dla testów)
+            # przycinanie osi X do dlugosci kmf (tylko dla testów)
             valid_indices = self.x_data <= last_time_km
             self.x_data_trimmed = self.x_data[valid_indices]
-            self.y_data_probability_trimmed = y_data_probability[valid_indices]
+            self.y_data_probability_trimmed = self.y_data_probability[valid_indices]
 
             # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             agetext = 2022 - year
-            #print (f'{self.selected_sex}')
-            #print (f'{sex}')
-            ax.step(self.x_data, self.y_data, where='post',
+            # print (f'{self.selected_sex}')
+            # print (f'{sex}')
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
                     label=f'HEALTHY (age: {agetext}; sex: {sextext})',
                     linestyle='-', color='orange')
 
@@ -1418,19 +1417,18 @@ class POMOKAstat(QWidget):
             # pobranie danych z osi wykresu GUS
             self.x_data = gus_ax.lines[0].get_xdata()  # Oś X (lata)
             self.y_data = gus_ax.lines[0].get_ydata()  # Oś Y (procenty przeżycia)
-            self.y_data = self.y_data / 100
             # przekształcenie procentów przeżycia na prawdopodobieństwa (0-1)
-            y_data_probability = self.y_data / 100
+            self.y_data_probability = self.y_data / 100
 
             # przycinanie osi X do dlugosci kmf (tylko dla testów)
             valid_indices = self.x_data <= last_time_km
             self.x_data_trimmed = self.x_data[valid_indices]
-            self.y_data_probability_trimmed = y_data_probability[valid_indices]
+            self.y_data_probability_trimmed = self.y_data_probability[valid_indices]
 
-            #dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
+            # dodanie drugiej krzywej na ten sam wykres Kaplan-Meiera
             agetextstart = 2022 - year_start
             agetextend = 2022 - year_end
-            ax.step(self.x_data, self.y_data, where='post',
+            ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
                     label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
                     linestyle='-', color='orange')
 
@@ -1441,6 +1439,7 @@ class POMOKAstat(QWidget):
             chart_editor.applyXAxisRange()
             self.guslegend = f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})'
             ax.legend()
+
     def update_legend_widget(self):
         if not hasattr(self, 'text_widget'):
             self.text_widget = QLabel()
