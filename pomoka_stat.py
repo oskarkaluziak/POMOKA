@@ -1741,18 +1741,18 @@ class POMOKAstat(QWidget):
         table_widget.horizontalHeader().setVisible(False)
 
         # 📌 **Utworzenie kontenera do wyśrodkowania tabeli**
-        container = QWidget()
-        container.setFixedWidth(900)
-        layout = QHBoxLayout(container)
+        self.container = QWidget()
+        self.container.setFixedWidth(900)
+        layout = QHBoxLayout(self.container)
         layout.addWidget(table_widget, alignment=Qt.AlignCenter)
         layout.setContentsMargins(0, 0, 0, 0)
-        container.setLayout(layout)
+        self.container.setLayout(layout)
 
         # 📌 **Ustawienie rozmiaru kontenera**
-        container.setFixedSize(table_width, table_height + 20)  # Zapewnienie, że tabela będzie widoczna w całości
+        self.container.setFixedSize(table_width, table_height + 20)  # Zapewnienie, że tabela będzie widoczna w całości
 
         # 📌 **Dodanie tabeli do interfejsu**
-        self.ukladV.addWidget(container, 0, Qt.AlignCenter)
+        self.ukladV.addWidget(self.container, 0, Qt.AlignCenter)
 
         self.legend_text.append(label_text)
         ax.get_legend().remove() ###TO WYLACZA LEGENDE Z WYKRESU - WYSTARCZY TO USUNAC I BEDZIE LEGENDA NA WYKRESIE
@@ -2421,6 +2421,8 @@ class POMOKAstat(QWidget):
         self.editChartBtn.hide()
         self.testsList.clear()
         self.uploadBtn.show()
+        self.ukladV.removeWidget(self.container)
+        self.container.deleteLater()
         if self.openstatusEditChartWindow == 1:
             self.editChartWindow.hide()
         for i in reversed(range(self.ukladV.count())):
