@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 # PySide6 imports
-from PySide6.QtWidgets import (QWidget, QComboBox, QListView, QRadioButton, QMessageBox, QHBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QTableWidget, QTableWidgetItem, QSizePolicy)
+from PySide6.QtWidgets import (QHeaderView, QWidget, QComboBox, QListView, QRadioButton, QMessageBox, QHBoxLayout, QScrollArea, QFileDialog, QAbstractItemView, QListWidget, QInputDialog, QTableWidget, QTableWidgetItem, QSizePolicy)
 from PySide6.QtGui import QIcon, QGuiApplication
 from PySide6.QtCore import Qt
 
@@ -1670,6 +1670,41 @@ class POMOKAstat(QWidget):
         num_columns = len(col_labels) + 1  # Liczba kolumn (dodatkowa na Time/Preferences)
         table_widget = QTableWidget(2, num_columns)
 
+        # styl tabeli
+
+        table_widget.setStyleSheet("""
+            QTableWidget {
+                color: #000000;
+                background-color: white;
+                border: 2px solid #0077B6;
+                border-radius: 8px;
+                font-size: 14px;
+                font-family: 'Roboto';
+                gridline-color: #0077B6;
+            }
+            QTableWidget::item {
+                padding: 7px;
+            }
+            QTableWidget::item:selected {
+                background-color: #e8f0fe;
+            }
+            QTableWidget::item:disabled {
+                color: #9aa0a6;
+            }
+            QHeaderView::section {
+                background-color: #0077B6;
+                color: white;
+                padding: 5px;
+                border: 1px solid #0077B6;
+            }
+        """)
+        table_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table_widget.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table_widget.setEditTriggers(QTableWidget.NoEditTriggers)
+        table_widget.setFocusPolicy(Qt.NoFocus)
+        table_widget.setSelectionMode(QAbstractItemView.NoSelection)
+
         # 📌 Ustawienie nagłówków pierwszej kolumny
         table_widget.setItem(0, 0, QTableWidgetItem("Time"))
         table_widget.setItem(1, 0, QTableWidgetItem(preferences_description))
@@ -1707,6 +1742,7 @@ class POMOKAstat(QWidget):
 
         # 📌 **Utworzenie kontenera do wyśrodkowania tabeli**
         container = QWidget()
+        container.setFixedWidth(900)
         layout = QHBoxLayout(container)
         layout.addWidget(table_widget, alignment=Qt.AlignCenter)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -2038,7 +2074,7 @@ class POMOKAstat(QWidget):
         pdf.ln(10)
 
         # 📌 **Nie dodajemy macierzy Tukeya do PDF, zapisujemy ją osobno!**
-        print(f"✅ Heatmapa zapisana osobno: {heatmap_path}")
+        #print(f"✅ Heatmapa zapisana osobno: {heatmap_path}")
 
         # 📌 **Dodanie wykresu do PDF**
         if chart_image_path and os.path.exists(chart_image_path):
