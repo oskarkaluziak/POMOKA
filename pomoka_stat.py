@@ -440,6 +440,8 @@ class ChartEditorDialog(QWidget):
                 color: black;            /* Kolor tekstu */
                 background-color: white; /* Tło prostokąta */
                 border: 1px solid #0077B6; /* Ramka prostokąta */
+                min-width: 200px;
+                max-width: 200px;
                 padding: 7px;            /* Wewnętrzny margines */
                 border-radius: 8px;      /* Zaokrąglone rogi */
                 font-size: 14px
@@ -516,12 +518,12 @@ class ChartEditorDialog(QWidget):
         layout.addWidget(y_axis_label)
         layout.addWidget(self.y_axis_input)
 
-        self.add_y_axis_btn = QPushButton("Add Y Axis Title", self)
+        self.add_y_axis_btn = QPushButton("Add Y-axis Title", self)
         self.add_y_axis_btn.clicked.connect(self.addYAxis)
         self.add_y_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.add_y_axis_btn)
 
-        self.remove_y_axis_btn = QPushButton("Remove Y Axis Title", self)
+        self.remove_y_axis_btn = QPushButton("Remove Y-axis Title", self)
         self.remove_y_axis_btn.clicked.connect(self.removeYAxis)
         self.remove_y_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.remove_y_axis_btn)
@@ -538,10 +540,35 @@ class ChartEditorDialog(QWidget):
         layout.addWidget(self.y_range_min_input)
         layout.addWidget(self.y_range_max_input)
 
-        y_range_btn = QPushButton("Apply Y-axis Range", self)
-        y_range_btn.clicked.connect(self.applyYAxisRange)
-        y_range_btn.setStyleSheet(common_button_style)
-        layout.addWidget(y_range_btn)
+        self.y_range_btn = QPushButton("Apply Y-axis Range", self)
+        self.y_range_btn.clicked.connect(self.applyYAxisRange)
+        self.y_range_btn.setStyleSheet(common_button_style)
+        layout.addWidget(self.y_range_btn)
+
+        self.y_define_next_btn = QPushButton("Define double Y-axis Range", self)
+        self.y_define_next_btn.clicked.connect(self.defineNextYAxis)
+        self.y_define_next_btn.setStyleSheet(common_button_style)
+        layout.addWidget(self.y_define_next_btn)
+        self.define_status_value = 0
+
+        # Kolejny zakres osi Y
+        self.y_range_min_input2 = QLineEdit(self)
+        self.y_range_min_input2.setPlaceholderText("Enter min value (second range)")
+        self.y_range_min_input2.setStyleSheet(line_edit_style)
+        self.y_range_max_input2 = QLineEdit(self)
+        self.y_range_max_input2.setPlaceholderText("Enter max value (second range)")
+        self.y_range_max_input2.setStyleSheet(line_edit_style)
+        layout.addWidget(self.y_range_min_input2)
+        layout.addWidget(self.y_range_max_input2)
+
+        self.y_range_btn2 = QPushButton("Apply Double Y-axis Range", self)
+        self.y_range_btn2.clicked.connect(self.applyYAxis2Range)
+        self.y_range_btn2.setStyleSheet(common_button_style)
+        layout.addWidget(self.y_range_btn2)
+        # Wstępne ukrycie widżetów kolejnego zakresu osi Y
+        self.y_range_min_input2.hide()
+        self.y_range_max_input2.hide()
+        self.y_range_btn2.hide()
 
         # Sekcja osi X
         x_axis_label = QLabel("X-axis Title:")
@@ -551,12 +578,12 @@ class ChartEditorDialog(QWidget):
         layout.addWidget(x_axis_label)
         layout.addWidget(self.x_axis_input)
 
-        self.add_x_axis_btn = QPushButton("Add X Axis Title", self)
+        self.add_x_axis_btn = QPushButton("Add X-axis Title", self)
         self.add_x_axis_btn.clicked.connect(self.addXAxis)
         self.add_x_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.add_x_axis_btn)
 
-        self.remove_x_axis_btn = QPushButton("Remove X Axis Title", self)
+        self.remove_x_axis_btn = QPushButton("Remove X-axis Title", self)
         self.remove_x_axis_btn.clicked.connect(self.removeXAxis)
         self.remove_x_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.remove_x_axis_btn)
@@ -687,12 +714,14 @@ class ChartEditorDialog(QWidget):
 
     def toggleLegend(self):
         """Włącz lub wyłącz legendę."""
-        for ax in self.figure.axes:
-            legend = ax.get_legend()
-            if legend:
-                legend.remove()
-            else:
-                ax.legend()
+        ax1 = self.figure.axes[0]
+        legend = ax1.get_legend()
+
+        if legend:
+            legend.remove()
+        else:
+            ax1.legend()
+
         self.figure.canvas.draw()
 
     def setBlackAndWhiteStyle(self):
@@ -801,6 +830,89 @@ class ChartEditorDialog(QWidget):
         except ValueError:
             CustomDialogs.showWarning(self, "Input Error", "Please enter valid numerical values for the range.")
 
+    def applyYAxis2Range(self):
+        try:
+            y1_min = float(self.y_range_min_input.text())
+            y1_max = float(self.y_range_max_input.text())
+            y2_min = float(self.y_range_min_input2.text())
+            y2_max = float(self.y_range_max_input2.text())
+
+            if y1_min >= y1_max or y2_min >= y2_max:
+                CustomDialogs.showWarning(self, "Input Error", "Min value must be less than max value.")
+                return
+
+            # Decyduj, który zakres ma być wyżej
+            if (y1_max > y2_max) or (y1_max == y2_max and y1_min <= y2_min):
+                top_range = (y1_min, y1_max)
+                bottom_range = (y2_min, y2_max)
+            else:
+                top_range = (y2_min, y2_max)
+                bottom_range = (y1_min, y1_max)
+
+            lines_data = []
+            for ax in self.figure.axes:
+                for line in ax.get_lines():
+                    x_data, y_data = line.get_data()
+                    lines_data.append((x_data, y_data, line.get_label(), line.get_color()))
+
+            self.figure.clear()
+
+            # Tworzenie subplotów
+            ax1 = self.figure.add_subplot(211)
+            ax2 = self.figure.add_subplot(212)
+
+            # Ustawianie zakresów osi Y
+            ax1.set_ylim(top_range[0], top_range[1])
+            ax2.set_ylim(bottom_range[0], bottom_range[1])
+
+            # Ustawianie zakresu osi X
+            ax1.set_xlim(min(x_data), max(x_data))
+            ax2.set_xlim(min(x_data), max(x_data))
+
+            # Podział danych na dwa zakresy
+            for x_data, y_data, label, color in lines_data:
+                mask1 = (y_data >= top_range[0]) & (y_data <= top_range[1])
+                mask2 = (y_data >= bottom_range[0]) & (y_data <= bottom_range[1])
+
+                ax1.plot(x_data[mask1], y_data[mask1], label=label, color=color)
+                ax2.plot(x_data[mask2], y_data[mask2], label=label, color=color)
+
+            # Stylizacja wykresu
+            ax1.spines['bottom'].set_visible(False)
+            ax2.spines['top'].set_visible(False)
+
+            ax1.xaxis.tick_top()
+            ax1.tick_params(labeltop=False)
+            ax2.xaxis.tick_bottom()
+
+            ax1.grid(True)
+            ax2.grid(True)
+
+            ax1.legend()
+
+            self.figure.canvas.draw()
+            if not self.black_white_btn.isEnabled():
+                self.toggle_patients_visibility(force_hide=True)
+
+        except ValueError:
+            CustomDialogs.showWarning(self, "Input Error", "Please enter valid numerical values for the range.")
+
+    def defineNextYAxis(self):
+        if self.define_status_value == 0:
+            self.y_range_min_input2.show()
+            self.y_range_max_input2.show()
+            self.y_range_btn2.show()
+            self.define_status_value = 1
+            self.y_define_next_btn.setText("Hide double Y-axis Range")
+            self.y_range_btn.hide()
+        else:
+            self.y_range_min_input2.hide()
+            self.y_range_max_input2.hide()
+            self.y_range_btn2.hide()
+            self.y_define_next_btn.setText("Define double Y-axis Range")
+            self.define_status_value = 0
+            self.y_range_btn.show()
+
     def reapplyXAxisTickStep(self):
         """Ponownie zastosuj bieżący krok osi X."""
         self.tick_step = self.x_tick_step_input.text()
@@ -838,7 +950,7 @@ class ChartEditorDialog(QWidget):
     def addXAxis(self):
         """Dodaje etykiety na osi X."""
         for ax in self.figure.axes:
-            ax.set_xlabel(self.x_axis_input.text() or "X Axis")
+            ax.set_xlabel(self.x_axis_input.text() or "X-axis")
         self.figure.canvas.draw()
 
     def removeXAxis(self):
@@ -850,7 +962,7 @@ class ChartEditorDialog(QWidget):
     def addYAxis(self):
         """Dodaje etykiety na osi Y."""
         for ax in self.figure.axes:
-            ax.set_ylabel(self.y_axis_input.text() or "Y Axis")
+            ax.set_ylabel(self.y_axis_input.text() or "Y-axis")
         self.figure.canvas.draw()
 
     def removeYAxis(self):
