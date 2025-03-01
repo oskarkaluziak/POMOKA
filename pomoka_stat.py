@@ -526,6 +526,23 @@ class ChartEditorDialog(QWidget):
         self.remove_y_axis_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.remove_y_axis_btn)
 
+        # Zakres osi Y
+        y_range_label = QLabel("Y-axis Range:")
+        self.y_range_min_input = QLineEdit(self)
+        self.y_range_min_input.setPlaceholderText("Enter min value (e.g., 0.1)")
+        self.y_range_min_input.setStyleSheet(line_edit_style)
+        self.y_range_max_input = QLineEdit(self)
+        self.y_range_max_input.setPlaceholderText("Enter max value (e.g., 1)")
+        self.y_range_max_input.setStyleSheet(line_edit_style)
+        layout.addWidget(y_range_label)
+        layout.addWidget(self.y_range_min_input)
+        layout.addWidget(self.y_range_max_input)
+
+        y_range_btn = QPushButton("Apply Y-axis Range", self)
+        y_range_btn.clicked.connect(self.applyYAxisRange)
+        y_range_btn.setStyleSheet(common_button_style)
+        layout.addWidget(y_range_btn)
+
         # Sekcja osi X
         x_axis_label = QLabel("X-axis Title:")
         self.x_axis_input = QLineEdit(self)
@@ -749,6 +766,31 @@ class ChartEditorDialog(QWidget):
                 for text in ax.texts:
                     x, y = text.get_position()  # Pobierz pozycję tekstu
                     if x_min <= x <= x_max:
+                        text.set_visible(True)  # Pokaż tekst, jeśli mieści się w zakresie
+                    else:
+                        text.set_visible(False)  # Ukryj tekst, jeśli jest poza zakresem
+            self.reapplyXAxisTickStep()
+            self.figure.canvas.draw()
+            if not self.black_white_btn.isEnabled():
+                self.toggle_patients_visibility(force_hide=True)
+        except ValueError:
+            CustomDialogs.showWarning(self, "Input Error", "Please enter valid numerical values for the range.")
+    def applyYAxisRange(self):
+        """Ustaw zakres osi Y i przytnij liczby pacjentów."""
+        try:
+            y_min = float(self.y_range_min_input.text())
+            y_max = float(self.y_range_max_input.text())
+            if y_min >= y_max:
+                CustomDialogs.showWarning(self, "Input Error", "Min value must be less than max value.")
+                return
+            for ax in self.figure.axes:
+                # Ustaw zakres osi X
+                ax.set_ylim(y_min, y_max)
+
+                # Przytnij liczby pacjentów
+                for text in ax.texts:
+                    x, y = text.get_position()  # Pobierz pozycję tekstu
+                    if y_min <= y <= y_max:
                         text.set_visible(True)  # Pokaż tekst, jeśli mieści się w zakresie
                     else:
                         text.set_visible(False)  # Ukryj tekst, jeśli jest poza zakresem
@@ -2010,52 +2052,52 @@ class POMOKAstat(QWidget):
             elif test == "Mann-Whitney U test":
                 self.run_mann_whitney_u(curve_id)
 
-        # 📌 Wywołaj po wszystkim, ale przed komunikatem o zakończeniu
+        #  Wywołaj po wszystkim, ale przed komunikatem o zakończeniu
 
         CustomDialogs.showInformation(self, "test",
                                 "Execution Completed")
 
     def generateReport(self):
-        # 📌 **Wyświetlenie dialogu do ustawień raportu**
+        #  **Wyświetlenie dialogu do ustawień raportu**
         dialog = ReportOptionsDialog(self)
         if dialog.exec() != QDialog.Accepted:
             return
 
-        # 📌 **Pobranie opcji z dialogu**
+        #  **Pobranie opcji z dialogu**
         options = dialog.getOptions()
         report_name = options["report_name"] or "report"
         save_chart_separately = options["save_chart_separately"]
         output_format = options["output_format"]
 
-        # 📌 **Tworzenie jednego folderu na raport, wykresy i wyniki**
+        #  **Tworzenie jednego folderu na raport, wykresy i wyniki**
         output_dir = os.path.join("plots", report_name)  # Teraz wszystko w jednym folderze
-        os.makedirs(output_dir, exist_ok=True)  # ✅ Tworzy folder, jeśli nie istnieje
+        os.makedirs(output_dir, exist_ok=True)  #  Tworzy folder, jeśli nie istnieje
 
-        # 📌 **Ścieżki do plików**
+        #  **Ścieżki do plików**
         report_path = os.path.join(output_dir,
                                    f"{report_name}.{output_format}")  # Raport w folderze `plots/{report_name}`
         chart_image_path = os.path.join(output_dir, f"{report_name}_chart.png")  # Wykres w tym samym folderze
         heatmap_path = os.path.join(output_dir, f"{report_name}_heatmap.png")  # Heatmapa też
 
-        # 📌 **Uruchomienie testów ANOVA + Tukeya**
+        #  **Uruchomienie testów ANOVA + Tukeya**
         anova_stat, anova_p_value, tukey_matrix, heatmap_path = self.run_anova_and_tukey_heatmap(self.data_storage,
                                                                                                  heatmap_path)
 
-        # 📌 **Zapisywanie wykresu**
+        #  **Zapisywanie wykresu**
         try:
             self.canvas.figure.savefig(chart_image_path, bbox_inches="tight", dpi=150)
-            print(f"✅ Wykres zapisany w: {chart_image_path}")
+            print(f"Wykres zapisany w: {chart_image_path}")
         except Exception as e:
-            print(f"❌ Błąd podczas zapisywania wykresu: {e}")
-            chart_image_path = None  # 🚨 Zapobiega błędowi FileNotFoundError
+            print(f"Błąd podczas zapisywania wykresu: {e}")
+            chart_image_path = None  # Zapobiega błędowi FileNotFoundError
 
-        # 📌 **Tworzenie PDF**
+        # **Tworzenie PDF**
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=12)
         pdf.cell(200, 10, txt="Statistical Test Report", ln=True, align='C')
 
-        # 📌 **Dodanie wyników testów statystycznych (wszystkie testy, nie tylko ANOVA!)**
+        # **Dodanie wyników testów statystycznych (wszystkie testy, nie tylko ANOVA!)**
         pdf.cell(200, 10, txt="Wyniki testów statystycznych:", ln=True)
         pdf.ln(5)
         results = self.results_storage.get_all_results()  # Pobieramy WSZYSTKIE wyniki testów
@@ -2067,28 +2109,28 @@ class POMOKAstat(QWidget):
                     pdf.cell(200, 10, txt=f"    {metric}: {value}", ln=True)
             pdf.ln(5)
 
-        # 📌 **Dodanie wyników ANOVA**
+        # **Dodanie wyników ANOVA**
         pdf.cell(200, 10, txt="ANOVA Results:", ln=True)
         pdf.cell(200, 10, txt=f"  ANOVA F-statistic: {anova_stat:.4f}", ln=True)
         pdf.cell(200, 10, txt=f"  ANOVA p-value: {anova_p_value:.4f}", ln=True)
         pdf.ln(10)
 
-        # 📌 **Nie dodajemy macierzy Tukeya do PDF, zapisujemy ją osobno!**
-        #print(f"✅ Heatmapa zapisana osobno: {heatmap_path}")
+        # **Nie dodajemy macierzy Tukeya do PDF, zapisujemy ją osobno!**
+        #print(f"Heatmapa zapisana osobno: {heatmap_path}")
 
-        # 📌 **Dodanie wykresu do PDF**
+        # **Dodanie wykresu do PDF**
         if chart_image_path and os.path.exists(chart_image_path):
             if pdf.get_y() + 100 > 270:
                 pdf.add_page()
             pdf.image(chart_image_path, x=10, y=pdf.get_y() + 10, w=190)
             pdf.ln(90)
         else:
-            print("❌ Wykres nie został znaleziony, pomijam dodanie do PDF.")
+            print("Wykres nie został znaleziony, pomijam dodanie do PDF.")
 
-        # 📌 **Zapisanie raportu PDF**
+        # **Zapisanie raportu PDF**
         pdf.output(report_path)
 
-        # 📌 **Informacja o zakończeniu**
+        # **Informacja o zakończeniu**
         CustomDialogs.showInformation(self, "Report", f"Raport i pliki zapisane w: {output_dir}")
 
     def openEditChartWindow(self):
@@ -2100,12 +2142,12 @@ class POMOKAstat(QWidget):
             CustomDialogs.showWarning(self, "Error", "No chart available for editing.")
 
     def run_anova_and_tukey_heatmap(self, data_results_storage, heatmap_path):
-        # 📌 **Pobranie danych**
+        # **Pobranie danych**
         data_groups = data_results_storage.get_all_data()
         labels = list(data_groups.keys())
         values = list(data_groups.values())
 
-        # 📌 **Wykonanie testu ANOVA**
+        # **Wykonanie testu ANOVA**
         anova_stat, anova_p_value = stats.f_oneway(*values)
         print(f"ANOVA: Statystyka F = {anova_stat:.4f}, p-value = {anova_p_value:.4f}")
 
@@ -2113,7 +2155,7 @@ class POMOKAstat(QWidget):
             print("Brak istotnych różnic między grupami.")
             return anova_stat, anova_p_value, None, None  # ✅ Jeśli brak różnic, zwracamy None
 
-        # 📌 **Wykonanie testu Tukeya**
+        # **Wykonanie testu Tukeya**
         print("ANOVA wykazała istotne różnice – uruchamiam test Tukeya HSD...")
         data = []
         group_labels = []
@@ -2127,23 +2169,23 @@ class POMOKAstat(QWidget):
         for result in tukey.summary().data:
             print(result)  # Wyświetla każdą linię wyników
 
-        # 📌 **Tworzenie macierzy Tukeya**
+        # **Tworzenie macierzy Tukeya**
         tukey_matrix = pd.DataFrame(index=labels, columns=labels, dtype=float)
         for result in tukey.summary().data[1:]:
             g1, g2, _, p, _, *_ = result
             tukey_matrix.loc[g1, g2] = p
             tukey_matrix.loc[g2, g1] = p  # Teraz obie połowy są wypełnione
 
-        # 📌 **Zapisywanie heatmapy**
+        # **Zapisywanie heatmapy**
         try:
             plt.figure(figsize=(8, 6))
             sns.heatmap(tukey_matrix, annot=True, cmap="coolwarm", center=0.05, linewidths=0.5, vmin=0, vmax=1)
             plt.title("Macierz testu Tukeya (p-value)")
             plt.savefig(heatmap_path, bbox_inches="tight", dpi=150)
             plt.close()
-            print(f"✅ Heatmapa zapisana w: {heatmap_path}")
+            print(f"Heatmapa zapisana w: {heatmap_path}")
         except Exception as e:
-            print(f"❌ Błąd podczas zapisywania heatmapy: {e}")
+            print(f"Błąd podczas zapisywania heatmapy: {e}")
             heatmap_path = None
 
         return anova_stat, anova_p_value, tukey_matrix, heatmap_path
@@ -2154,12 +2196,12 @@ class POMOKAstat(QWidget):
             plt.title("Macierz testu Tukeya (p-value)")
             plt.savefig(heatmap_path, bbox_inches="tight", dpi=150)
             plt.close()
-            print(f"✅ Heatmapa zapisana w: {heatmap_path}")
+            print(f"Heatmapa zapisana w: {heatmap_path}")
         except Exception as e:
-            print(f"❌ Błąd podczas zapisywania heatmapy: {e}")
-            heatmap_path = None  # 🚨 Unikamy błędu FileNotFoundError
+            print(f"Błąd podczas zapisywania heatmapy: {e}")
+            heatmap_path = None  # Unikamy błędu FileNotFoundError
 
-        return anova_stat, anova_p_value, tukey_matrix, heatmap_path  # ✅ Teraz zawsze zwracamy poprawną ścieżkę
+        return anova_stat, anova_p_value, tukey_matrix, heatmap_path  # Teraz zawsze zwracamy poprawną ścieżkę
 
     def run_AUC(self, curve_id):  # porównanie pól pod krzywymi
         time_points_ill = self.time_points
