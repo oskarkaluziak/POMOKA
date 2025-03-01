@@ -841,7 +841,13 @@ class ChartEditorDialog(QWidget):
                 CustomDialogs.showWarning(self, "Input Error", "Min value must be less than max value.")
                 return
 
-            # Decyduj, który zakres ma być wyżej
+            if not hasattr(self, 'original_lines_data'):
+                self.original_lines_data = []
+                for ax in self.figure.axes:
+                    for line in ax.get_lines():
+                        x_data, y_data = line.get_data()
+                        self.original_lines_data.append((x_data, y_data, line.get_label(), line.get_color()))
+
             if (y1_max > y2_max) or (y1_max == y2_max and y1_min <= y2_min):
                 top_range = (y1_min, y1_max)
                 bottom_range = (y2_min, y2_max)
@@ -849,35 +855,24 @@ class ChartEditorDialog(QWidget):
                 top_range = (y2_min, y2_max)
                 bottom_range = (y1_min, y1_max)
 
-            lines_data = []
-            for ax in self.figure.axes:
-                for line in ax.get_lines():
-                    x_data, y_data = line.get_data()
-                    lines_data.append((x_data, y_data, line.get_label(), line.get_color()))
-
             self.figure.clear()
 
-            # Tworzenie subplotów
             ax1 = self.figure.add_subplot(211)
             ax2 = self.figure.add_subplot(212)
 
-            # Ustawianie zakresów osi Y
             ax1.set_ylim(top_range[0], top_range[1])
             ax2.set_ylim(bottom_range[0], bottom_range[1])
 
-            # Ustawianie zakresu osi X
             ax1.set_xlim(min(x_data), max(x_data))
             ax2.set_xlim(min(x_data), max(x_data))
 
-            # Podział danych na dwa zakresy
-            for x_data, y_data, label, color in lines_data:
+            for x_data, y_data, label, color in self.original_lines_data:
                 mask1 = (y_data >= top_range[0]) & (y_data <= top_range[1])
                 mask2 = (y_data >= bottom_range[0]) & (y_data <= bottom_range[1])
 
                 ax1.plot(x_data[mask1], y_data[mask1], label=label, color=color)
                 ax2.plot(x_data[mask2], y_data[mask2], label=label, color=color)
 
-            # Stylizacja wykresu
             ax1.spines['bottom'].set_visible(False)
             ax2.spines['top'].set_visible(False)
 
@@ -912,7 +907,25 @@ class ChartEditorDialog(QWidget):
             self.y_define_next_btn.setText("Define double Y-axis Range")
             self.define_status_value = 0
             self.y_range_btn.show()
+            if not hasattr(self, 'original_lines_data') or not self.original_lines_data:
+                CustomDialogs.showWarning(self, "Reset Error", "No original data found to reset.")
+                return
 
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+
+            for x_data, y_data, label, color in self.original_lines_data:
+                ax.plot(x_data, y_data, label=label, color=color)
+
+            ax.grid(True)
+            ax.legend()
+
+            self.figure.canvas.draw()
+
+            if not self.black_white_btn.isEnabled():
+                self.toggle_patients_visibility(force_hide=True)
+
+            CustomDialogs.showInfo(self, "Reset View", "Chart returned to original single view.")
     def reapplyXAxisTickStep(self):
         """Ponownie zastosuj bieżący krok osi X."""
         self.tick_step = self.x_tick_step_input.text()
