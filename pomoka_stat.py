@@ -187,6 +187,7 @@ class CustomDialogs:
         dialog.setComboBoxEditable(False)
         dialog.setWindowTitle(title)
         dialog.setLabelText(label)
+        dialog.resize(264, dialog.sizeHint().height())
         dialog.setStyleSheet("""
                     QInputDialog {
                         background-color: #f9fafb;
