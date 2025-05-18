@@ -21,15 +21,15 @@ Make sure you have Python 3.8+ installed. Then run:
 
 To launch the application:
 
-python pomoka.py
+```python pomoka.py```
 
 **💻 Build a Windows executable**
 
 Install cx_Freeze and build the executable:
 
-pip install cx_Freeze
+```pip install cx_Freeze```
 
-python setup.py build
+```python setup.py build```
 
 The executable will be available in the build/ directory.
 
