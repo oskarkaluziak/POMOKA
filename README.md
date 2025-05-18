@@ -13,7 +13,7 @@
 
 **🛠️ Installation**
 
-Make sure you have Python 3.8+ installed. Then run:
+Make sure you have Python 3.10+ installed. Then run:
 
 ```pip install PySide6 matplotlib pyarrow numpy xlrd scipy statsmodels lifelines fpdf openpyxl```
 
