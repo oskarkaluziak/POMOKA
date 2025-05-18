@@ -1,24 +1,44 @@
 **POMOKA**
 
+**User-friendly software to stratify long-term survival in reference to age- and sex-matched general population**
 
-An open-source application designed to assist physicians and researchers in creating and analysing plots from medical datasets.
 
-**Co-authors**
-1. Oskar Kałuziak, Grzegorz Możdżyński (oskar@kaluziak.pl, grzegorz.mozdzynski@student.put.poznan.pl)
-2. prof. Piotr Formanowicz, prof. Bartłomiej Perek
+👨‍💻 **Authors**
 
-**How to install?**
+**Oskar Kałuziak¹, Grzegorz Możdżyński¹, prof. Piotr Formanowicz¹, prof. Bartłomiej Perek²**
 
-pip install PySide6, matplotlib, pyarrow, numpy, xlrd, scipy, statsmodels, lifelines, fpdf, openpyxl
+¹Institute of Computing Science, Poznan University of Technology, Poznań, Poland
 
-**How to execute?**
+²Department of Cardiac Surgery and Transplantology, Poznan University of Medical Sciences, Poznań, Poland
 
-python pomoka.py
+**🛠️ Installation**
 
-**How to build .exe?**
+Make sure you have Python 3.10+ installed. Then run:
 
-pip install cx_Freeze
+```pip install PySide6 matplotlib pyarrow numpy xlrd scipy statsmodels lifelines fpdf openpyxl```
 
-python setup.py build 
+**▶️ Usage**
 
-build = output folder
+To launch the application:
+
+```python pomoka.py```
+
+**💻 Build a Windows/MacOS executable**
+
+Install cx_Freeze and build the executable:
+
+```pip install cx_Freeze```
+
+```python setup.py build```
+
+The executable will be available in the build/ directory.
+
+**📄 License**
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+**💬 Contact**
+
+For questions or feedback, please contact: 
+
+📧 oskar@kaluziak.pl
