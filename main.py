@@ -29,7 +29,7 @@ from scipy.stats import ks_2samp
 import seaborn as sns
 
 # Custom imports
-from plot_gus import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
+from preprocessing_population_data import prepare_data, save_data_to_excel, lineChartOne, lineChartRange
 
 from fpdf import FPDF
 from PIL import Image

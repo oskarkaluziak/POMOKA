@@ -23,5 +23,5 @@ setup(
     version="1.0",
     description="POMOKA",
     options={"build_exe": build_exe_options},
-    executables=[Executable("pomoka.py", base="Win32GUI", icon="icon.ico")],
+    executables=[Executable("menu.py", base="Win32GUI", icon="icon.ico")],
 )
