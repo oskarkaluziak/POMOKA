@@ -23,7 +23,7 @@ To launch the application:
 
 ```python pomoka.py```
 
-**💻 Build a Windows executable**
+**💻 Build a Windows/MacOS executable**
 
 Install cx_Freeze and build the executable:
 
