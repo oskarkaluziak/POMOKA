@@ -42,5 +42,3 @@ This project is licensed under the MIT License. See the LICENSE file for details
 For questions or feedback, please contact: 
 
 📧 oskar@kaluziak.pl
-
-or open an Issue on GitHub.
