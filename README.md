@@ -3,9 +3,12 @@
 User-friendly software to stratify long-term survival in reference to age- and sex-matched common population
 
 
-**Co-authors**
-1. Oskar Kałuziak, Grzegorz Możdżyński (oskar@kaluziak.pl, grzegorz.mozdzynski@student.put.poznan.pl)
-2. prof. Piotr Formanowicz, prof. Bartłomiej Perek
+**Authors**
+Oskar Kałuziak¹, Grzegorz Możdżyński¹, prof. Piotr Formanowicz¹, prof. Bartłomiej Perek²
+
+¹Institute of Computing Science, Poznan University of Technology, Poznań, Poland
+²Department of Cardiac Surgery and Transplantology, Poznan University of Medical Sciences, Poznań, Poland
+
 
 **How to install packets?**
 
