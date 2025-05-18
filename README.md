@@ -5,7 +5,7 @@
 
 👨‍💻 **Authors**
 
-**Oskar Kałuziak¹, Grzegorz Możdżyński¹, Prof. Piotr Formanowicz¹, Prof. Bartłomiej Perek²**
+**Oskar Kałuziak¹, Grzegorz Możdżyński¹, prof. Piotr Formanowicz¹, prof. Bartłomiej Perek²**
 
 ¹Institute of Computing Science, Poznan University of Technology, Poznań, Poland
 
