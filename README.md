@@ -4,6 +4,7 @@ User-friendly software to stratify long-term survival in reference to age- and s
 
 
 **Authors**
+
 Oskar Kałuziak¹, Grzegorz Możdżyński¹, prof. Piotr Formanowicz¹, prof. Bartłomiej Perek²
 
 ¹Institute of Computing Science, Poznan University of Technology, Poznań, Poland
