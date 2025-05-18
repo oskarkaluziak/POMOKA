@@ -844,10 +844,16 @@ class ChartEditorDialog(QWidget):
 
             if not hasattr(self, 'original_lines_data'):
                 self.original_lines_data = []
+                self.original_shaded_areas = []
                 for ax in self.figure.axes:
                     for line in ax.get_lines():
-                        x_data, y_data = line.get_data()
-                        self.original_lines_data.append((x_data, y_data, line.get_label(), line.get_color()))
+                        x_data = line.get_xdata()
+                        y_data = line.get_ydata()
+                        label = line.get_label()
+                        color = line.get_color()
+                        self.original_lines_data.append((x_data, y_data, label, color))
+                    for collection in ax.collections:
+                        self.original_shaded_areas.append(collection)
 
             if (y1_max > y2_max) or (y1_max == y2_max and y1_min <= y2_min):
                 top_range = (y1_min, y1_max)
@@ -864,15 +870,32 @@ class ChartEditorDialog(QWidget):
             ax1.set_ylim(top_range[0], top_range[1])
             ax2.set_ylim(bottom_range[0], bottom_range[1])
 
-            ax1.set_xlim(min(x_data), max(x_data))
-            ax2.set_xlim(min(x_data), max(x_data))
-
             for x_data, y_data, label, color in self.original_lines_data:
                 mask1 = (y_data >= top_range[0]) & (y_data <= top_range[1])
                 mask2 = (y_data >= bottom_range[0]) & (y_data <= bottom_range[1])
 
                 ax1.plot(x_data[mask1], y_data[mask1], label=label, color=color)
                 ax2.plot(x_data[mask2], y_data[mask2], label=label, color=color)
+
+            for collection in self.original_shaded_areas:
+                if collection.get_paths():
+                    path = collection.get_paths()[0]
+                    vertices = path.vertices
+                    x_shaded = vertices[:, 0]
+                    y_shaded = vertices[:, 1]
+                    mask1_shaded = (y_shaded >= top_range[0]) & (y_shaded <= top_range[1])
+                    mask2_shaded = (y_shaded >= bottom_range[0]) & (y_shaded <= bottom_range[1])
+
+                    # Ensure the masks are applied correctly to avoid grouping issues
+                    x_shaded1 = x_shaded[mask1_shaded]
+                    y_shaded1 = y_shaded[mask1_shaded]
+                    x_shaded2 = x_shaded[mask2_shaded]
+                    y_shaded2 = y_shaded[mask2_shaded]
+
+                    if len(x_shaded1) > 0 and len(y_shaded1) > 0:
+                        ax1.fill_between(x_shaded1, y_shaded1, color=collection.get_facecolor()[0], alpha=0.3)
+                    if len(x_shaded2) > 0 and len(y_shaded2) > 0:
+                        ax2.fill_between(x_shaded2, y_shaded2, color=collection.get_facecolor()[0], alpha=0.3)
 
             ax1.spines['bottom'].set_visible(False)
             ax2.spines['top'].set_visible(False)
