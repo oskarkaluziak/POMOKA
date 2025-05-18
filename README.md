@@ -1,13 +1,13 @@
 **POMOKA**
 
+User-friendly software to stratify long-term survival in reference to age- and sex-matched common population
 
-An open-source application designed to assist physicians and researchers in creating and analysing plots from medical datasets.
 
 **Co-authors**
 1. Oskar Kałuziak, Grzegorz Możdżyński (oskar@kaluziak.pl, grzegorz.mozdzynski@student.put.poznan.pl)
 2. prof. Piotr Formanowicz, prof. Bartłomiej Perek
 
-**How to install?**
+**How to install packets?**
 
 pip install PySide6, matplotlib, pyarrow, numpy, xlrd, scipy, statsmodels, lifelines, fpdf, openpyxl
 
