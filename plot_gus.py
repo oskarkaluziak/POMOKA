@@ -179,8 +179,8 @@ def save_data_to_excel(file_path_men, file_path_women, file_path_a, tab_m, tab_k
 
 # # Główna część programu
 # file_path = 'tablice_trwania_zycia_w_latach_1990-2022.xlsx'
-# file_path_men = 'dane_mezczyzni.xlsx'
-# file_path_women = 'dane_kobiety.xlsx'
+# file_path_men = 'preprocessed_male.xlsx'
+# file_path_women = 'preprocessed_female.xlsx'
 #
 # # Przygotowanie danych
 # tab_m, tab_k = prepare_data(file_path)

@@ -7,10 +7,10 @@ build_exe_options = {
     "packages": ["os", "pyarrow", "numpy", "scipy", "lifelines", "matplotlib"],
     "includes": ["pyarrow._compute_docstrings", "numpy", "scipy.integrate", "lifelines.statistics", "lifelines.fitters", "matplotlib", "pandas.plotting._matplotlib"],
     "include_files": [
-        ("data/magicdata.xlsx", "data/magicdata.xlsx"),
-        ("data/dane_mezczyzni.xlsx", "data/dane_mezczyzni.xlsx"),
-        ("data/dane_kobiety.xlsx", "data/dane_kobiety.xlsx"),
-        ("data/dane_ogolne.xlsx", "data/dane_ogolne.xlsx"),
+        ("data/population_data.xlsx", "data/population_data.xlsx"),
+        ("data/preprocessed_male.xlsx", "data/preprocessed_male.xlsx"),
+        ("data/preprocessed_female.xlsx", "data/preprocessed_female.xlsx"),
+        ("data/preprocessed_general.xlsx", "data/preprocessed_general.xlsx"),
         ("ENinstruction.md", "ENinstruction.md"),
         ("PLinstruction.md", "PLinstruction.md"),
         ("images/icon.png", "images/icon.png")
