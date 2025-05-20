@@ -546,10 +546,13 @@ class ChartEditorDialog(QWidget):
         self.y_range_btn.setStyleSheet(common_button_style)
         layout.addWidget(self.y_range_btn)
 
-        self.y_define_next_btn = QPushButton("Define double Y-axis Range", self)
-        self.y_define_next_btn.clicked.connect(self.defineNextYAxis)
-        self.y_define_next_btn.setStyleSheet(common_button_style)
-        layout.addWidget(self.y_define_next_btn)
+        ##in progress /oskar kałuziak/
+        #////
+        #self.y_define_next_btn = QPushButton("Define double Y-axis Range", self)
+        #self.y_define_next_btn.clicked.connect(self.defineNextYAxis)
+        #self.y_define_next_btn.setStyleSheet(common_button_style)
+        #layout.addWidget(self.y_define_next_btn)
+        #////
         self.define_status_value = 0
 
         # Kolejny zakres osi Y
@@ -633,7 +636,7 @@ class ChartEditorDialog(QWidget):
         layout.addWidget(self.toggle_legend_btn)
 
         # Widocznosc napisow
-        self.toggle_text_btn = QPushButton("Toggle Patient Numbers Visibility", self)
+        self.toggle_text_btn = QPushButton("Toggle Chart Numbers Visibility", self)
         self.toggle_text_btn.clicked.connect(self.toggle_patients_visibility)
         self.toggle_text_btn.setToolTip("Active only in Color Mode")
         self.toggle_text_btn.setStyleSheet(common_button_style)
@@ -922,13 +925,15 @@ class ChartEditorDialog(QWidget):
             self.y_range_max_input2.show()
             self.y_range_btn2.show()
             self.define_status_value = 1
-            self.y_define_next_btn.setText("Hide double Y-axis Range")
+            ##in progress /oskar kałuziak/
+            #self.y_define_next_btn.setText("Hide double Y-axis Range")
             self.y_range_btn.hide()
         else:
             self.y_range_min_input2.hide()
             self.y_range_max_input2.hide()
             self.y_range_btn2.hide()
-            self.y_define_next_btn.setText("Define double Y-axis Range")
+            ##in progress /oskar kałuziak/
+            #self.y_define_next_btn.setText("Define double Y-axis Range")
             self.define_status_value = 0
             self.y_range_btn.show()
             if not hasattr(self, 'original_lines_data') or not self.original_lines_data:
