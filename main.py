@@ -2225,7 +2225,7 @@ class POMOKAstat(QWidget):
         #  **Ścieżki do plików**
         report_path = os.path.join(output_dir,
                                    f"{report_name}.{output_format}")  # Raport w folderze `plots/{report_name}`
-        chart_image_path = os.path.join(output_dir, f"{report_name}_chart.png")  # Wykres w tym samym folderze
+        chart_image_path = os.path.join(output_dir, f"{report_name}.png")  # Wykres w tym samym folderze
         heatmap_path = os.path.join(output_dir, f"{report_name}_heatmap.png")  # Heatmapa też
 
         #  **Uruchomienie testów ANOVA + Tukeya**
