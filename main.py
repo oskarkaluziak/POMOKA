@@ -1852,17 +1852,17 @@ class POMOKAstat(QWidget):
 
 
 
-        # 📌 Dodanie wykresu do interfejsu
+        # Dodanie wykresu do interfejsu
         self.canvas = FigureCanvas(fig)
         self.ukladV.addWidget(self.canvas, 1, Qt.AlignBottom)
         self.canvas.draw()
-        # 📌 Etykiety kolumn (wartości osi X)
+        # Etykiety kolumn (wartości osi X)
         col_labels = [str(t) for t in time_intervals]
 
-        # 📌 Pobranie wartości liczby pacjentów na ryzyku w danym czasie
+        # Pobranie wartości liczby pacjentów na ryzyku w danym czasie
         values_row = [str(n_at_risk.loc[min(n_at_risk.index, key=lambda x: abs(x - t))]) for t in time_intervals]
 
-        # 📌 Utworzenie tabeli (2 wiersze: Time + wartości)
+        # Utworzenie tabeli (2 wiersze: Time + wartości)
         num_columns = len(col_labels) + 1  # Liczba kolumn (dodatkowa na Time/Preferences)
         table_widget = QTableWidget(2, num_columns)
 
@@ -1901,23 +1901,23 @@ class POMOKAstat(QWidget):
         table_widget.setFocusPolicy(Qt.NoFocus)
         table_widget.setSelectionMode(QAbstractItemView.NoSelection)
 
-        # 📌 Ustawienie nagłówków pierwszej kolumny
+        # Ustawienie nagłówków pierwszej kolumny
         table_widget.setItem(0, 0, QTableWidgetItem("Time"))
         table_widget.setItem(1, 0, QTableWidgetItem(preferences_description))
 
-        # 📌 Ustawienie danych w tabeli
+        # Ustawienie danych w tabeli
         for col, value in enumerate(values_row):
             table_widget.setItem(0, col + 1, QTableWidgetItem(col_labels[col]))  # Czas w górnym wierszu
             table_widget.setItem(1, col + 1, QTableWidgetItem(value))  # Wartości w dolnym wierszu
 
-        # 📌 **Dostosowanie szerokości tabeli**
+        # Dostosowanie szerokości tabeli
         table_width = self.width() - 40  # Całkowita szerokość tabeli
         table_height = 100  # Wysokość tabeli
 
         table_widget.setFixedSize(table_width, table_height)  # Blokowanie rozmiaru
         table_widget.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
-        # 📌 **Dopasowanie szerokości kolumn**
+        # Dopasowanie szerokości kolumn
         first_column_width = 100  # Ręczne dopasowanie szerokości pierwszej kolumny
         remaining_width = table_width - first_column_width - 40  # Pozostała szerokość
         column_width = remaining_width // (num_columns - 1)  # Równy podział na pozostałe kolumny
@@ -1932,11 +1932,11 @@ class POMOKAstat(QWidget):
         table_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         table_widget.setShowGrid(True)
 
-        # 📌 **Usunięcie numeracji wierszy i kolumn**
+        # Usunięcie numeracji wierszy i kolumn
         table_widget.verticalHeader().setVisible(False)
         table_widget.horizontalHeader().setVisible(False)
 
-        # 📌 **Utworzenie kontenera do wyśrodkowania tabeli**
+        # Utworzenie kontenera do wyśrodkowania tabeli
         self.container = QWidget()
         self.container.setFixedWidth(900)
         layout = QHBoxLayout(self.container)
@@ -1944,10 +1944,10 @@ class POMOKAstat(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.container.setLayout(layout)
 
-        # 📌 **Ustawienie rozmiaru kontenera**
+        # Ustawienie rozmiaru kontenera
         self.container.setFixedSize(table_width, table_height + 20)  # Zapewnienie, że tabela będzie widoczna w całości
 
-        # 📌 **Dodanie tabeli do interfejsu**
+        # Dodanie tabeli do interfejsu
         self.ukladV.addWidget(self.container, 0, Qt.AlignCenter)
 
         self.legend_text.append(label_text)
