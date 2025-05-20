@@ -44,10 +44,10 @@ class POMOKAstartup(QWidget):
                                             """)
         self.subtitle_label.setAlignment(Qt.AlignCenter)
 
-        self.statBtn = QPushButton("OPEN STAT APP", self)
+        self.statBtn = QPushButton("OPEN", self)
         self.statBtn.setCursor(Qt.PointingHandCursor)
 
-        self.reportBtn = QPushButton("GIVE YOUR FEEDBACK", self)
+        self.reportBtn = QPushButton("SEND FEEDBACK", self)
         self.reportBtn.setCursor(Qt.PointingHandCursor)
 
         self.instructionsBtn = QPushButton("INSTRUCTION", self)
