@@ -548,10 +548,10 @@ class ChartEditorDialog(QWidget):
 
         ##This mode is still in progress /Oskar Kałuziak/
         ##
-        #self.y_define_next_btn = QPushButton("Define double Y-axis Range", self)
-        #self.y_define_next_btn.clicked.connect(self.defineNextYAxis)
-        #self.y_define_next_btn.setStyleSheet(common_button_style)
-        #layout.addWidget(self.y_define_next_btn)
+        self.y_define_next_btn = QPushButton("Define double Y-axis Range", self)
+        self.y_define_next_btn.clicked.connect(self.defineNextYAxis)
+        self.y_define_next_btn.setStyleSheet(common_button_style)
+        layout.addWidget(self.y_define_next_btn)
         ##
         self.define_status_value = 0
 
@@ -1612,7 +1612,8 @@ class POMOKAstat(QWidget):
             # print (f'{self.selected_sex}')
             # print (f'{sex}')
             ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
-                    label=f'HEALTHY (age: {agetext}; sex: {sextext})',
+                    #label=f'HEALTHY (age: {agetext}; sex: {sextext})',
+                    label=f'POPULATION DATA',
                     linestyle='-', color='orange')
 
             # Ustaw widoczny zakres osi X za pomocą ChartEditorDialog
@@ -1620,7 +1621,9 @@ class POMOKAstat(QWidget):
             chart_editor.x_range_min_input.setText("-0.5")
             chart_editor.x_range_max_input.setText(str(last_time_km + 0.5))
             chart_editor.applyXAxisRange()
-            self.guslegend = f'HEALTHY (age: {agetext}; sex: {sextext})'
+            #self.guslegend = f'HEALTHY (age: {agetext}; sex: {sextext})'
+            self.guslegend = f'POPULATION DATA'
+
             ax.legend()
 
         if opcja == 2:
@@ -1644,7 +1647,8 @@ class POMOKAstat(QWidget):
             agetextstart = 2022 - year_start
             agetextend = 2022 - year_end
             ax.step(self.x_data_trimmed, self.y_data_probability_trimmed, where='post',
-                    label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
+                    #label=f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})',
+                    label=f'POPULATION DATA',
                     linestyle='-', color='orange')
 
             # Ustaw widoczny zakres osi X za pomocą ChartEditorDialog
@@ -1652,7 +1656,8 @@ class POMOKAstat(QWidget):
             chart_editor.x_range_min_input.setText("-0.5")
             chart_editor.x_range_max_input.setText(str(last_time_km + 0.5))
             chart_editor.applyXAxisRange()
-            self.guslegend = f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})'
+            #self.guslegend = f'HEALTHY (age: {agetextend}-{agetextstart}; sex: {sextext})'
+            self.guslegend = f'POPULATION DATA'
             ax.legend()
         curve_id="GUS"
         self.data_storage.add_data(curve_id, self.y_data_probability_trimmed)
@@ -1791,7 +1796,8 @@ class POMOKAstat(QWidget):
                                                                                                 0] == 'numeric' else f"{pref}: {', '.join(self.column_ranges[pref][1])}"
             for pref in selected_preferences if pref in self.column_ranges
         ])
-        label_text = f'ILL ({preferences_description})'
+        #label_text = f'ILL ({preferences_description})'
+        label_text = f'PATIENT DATA'
         kmf_ill.plot_survival_function(ax=ax, label=label_text)
         ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
 
@@ -1843,8 +1849,8 @@ class POMOKAstat(QWidget):
                 verticalalignment='bottom',
                 path_effects=[withStroke(linewidth=3, foreground="white")])
 
-        ax.set_title('Chart')
-        ax.set_xlabel('Time')
+        #ax.set_title('Chart')
+        ax.set_xlabel('Time [years]')
         ax.set_ylabel('Survival Probability')
 
         plt.grid(True)
@@ -1906,7 +1912,7 @@ class POMOKAstat(QWidget):
         table_widget.setSelectionMode(QAbstractItemView.NoSelection)
 
         # Ustawienie nagłówków pierwszej kolumny
-        table_widget.setItem(0, 0, QTableWidgetItem("Time"))
+        table_widget.setItem(0, 0, QTableWidgetItem("Time [years]"))
         table_widget.setItem(1, 0, QTableWidgetItem(preferences_description))
 
         # Ustawienie danych w tabeli

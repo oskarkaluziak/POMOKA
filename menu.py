@@ -287,3 +287,12 @@ if __name__ == "__main__":
     startup = POMOKAstartup()
     startup.show()
     app.exec()
+
+
+print('wprowadz swoje imie')
+x = input()
+if x < 9:
+    x += 1
+    print(x)
+else:
+    print(x)
